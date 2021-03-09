@@ -1,19 +1,31 @@
 package config
 
+import (
+	"path/filepath"
+
+	"github.com/ahui2016/localtags/util"
+)
+
+const (
+	dataFolderName = "localtags_data_folder"
+	waitingDirName = "waiting"
+)
+
 // Config 用来设置一些全局变量
 type Config struct {
 
-	// 数据文件夹名称
-	DataFolderName string
+	// 数据文件夹的完整路径
+	DataFolder string
 
-	// 待上传的文件要放进这个文件夹里
-	WaitingFolderName string
+	// 待上传文件的文件夹的完整路径
+	WaitingFolder string
 }
 
 // Default 默认设定
 func Default() Config {
+	dataDir := filepath.Join(util.UserHomeDir(), dataFolderName)
 	return Config{
-		DataFolderName:    "localtags_data_folder",
-		WaitingFolderName: "waiting",
+		DataFolder:    dataDir,
+		WaitingFolder: filepath.Join(dataDir, waitingDirName),
 	}
 }
