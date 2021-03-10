@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"github.com/ahui2016/localtags/config"
 	"github.com/ahui2016/localtags/database"
+	"github.com/ahui2016/localtags/thumbnail"
 	"github.com/ahui2016/localtags/util"
 )
 
@@ -17,6 +18,7 @@ const (
 )
 const (
 	dbFileName = "localtags.db"
+	tempFolder = "public/temp" // 临时文件夹的完整路径
 )
 
 var (
@@ -24,8 +26,9 @@ var (
 )
 
 var (
-	cfg    config.Config
-	dbPath string // 数据库文件完整路径
+	cfg       config.Config
+	dbPath    string // 数据库文件完整路径
+	hasFFmpeg bool   // 系统中有没有安装 FFmpeg
 )
 
 var (
@@ -39,22 +42,28 @@ func init() {
 		configFile = *cfgFlag
 	}
 	setConfig()
-	dbPath = filepath.Join(cfg.DataFolder, dbFileName)
-
+	setPaths()
+	hasFFmpeg = thumbnail.CheckFFmpeg()
 }
 
 func setConfig() {
 	cfg = config.Default()
-	configJSON, err := ioutil.ReadFile(configFile)
+	configJSON, err := os.ReadFile(configFile)
 
 	// 找不到文件或内容为空
 	if err != nil || len(configJSON) == 0 {
 		configJSON, err = json.MarshalIndent(cfg, "", "    ")
 		util.Panic(err)
-		util.Panic(ioutil.WriteFile(configFile, configJSON, 0600))
+		util.Panic(os.WriteFile(configFile, configJSON, 0600))
 		return
 	}
 
 	// configFile 有内容
 	util.Panic(json.Unmarshal(configJSON, &cfg))
+}
+
+func setPaths() {
+	util.MustMkdir(cfg.DataFolder)
+	util.MustMkdir(cfg.WaitingFolder)
+	dbPath = filepath.Join(cfg.DataFolder, dbFileName)
 }

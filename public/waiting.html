@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+  <script src="/public/util.js"></script>
+  
+  <title>waiting - localtags</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 680px; min-width: 400px;"></div>
+<script>
+  const Alerts = CreateAlerts();
+  
+  const FileList = cc('div');
+  
+  $('#root').append([
+    m(Alerts),
+    m(FileList).addClass('mt-3'),
+    m(BottomLine),
+  ]);
+
+  init()
+  
+  function init() {
+    ajax({method:'GET',url:'/api/waitingFiles',alert:Alerts},
+    (files) => {
+      files.forEach(file => {
+        const item = FileItem(file);
+        $(FileList.id).prepend(m(item));
+      });
+    });
+  }
+  
+  function FileItem(file) {
+    let thumbClass = 'col-md-2 col-3';
+    if (!file.Thumb) {
+      thumbClass = 'col-md-2 col-2';
+      file.Thumb = getThumbByFiletype(file.Type);
+    }
+
+    const self = cc('div');
+
+    self.view = () => m('div').attr({id: self.raw_id}).addClass('card mb-3').append([
+      m('div').addClass('row g-0').append([
+        m('div').addClass(thumbClass).append([
+          m('img').addClass('card-img ').attr({src: file.Thumb}),
+        ]),
+        m('div').addClass('col').append([
+          m('div').addClass('card-body d-flex flex-column h-100').append([
+            m('p').addClass('small card-subtitle text-muted').text(`(size: ${file.Size})`),
+            m('p').addClass('card-text mb-0').text(file.Name),
+          ]),
+        ]),
+      ]),
+    ]);
+
+    return self;
+  }
+  
+</script>
+</body>
+</html>

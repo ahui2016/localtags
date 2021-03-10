@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+  <script src="/public/util.js"></script>
+  
+  <title>Hello, world!</title>
+</head>
+<body>
+  <div id="root" class="container"></div>
+<script>
+  const Alerts = CreateAlerts();
+
+  const WaitingFolder = cc('a');
+
+  const CopyBtn = cc('button', 'copy');
+
+  $('#root').append([
+    m(Alerts),
+    m(WaitingFolder),
+    m(CopyBtn).text('copy'),
+    m(Spacer),
+    m('a').text('Next').attr({href: '/light/waiting'}),
+  ]);
+
+  init()
+
+  function init() {
+    ajax({method:'GET',url:'/api/waitingFolder',alert:Alerts},
+    (resp) => {
+      const folderPath = resp.message;
+      $(WaitingFolder.id).text(folderPath).attr({href:folderPath});
+    });
+  }
+
+  const clipboard = new ClipboardJS('#copy', {
+    text: () => { return $(WaitingFolder.id).text(); }
+  });
+  clipboard.on('success', () => {
+    Alerts.insert('success', '复制成功');
+  });
+  clipboard.on('error', e => {
+    console.error('Action:', e.action);
+    console.error('Trigger:', e.trigger);
+    Alerts.insert('danger', '复制失败，详细信息见控制台');
+  });
+
+</script>
+</body>
+</html>
