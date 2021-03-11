@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"encoding/json"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,16 +23,26 @@ type Text struct {
 	Message string `json:"message"`
 }
 
+func errorHandler(err error, c echo.Context) {
+	if e, ok := err.(*echo.HTTPError); ok {
+		c.JSON(e.Code, e.Message)
+	}
+	c.JSON(500, Text{err.Error()})
+}
+
 func waitingFolder(c echo.Context) error {
 	return c.JSON(OK, Text{cfg.WaitingFolder})
 }
 
 func waitingFiles(c echo.Context) error {
-	pattern := filepath.Join(cfg.WaitingFolder, "*")
-	fileNames, err := filepath.Glob(pattern)
-	if err != nil {
+	fileNames, err1 := getTempFiles()
+	metadata, err2 := getMetadata()
+	if err := util.WrapErrors(err1, err2); err != nil {
 		return err
 	}
+
+	// 即将在临时文件夹里写数据，因此先确保该文件夹存在。
+	util.MustMkdir(tempFolder)
 	var files []File
 	for _, name := range fileNames {
 		info, err := os.Lstat(name)
@@ -41,27 +52,70 @@ func waitingFiles(c echo.Context) error {
 		if info.IsDir() {
 			continue
 		}
-		file := File{Size: info.Size()}
-		file.SetNameType(info.Name())
-
-		if hasFFmpeg && strings.HasPrefix(file.Type, "video") {
-			log.Print(tempFolder)
-			util.MustMkdir(tempFolder)
-			thumb := tempThumb(name)
-			if err := thumbnail.OneFrame(name, thumb, 10); err != nil {
-				return err
-			}
-			file.Thumb = thumb
+		file, err := infoToFile(name, info, metadata)
+		if err != nil {
+			return err
 		}
-
 		files = append(files, file)
 	}
+
+	// 更新 metadata, 因为文件有可能已经发生变化。
+	metadata = filesToMeta(files)
+	util.MarshalWrite(metadata, tempMetadata)
 	return c.JSON(OK, files)
 }
 
-func tempThumb(filePath string) (tempThumbPath string) {
-	thumbName := filepath.Base(filePath) + ".jpg"
-	return filepath.Join(tempFolder, thumbName)
+func getTempFiles() ([]string, error) {
+	pattern := filepath.Join(cfg.WaitingFolder, "*")
+	return filepath.Glob(pattern)
+}
+
+func infoToFile(name string, info fs.FileInfo, meta map[string]File) (
+	file File, err error) {
+
+	file = File{Size: info.Size()}
+	file.SetNameType(info.Name())
+
+	fileBytes, err := os.ReadFile(name)
+	if err != nil {
+		return
+	}
+	file.Hash = util.Sha256Hex(fileBytes)
+
+	// 如果文件已经在 metadata 里，则不进行处理，立即返回。
+	if _, ok := meta[file.Hash]; ok {
+		file.Thumb = meta[file.Hash].Thumb
+		return
+	}
+
+	if hasFFmpeg && strings.HasPrefix(file.Type, "video") {
+		file.ID = model.RandomID()
+		thumb := filepath.Join(tempFolder, file.ID+".jpg")
+		if err = thumbnail.OneFrame(name, thumb, 10); err != nil {
+			return
+		}
+		file.Thumb = "/" + filepath.ToSlash(thumb)
+	}
+	return
+}
+
+func getMetadata() (map[string]File, error) {
+	metadata := make(map[string]File)
+	metaJSON, err := os.ReadFile(tempMetadata)
+	if err != nil {
+		// 如果读取文件失败，则反回一个空的 metadata, 不处理错误。
+		return metadata, nil
+	}
+	err = json.Unmarshal(metaJSON, &metadata)
+	return metadata, err
+}
+
+func filesToMeta(files []File) map[string]File {
+	meta := make(map[string]File)
+	for _, file := range files {
+		meta[file.Hash] = file
+	}
+	return meta
 }
 
 func checkFFmpeg(c echo.Context) error {

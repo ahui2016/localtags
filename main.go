@@ -8,6 +8,7 @@ import (
 
 func main() {
 	e := echo.New()
+	e.HTTPErrorHandler = errorHandler
 
 	e.Static("/public", "public")
 	e.File("/", "public/hello.html")

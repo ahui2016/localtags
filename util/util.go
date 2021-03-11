@@ -1,6 +1,9 @@
 package util
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -20,6 +23,22 @@ func WrapErrors(allErrors ...error) (wrapped error) {
 		}
 	}
 	return
+}
+
+// ErrorContains returns NoCaseContains(err.Error(), substr)
+// Returns false if err is nil.
+func ErrorContains(err error, substr string) bool {
+	if err == nil {
+		return false
+	}
+	return noCaseContains(err.Error(), substr)
+}
+
+// noCaseContains reports whether substr is within s case-insensitive.
+func noCaseContains(s, substr string) bool {
+	s = strings.ToLower(s)
+	substr = strings.ToLower(substr)
+	return strings.Contains(s, substr)
 }
 
 // Panic panics if err != nil
@@ -57,6 +76,19 @@ func MustMkdir(dirName string) {
 	if PathIsNotExist(dirName) {
 		Panic(os.Mkdir(dirName, 0700))
 	}
+}
+
+// Sha256Hex 返回 sha256 的 hex 字符串。
+func Sha256Hex(data []byte) string {
+	sum := sha256.Sum256(data)
+	return hex.EncodeToString(sum[:])
+}
+
+// MarshalWrite 把 data 转换为漂亮格式的 JSON 并写入文件 name 中。
+func MarshalWrite(data interface{}, name string) {
+	dataJSON, err := json.MarshalIndent(data, "", "    ")
+	Panic(err)
+	Panic(os.WriteFile(name, dataJSON, 0600))
 }
 
 // checkImage 检查图片能否正常使用。

@@ -1,7 +1,9 @@
 package model
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 	"sync"
@@ -78,4 +80,19 @@ func (id ShortID) String() string {
 	count := strconv.FormatInt(id.Count, 36)
 	strID := id.Prefix + year + count
 	return strings.ToUpper(strID)
+}
+
+// RandomID 返回一个上升趋势的随机 id, 由时间戳与随机数组成。
+// 时间戳确保其上升趋势（大致有序），随机数确保其随机性（防止被穷举）。
+// RandomID 考虑了 “生成 id 的速度”、 “并发生成时防止冲突” 与 “id 长度”
+// 这三者的平衡，适用于大多数中、小规模系统（当然，不适用于大型系统）。
+func RandomID() string {
+	var max int64 = 100_000_000
+	n, err := rand.Int(rand.Reader, big.NewInt(max))
+	if err != nil {
+		panic(err)
+	}
+	timestamp := time.Now().Unix()
+	idInt64 := timestamp*max + n.Int64()
+	return strconv.FormatInt(idInt64, 36)
 }

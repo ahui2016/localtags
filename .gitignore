@@ -1,3 +1,4 @@
 localtags
 *.exe
 config.json
+public/temp

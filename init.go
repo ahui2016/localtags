@@ -17,8 +17,9 @@ const (
 	OK = http.StatusOK
 )
 const (
-	dbFileName = "localtags.db"
-	tempFolder = "public/temp" // 临时文件夹的完整路径
+	dbFileName   = "localtags.db"
+	tempFolder   = "public/temp"               // 临时文件夹的完整路径
+	tempMetadata = "public/temp/metadata.json" // 临时文件数据
 )
 
 var (
@@ -52,9 +53,7 @@ func setConfig() {
 
 	// 找不到文件或内容为空
 	if err != nil || len(configJSON) == 0 {
-		configJSON, err = json.MarshalIndent(cfg, "", "    ")
-		util.Panic(err)
-		util.Panic(os.WriteFile(configFile, configJSON, 0600))
+		util.MarshalWrite(cfg, configFile)
 		return
 	}
 
