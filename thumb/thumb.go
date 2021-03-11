@@ -31,6 +31,16 @@ func CheckImage(img []byte) error {
 }
 */
 
+// NailWrite reads an image from imgPath, creates a thumbnail of it,
+// and write the thumbnail to thumbPath.
+func NailWrite(imgPath, thumbPath string) error {
+	img, err := os.ReadFile(imgPath)
+	if err != nil {
+		return err
+	}
+	return BytesToThumb(img, thumbPath)
+}
+
 // BytesToThumb creates a thumbnail from img, uses default size and default quality,
 // and write the thumbnail to thumbPath.
 func BytesToThumb(img []byte, thumbPath string) error {
@@ -54,7 +64,7 @@ func ResizeLimit(img []byte, limit float64, quality int) (*bytes.Buffer, error) 
 	return jpegEncode(small, quality)
 }
 
-// Nail create a thumbnail of an imgFile.
+// Nail creates a thumbnail of an imgFile.
 // Use default size(128) if size is set to zero.
 // Use default quality(85) if quality is set to zero.
 func Nail(img []byte, size, quality int) (*bytes.Buffer, error) {
@@ -144,7 +154,7 @@ func OneFrame(in, out string, n int) error {
 		"-ss", strconv.Itoa(n), // 从视频开头算起第 n 秒
 		"-i", in, // 视频文件名
 		"-frames:v", "1", // 截取 1 帧
-		"-q:v", "2", // 截图质量，2 是较高质量
+		"-q:v", "9", // 截图质量，好像是 1 最高、9 最低
 		"-y", // 自动覆盖文件
 		out,  // 截图保存位置
 	)
@@ -158,9 +168,9 @@ func FrameNail(in, out string, n int) error {
 	if err != nil {
 		return err
 	}
-	file, err := os.ReadFile(out)
+	img, err := os.ReadFile(out)
 	if err != nil {
 		return err
 	}
-	return BytesToThumb(file, out)
+	return BytesToThumb(img, out)
 }

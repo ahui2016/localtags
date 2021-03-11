@@ -20,6 +20,7 @@ func main() {
 	api.GET("/waitingFolder", waitingFolder)
 	api.GET("/waitingFiles", waitingFiles)
 	api.GET("/check", checkFFmpeg)
+	api.POST("/files", addFiles)
 
 	log.Print("localtags database path: ", dbPath)
 	e.Logger.Fatal(e.Start(":80"))

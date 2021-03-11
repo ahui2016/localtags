@@ -37,7 +37,7 @@ function ajax(options, onSuccess, onFail, onAlways) {
     } else {
       const msg = `${this.status} ${this.responseText}`;
       if (options.alerts) {
-        options.alerts.Insert('danger', msg);
+        options.alerts.insert('danger', msg);
       } else {
         console.log(msg);
       }
@@ -49,6 +49,36 @@ function ajax(options, onSuccess, onFail, onAlways) {
     if (onAlways) onAlways(this);
   });
   xhr.send(options.body);
+}
+
+// 把文件大小换算为 KB 或 MB
+function fileSizeToString(fileSize, fixed) {
+  if (fixed == null) {
+    fixed = 2
+  }
+  const sizeMB = fileSize / 1024 / 1024;
+  if (sizeMB < 1) {
+    return `${(sizeMB * 1024).toFixed(fixed)} KB`;
+  }
+  return `${sizeMB.toFixed(fixed)} MB`;
+}
+
+function addPrefix(setOrArr, prefix) {
+  if (!setOrArr) return '';
+  let arr = Array.from(setOrArr);
+  if (!prefix) prefix = '';
+  return arr.map(x => prefix + x).join(' ');
+}
+
+function tag_replace(tags) {
+  return tags.replace(/[#;,，'"/\+\n]/g, ' ').trim();
+}
+
+function tagsStringToSet(tags) {
+  const trimmed = tag_replace(tags);
+  if (trimmed.length == 0) return new Set();
+  const arr = trimmed.split(/ +/);
+  return new Set(arr);
 }
 
 function getThumbByFiletype(filetype) {
@@ -119,33 +149,28 @@ function CreateInfoPair(name, msg) {
   return [infoIcon, infoMsg];
 }
 
-function CreateAlerts(max) {
-  if (!max) max = 5;
+function CreateAlerts() {
   const alerts = cc('div');
-
-  alerts.count = 0;
 
   alerts.insertElem = (elem) => {
     $(alerts.id).prepend(elem);
-    alerts.count++;
-    if (alerts.count > max) {
-      $(`${alerts.id} p:last-of-type`).remove();
-    }
   };
 
   alerts.insert = (msgType, msg) => {
-    const elem = m('p').addClass(`alert alert-${msgType}`).append([
-      m('span').text(dayjs().format('HH:mm:ss')),
-      m('span').text(msg),
-    ]);
+    const time = dayjs().format('HH:mm:ss');
+    const elem = m('div')
+      .addClass(`alert alert-${msgType} alert-dismissible fade show`)
+      .attr({role:'alert'})
+      .append([
+        m('span').text(`${time} ${msg}`),
+        m('button').attr({type: 'button', class: "btn-close", 'data-bs-dismiss': "alert", 'aria-label':"Close"}),
+      ]);
     alerts.insertElem(elem);
   };
 
   alerts.clear = () => {
     $(alerts.id).html('');
-    alerts.count = 0;
   };
 
-  alerts.view = () => m('div').attr({id: alerts.raw_id}).addClass('alerts');
   return alerts;
 }

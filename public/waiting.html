@@ -13,28 +13,109 @@
   <title>waiting - localtags</title>
 </head>
 <body>
-  <div id="root" class="container" style="max-width: 680px; min-width: 400px;"></div>
+  <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
 <script>
   const Alerts = CreateAlerts();
   
+  const Tags = cc('textarea');
+  const SetTagsBtn = cc('button');
+  const TagsArea = cc('div', null, [
+    m(Tags).addClass('form-control').attr({placeholder:'tags...'}),
+    m('p').addClass('text-end mt-2').append([
+      m(SetTagsBtn).text('set').addClass('btn btn-primary').attr({type:'button'}),
+    ]),
+  ]);
+
   const FileList = cc('div');
+
+  const SubmitAlerts = CreateAlerts();
   
+  const SubmitBtn = cc('button');
+  const SubmitBtnAera = cc('p', null, [
+    m(SubmitBtn).text('Submit').addClass('btn btn-primary').attr({type:'button'}),
+  ])
+
   $('#root').append([
+    m(Spacer),
+    m(TagsArea),
+    m(Spacer),
     m(Alerts),
     m(FileList).addClass('mt-3'),
+    m(Spacer),
+    m(SubmitAlerts),
+    m(SubmitBtnAera).addClass('text-center'),
     m(BottomLine),
   ]);
 
   init()
   
   function init() {
-    ajax({method:'GET',url:'/api/waitingFiles',alert:Alerts},
+    $(SetTagsBtn.id).click(() => {
+      const tagsInput = $(Tags.id);
+      let tags = tagsInput.val();
+      const tagsSet = tagsStringToSet(tags);
+      tags = addPrefix(tagsSet, '#');
+      $('.Tags').text(tags);
+      tagsInput.val(tags).focus();
+    });
+
+    $(SubmitBtn.id).click(() => {
+      if (!checkTags()) return;
+      const files = {};
+      $('.FileItem').each((i, item) => {
+        const tags = $(item).find('.Tags').text();
+        files[$(item).attr('id')] = Array.from(tagsStringToSet(tags));
+      });
+      const body = new FormData();
+      body.append('files-tags', JSON.stringify(files));
+      ajax({method:'POST',url:'/api/files',alerts:SubmitAlerts,body:body},
+        () => {
+          $(TagsArea.id).hide();
+          $(SubmitBtnAera.id).hide();
+          const msg = 'OK';
+          Alerts.insert('success', msg);
+          SubmitAlerts.insert('success', msg);
+        });
+    });
+
+    ajax({method:'GET',url:'/api/waitingFiles',alerts:Alerts},
     (files) => {
       files.forEach(file => {
         const item = FileItem(file);
         $(FileList.id).prepend(m(item));
+
+        // item 里的按钮事件，要在 item 被 append 之后添加。
+        const tagsText = $(item.id + ' .Tags');
+        const tagsInput = $(item.id + ' .TagsInput');
+        const inputGroup = $(item.id + ' .input-group');
+        $(item.id + ' .OK').click(() => {
+          const tags = tagsInput.val();
+          const tagsSet = tagsStringToSet(tags);
+          tagsText.show().text(addPrefix(tagsSet, '#'));
+          inputGroup.hide();
+        });
+
+        tagsText.dblclick(() => {
+          inputGroup.show();
+          tagsInput.val(tagsText.text()).focus();
+          tagsText.hide();
+        });
       });
+
+      window.setTimeout(() => { $(Tags.id).focus(); }, 200);
     });
+  }
+
+  // checkTags 返回 false 表示标签不符合要求，返回 true 表示标签没问题。
+  function checkTags() {
+    $('.Tags').each((i, elem) => {
+      const tagsSet = tagsStringToSet(elem.innerText);
+      if (tagsSet.size < 2) {
+        SubmitAlerts.insert('danger', '每个文件至少需要 2 个标签');
+        return false;
+      }
+    });
+    return true;
   }
   
   function FileItem(file) {
@@ -44,17 +125,22 @@
       file.Thumb = getThumbByFiletype(file.Type);
     }
 
-    const self = cc('div');
+    const self = cc('div', file.ID);
 
-    self.view = () => m('div').attr({id: self.raw_id}).addClass('card mb-3').append([
+    self.view = () => m('div').attr({id: self.raw_id}).addClass('FileItem card mb-3').append([
       m('div').addClass('row g-0').append([
         m('div').addClass(thumbClass).append([
           m('img').addClass('card-img ').attr({src: file.Thumb}),
         ]),
         m('div').addClass('col').append([
           m('div').addClass('card-body d-flex flex-column h-100').append([
-            m('p').addClass('small card-subtitle text-muted').text(`(size: ${file.Size})`),
+            m('p').addClass('small card-subtitle text-muted').text(`(size: ${fileSizeToString(file.Size)})`),
             m('p').addClass('card-text mb-0').text(file.Name),
+            m('div').addClass('Tags small text-muted mt-auto'),
+            m('div').addClass('input-group mt-auto').hide().append([
+              m('input').addClass('TagsInput form-control'),
+              m('button').text('ok').addClass('OK btn btn-outline-secondary').attr({type:'button'}),
+            ]),
           ]),
         ]),
       ]),

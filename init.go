@@ -17,9 +17,10 @@ const (
 	OK = http.StatusOK
 )
 const (
-	dbFileName   = "localtags.db"
-	tempFolder   = "public/temp"               // 临时文件夹的完整路径
-	tempMetadata = "public/temp/metadata.json" // 临时文件数据
+	dbFileName     = "localtags.db"
+	mainBucketName = "mainbucket"                // 主仓库文件夹名
+	tempFolder     = "public/temp"               // 临时文件夹的完整路径
+	tempMetadata   = "public/temp/metadata.json" // 临时文件数据
 )
 
 var (
@@ -27,9 +28,10 @@ var (
 )
 
 var (
-	cfg       config.Config
-	dbPath    string // 数据库文件完整路径
-	hasFFmpeg bool   // 系统中有没有安装 FFmpeg
+	cfg        config.Config
+	dbPath     string // 数据库文件完整路径
+	mainBucket string // 主仓库文件夹完整路径
+	hasFFmpeg  bool   // 系统中有没有安装 FFmpeg
 )
 
 var (
@@ -62,7 +64,9 @@ func setConfig() {
 }
 
 func setPaths() {
-	util.MustMkdir(cfg.DataFolder)
-	util.MustMkdir(cfg.WaitingFolder)
 	dbPath = filepath.Join(cfg.DataFolder, dbFileName)
+	mainBucket = filepath.Join(cfg.DataFolder, mainBucketName)
+	util.MustMkdir(cfg.DataFolder)
+	util.MustMkdir(mainBucket)
+	util.MustMkdir(cfg.WaitingFolder)
 }

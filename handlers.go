@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,9 +53,11 @@ func waitingFiles(c echo.Context) error {
 		if info.IsDir() {
 			continue
 		}
-		file, err := infoToFile(name, info, metadata)
-		if err != nil {
-			return err
+		file, err1 := infoToFile(name, info, metadata)
+		if err1 != nil {
+			// 在函数 infoToFile 中可能生成一些缩略图，如果发生错误，要删除这些缩略图。
+			err2 := cleanThumbFiles(files)
+			return util.WrapErrors(err1, err2)
 		}
 		files = append(files, file)
 	}
@@ -63,6 +66,15 @@ func waitingFiles(c echo.Context) error {
 	metadata = filesToMeta(files)
 	util.MarshalWrite(metadata, tempMetadata)
 	return c.JSON(OK, files)
+}
+
+func cleanThumbFiles(files []File) error {
+	for _, file := range files {
+		if err := os.Remove(strings.TrimPrefix(file.Thumb, "/")); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func getTempFiles() ([]string, error) {
@@ -83,18 +95,31 @@ func infoToFile(name string, info fs.FileInfo, meta map[string]File) (
 	file.Hash = util.Sha256Hex(fileBytes)
 
 	// 如果文件已经在 metadata 里，则不进行处理，立即返回。
-	if _, ok := meta[file.Hash]; ok {
-		file.Thumb = meta[file.Hash].Thumb
+	if metaFile, ok := meta[file.Hash]; ok {
+		file.ID = metaFile.ID
+		file.Thumb = metaFile.Thumb
 		return
 	}
 
-	if hasFFmpeg && strings.HasPrefix(file.Type, "video") {
-		file.ID = model.RandomID()
-		thumbPath := filepath.Join(tempFolder, file.ID+".jpg")
-		if err = thumb.FrameNail(name, thumbPath, 10); err != nil {
-			return
-		}
+	file.ID = model.RandomID()
+	thumbPath := filepath.Join(tempFolder, file.ID+".jpg")
+
+	if strings.HasPrefix(file.Type, "image") {
 		file.Thumb = "/" + filepath.ToSlash(thumbPath)
+		// 注意下面这个 err 是个新变量，不同于函数返回值的那个 err.
+		if err := thumb.NailWrite(name, thumbPath); err != nil {
+			// 如果生成缩略图失败，可能原图已损坏，或根本不是图片（后缀名错误）。
+			file.Thumb = ""
+		}
+	}
+
+	if hasFFmpeg && strings.HasPrefix(file.Type, "video") {
+		file.Thumb = "/" + filepath.ToSlash(thumbPath)
+		// 注意下面这个 err 是个新变量，不同于函数返回值的那个 err.
+		if err := thumb.FrameNail(name, thumbPath, 10); err != nil {
+			// 如果截图失败，可能视频已损坏，或根本不是视频（后缀名错误）。
+			file.Thumb = ""
+		}
 	}
 	return
 }
@@ -121,4 +146,14 @@ func filesToMeta(files []File) map[string]File {
 func checkFFmpeg(c echo.Context) error {
 	ok := thumb.CheckFFmpeg()
 	return c.JSON(OK, ok)
+}
+
+func addFiles(c echo.Context) error {
+	value := c.FormValue("files-tags")
+	var filesTags map[string][]string // hash[tags]
+	if err := json.Unmarshal([]byte(value), &filesTags); err != nil {
+		return err
+	}
+	log.Print(filesTags)
+	return c.NoContent(OK)
 }
