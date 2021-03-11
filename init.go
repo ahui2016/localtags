@@ -9,7 +9,7 @@ import (
 
 	"github.com/ahui2016/localtags/config"
 	"github.com/ahui2016/localtags/database"
-	"github.com/ahui2016/localtags/thumbnail"
+	"github.com/ahui2016/localtags/thumb"
 	"github.com/ahui2016/localtags/util"
 )
 
@@ -44,7 +44,7 @@ func init() {
 	}
 	setConfig()
 	setPaths()
-	hasFFmpeg = thumbnail.CheckFFmpeg()
+	hasFFmpeg = thumb.CheckFFmpeg()
 }
 
 func setConfig() {

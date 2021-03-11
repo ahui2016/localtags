@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/ahui2016/localtags/model"
-	"github.com/ahui2016/localtags/thumbnail"
+	"github.com/ahui2016/localtags/thumb"
 	"github.com/ahui2016/localtags/util"
 	"github.com/labstack/echo/v4"
 )
@@ -90,11 +90,11 @@ func infoToFile(name string, info fs.FileInfo, meta map[string]File) (
 
 	if hasFFmpeg && strings.HasPrefix(file.Type, "video") {
 		file.ID = model.RandomID()
-		thumb := filepath.Join(tempFolder, file.ID+".jpg")
-		if err = thumbnail.OneFrame(name, thumb, 10); err != nil {
+		thumbPath := filepath.Join(tempFolder, file.ID+".jpg")
+		if err = thumb.FrameNail(name, thumbPath, 10); err != nil {
 			return
 		}
-		file.Thumb = "/" + filepath.ToSlash(thumb)
+		file.Thumb = "/" + filepath.ToSlash(thumbPath)
 	}
 	return
 }
@@ -119,6 +119,6 @@ func filesToMeta(files []File) map[string]File {
 }
 
 func checkFFmpeg(c echo.Context) error {
-	ok := thumbnail.CheckFFmpeg()
+	ok := thumb.CheckFFmpeg()
 	return c.JSON(OK, ok)
 }

@@ -5,10 +5,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
-
-	"github.com/ahui2016/localtags/graphics"
 )
 
 // WrapErrors 把多个错误合并为一个错误.
@@ -91,10 +90,27 @@ func MarshalWrite(data interface{}, name string) {
 	Panic(os.WriteFile(name, dataJSON, 0600))
 }
 
-// checkImage 检查图片能否正常使用。
-func checkImage(img []byte) error {
-	_, err := graphics.Thumbnail(img, 0, 0)
+// CreateFile 把 src 的数据写入 filePath, 权限是 0600, 自动关闭 file.
+func CreateFile(filePath string, src io.Reader) error {
+	_, file, err := CreateReturnFile(filePath, src)
+	if err == nil {
+		file.Close()
+	}
 	return err
+}
+
+// CreateReturnFile 把 src 的数据写入 filePath, 权限是 0600,
+// 会自动创建或覆盖文件，返回 file, 要记得关闭资源。
+func CreateReturnFile(filePath string, src io.Reader) (int64, *os.File, error) {
+	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0600)
+	if err != nil {
+		return 0, nil, err
+	}
+	size, err := io.Copy(f, src)
+	if err != nil {
+		return 0, nil, err
+	}
+	return size, f, nil
 }
 
 // GetMIME returns the content-type of a file extension.
