@@ -1,5 +1,12 @@
 "use strict"
 
+const tempFolder = "/public/temp/"
+const thumbSuffix  = ".small.jpg"
+
+function getTempThumb(id) {
+  return tempFolder + id + thumbSuffix;
+}
+
 // make a new vnode by name, or return its view.
 function m(name) {
   if (jQuery.type(name) == 'string') {

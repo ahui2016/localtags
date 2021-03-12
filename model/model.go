@@ -4,6 +4,7 @@ import (
 	"errors"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/ahui2016/localtags/util"
 )
@@ -19,12 +20,27 @@ type File struct {
 	Name    string
 	Size    int64
 	Type    string
-	Thumb   string // the src of a thumbnail
+	Thumb   bool   // has a thumbnail or not
 	Hash    string // checksum
-	Like    int    // 点赞
-	CTime   int    // created at
-	UTime   int    // updated at
+	Like    int64  // 点赞
+	CTime   int64  // created at
+	UTime   int64  // updated at
 	Deleted bool
+}
+
+func NewFile(id, name, hash string) (*File, error) {
+	now := TimeNow()
+	file := &File{
+		ID:    id,
+		CTime: now,
+		UTime: now,
+	}
+	err := file.SetNameType(name)
+	return file, err
+}
+
+func TimeNow() int64 {
+	return time.Now().Unix()
 }
 
 // SetNameType 同时设置 Name 和 Type.

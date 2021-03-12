@@ -18,9 +18,14 @@ const (
 )
 const (
 	dbFileName     = "localtags.db"
-	mainBucketName = "mainbucket"                // 主仓库文件夹名
-	tempFolder     = "public/temp"               // 临时文件夹的完整路径
-	tempMetadata   = "public/temp/metadata.json" // 临时文件数据
+	mainBucketName = "mainbucket" // 主仓库文件夹名
+)
+
+// 注意，这几个常量要还要在 public/util.js 里设置。
+const (
+	tempFolder   = "public/temp"               // 临时文件夹的完整路径
+	thumbSuffix  = ".small.jpg"                // 缩略图的后缀名
+	tempMetadata = "public/temp/metadata.json" // 临时文件数据
 )
 
 var (
@@ -47,20 +52,22 @@ func init() {
 	setConfig()
 	setPaths()
 	hasFFmpeg = thumb.CheckFFmpeg()
+
+	// open the db here, close the db in main().
+	util.Panic(db.Open(dbPath))
 }
 
 func setConfig() {
-	cfg = config.Default()
-	configJSON, err := os.ReadFile(configFile)
+	defer func() { cfg = config.Public }()
 
+	configJSON, err := os.ReadFile(configFile)
 	// 找不到文件或内容为空
 	if err != nil || len(configJSON) == 0 {
-		util.MarshalWrite(cfg, configFile)
+		util.MarshalWrite(config.Public, configFile)
 		return
 	}
-
 	// configFile 有内容
-	util.Panic(json.Unmarshal(configJSON, &cfg))
+	util.Panic(json.Unmarshal(configJSON, &config.Public))
 }
 
 func setPaths() {

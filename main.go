@@ -7,6 +7,8 @@ import (
 )
 
 func main() {
+	defer db.Close()
+
 	e := echo.New()
 	e.HTTPErrorHandler = errorHandler
 

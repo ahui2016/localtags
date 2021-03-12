@@ -119,10 +119,11 @@
   }
   
   function FileItem(file) {
-    let thumbClass = 'col-md-2 col-3';
-    if (!file.Thumb) {
-      thumbClass = 'col-md-2 col-2';
-      file.Thumb = getThumbByFiletype(file.Type);
+    thumbClass = 'col-md-2 col-2';
+    file.Thumb = getThumbByFiletype(file.Type);
+    if (file.Thumb) {
+      let thumbClass = 'col-md-2 col-3';
+      file.Thumb = getTempThumb(file.ID);
     }
 
     const self = cc('div', file.ID);

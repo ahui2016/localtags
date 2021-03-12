@@ -70,7 +70,7 @@ func waitingFiles(c echo.Context) error {
 
 func cleanThumbFiles(files []File) error {
 	for _, file := range files {
-		if err := os.Remove(strings.TrimPrefix(file.Thumb, "/")); err != nil {
+		if err := os.Remove(tempThumb(file.ID)); err != nil {
 			return err
 		}
 	}
@@ -102,26 +102,31 @@ func infoToFile(name string, info fs.FileInfo, meta map[string]File) (
 	}
 
 	file.ID = model.RandomID()
-	thumbPath := filepath.Join(tempFolder, file.ID+".jpg")
+	thumbPath := tempThumb(file.ID)
 
 	if strings.HasPrefix(file.Type, "image") {
-		file.Thumb = "/" + filepath.ToSlash(thumbPath)
+		file.Thumb = true
 		// 注意下面这个 err 是个新变量，不同于函数返回值的那个 err.
 		if err := thumb.NailWrite(name, thumbPath); err != nil {
 			// 如果生成缩略图失败，可能原图已损坏，或根本不是图片（后缀名错误）。
-			file.Thumb = ""
+			file.Thumb = false
 		}
 	}
 
 	if hasFFmpeg && strings.HasPrefix(file.Type, "video") {
-		file.Thumb = "/" + filepath.ToSlash(thumbPath)
+		file.Thumb = true
 		// 注意下面这个 err 是个新变量，不同于函数返回值的那个 err.
 		if err := thumb.FrameNail(name, thumbPath, 10); err != nil {
 			// 如果截图失败，可能视频已损坏，或根本不是视频（后缀名错误）。
-			file.Thumb = ""
+			file.Thumb = false
 		}
 	}
 	return
+}
+
+// tempThumb 使用 id 组成临时缩略图的位置。
+func tempThumb(id string) string {
+	return filepath.Join(tempFolder, id+thumbSuffix)
 }
 
 func getMetadata() (map[string]File, error) {
