@@ -13,6 +13,7 @@ func main() {
 	e.HTTPErrorHandler = errorHandler
 
 	e.Static("/public", "public")
+	e.Static("/temp", tempFolder)
 	e.File("/", "public/hello.html")
 
 	light := e.Group("/light")

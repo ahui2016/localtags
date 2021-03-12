@@ -8,6 +8,8 @@ import (
 	"io"
 	"os"
 	"strings"
+
+	"github.com/ahui2016/mima-go/util"
 )
 
 // WrapErrors 把多个错误合并为一个错误.
@@ -111,6 +113,41 @@ func CreateReturnFile(filePath string, src io.Reader) (int64, *os.File, error) {
 		return 0, nil, err
 	}
 	return size, f, nil
+}
+
+func DeleteFiles(files []string) (err error) {
+	for _, file := range files {
+		e := os.Remove(file)
+		err = util.WrapErrors(err, e)
+	}
+	return err
+}
+
+// https://stackoverflow.com/questions/50740902/move-a-file-to-a-different-drive-with-go
+func MoveFile(destPath, sourcePath string) error {
+	if err := CopyFile(destPath, sourcePath); err != nil {
+		return err
+	}
+	return os.Remove(sourcePath)
+}
+
+// https://stackoverflow.com/questions/30376921/how-do-you-copy-a-file-in-go
+func CopyFile(destPath, sourcePath string) error {
+	inputFile, err := os.Open(sourcePath)
+	if err != nil {
+		return err
+	}
+	defer inputFile.Close()
+
+	outputFile, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer outputFile.Close()
+
+	_, err1 := io.Copy(outputFile, inputFile)
+	err2 := outputFile.Sync()
+	return util.WrapErrors(err1, err2)
 }
 
 // GetMIME returns the content-type of a file extension.

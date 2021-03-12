@@ -1,4 +1,4 @@
-package st
+package stmt
 
 const CreateTables = `
 
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS file
   like          int     NOT NULL,
   ctime         int     NOT NULL,
   utime         int     NOT NULL,
-  deleted       int     NOT NULL,
+  deleted       int     NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_file_hash ON file(hash);
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS tag
 (
   id            text    PRIMARY KEY,
   name          text    NOT NULL UNIQUE,
-  ctime         int     NOT NULL,
+  ctime         int     NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_tag_ctime ON tag(ctime);
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS taggroup
   tags          blob    NOT NULL UNIQUE,
   protected     int     NOT NULL,
   ctime         int     NOT NULL,
-  utime         int     NOT NULL,
+  utime         int     NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_taggroup_ctime ON taggroup(ctime);

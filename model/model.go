@@ -28,15 +28,13 @@ type File struct {
 	Deleted bool
 }
 
-func NewFile(id, name, hash string) (*File, error) {
+func NewFile(id string) *File {
 	now := TimeNow()
-	file := &File{
+	return &File{
 		ID:    id,
 		CTime: now,
 		UTime: now,
 	}
-	err := file.SetNameType(name)
-	return file, err
 }
 
 func TimeNow() int64 {
@@ -44,7 +42,7 @@ func TimeNow() int64 {
 }
 
 // SetNameType 同时设置 Name 和 Type.
-// 请勿直接设置 Name, 每次都应该使用 SetNameType 以确保同时设置 Type.
+// 使用 SetNameType 可确保正确设置 Type.
 func (file *File) SetNameType(filename string) error {
 	filename = strings.TrimSpace(filename)
 	if len(filename) < FileNameMinLength {

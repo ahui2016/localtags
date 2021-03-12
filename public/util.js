@@ -1,6 +1,6 @@
 "use strict"
 
-const tempFolder = "/public/temp/"
+const tempFolder = "/temp/"
 const thumbSuffix  = ".small.jpg"
 
 function getTempThumb(id) {
@@ -86,6 +86,10 @@ function tagsStringToSet(tags) {
   if (trimmed.length == 0) return new Set();
   const arr = trimmed.split(/ +/);
   return new Set(arr);
+}
+
+function tagsStringToArray(tags) {
+  return Array.from(tagsStringToSet(tags));
 }
 
 function getThumbByFiletype(filetype) {

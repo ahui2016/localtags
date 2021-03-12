@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/ahui2016/localtags/model"
-	"github.com/ahui2016/localtags/st"
+	"github.com/ahui2016/localtags/stmt"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 
 func getCurrentID(key string, tx TX) (id ShortID, err error) {
 	var strID string
-	row := tx.QueryRow(st.GetTextValue, key)
+	row := tx.QueryRow(stmt.GetTextValue, key)
 	if err = row.Scan(&strID); err != nil {
 		return
 	}
@@ -27,11 +27,11 @@ func initFirstID(key, prefix string, tx TX) (err error) {
 		if err1 != nil {
 			return err1
 		}
-		_, err = tx.Exec(st.InsertTextValue, key, id.String())
+		_, err = tx.Exec(stmt.InsertTextValue, key, id.String())
 	}
 	return
 }
 func setCurrentID(tx TX, key, id string) (err error) {
-	_, err = tx.Exec(st.UpdateTextValue, id, key)
+	_, err = tx.Exec(stmt.UpdateTextValue, id, key)
 	return
 }

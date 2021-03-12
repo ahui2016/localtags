@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,8 +42,6 @@ func waitingFiles(c echo.Context) error {
 		return err
 	}
 
-	// 即将在临时文件夹里写数据，因此先确保该文件夹存在。
-	util.MustMkdir(tempFolder)
 	var files []File
 	for _, name := range fileNames {
 		info, err := os.Lstat(name)
@@ -51,7 +49,7 @@ func waitingFiles(c echo.Context) error {
 			return err
 		}
 		if info.IsDir() {
-			continue
+			return errors.New(`"waiting" 里面不可存放文件夹`)
 		}
 		file, err1 := infoToFile(name, info, metadata)
 		if err1 != nil {
@@ -68,13 +66,14 @@ func waitingFiles(c echo.Context) error {
 	return c.JSON(OK, files)
 }
 
-func cleanThumbFiles(files []File) error {
-	for _, file := range files {
-		if err := os.Remove(tempThumb(file.ID)); err != nil {
-			return err
+func cleanThumbFiles(thumbFiles []File) error {
+	var files []string
+	for _, file := range thumbFiles {
+		if file.Thumb {
+			files = append(files, tempThumb(file.ID))
 		}
 	}
-	return nil
+	return util.DeleteFiles(files)
 }
 
 func getTempFiles() ([]string, error) {
@@ -124,11 +123,6 @@ func infoToFile(name string, info fs.FileInfo, meta map[string]File) (
 	return
 }
 
-// tempThumb 使用 id 组成临时缩略图的位置。
-func tempThumb(id string) string {
-	return filepath.Join(tempFolder, id+thumbSuffix)
-}
-
 func getMetadata() (map[string]File, error) {
 	metadata := make(map[string]File)
 	metaJSON, err := os.ReadFile(tempMetadata)
@@ -154,11 +148,62 @@ func checkFFmpeg(c echo.Context) error {
 }
 
 func addFiles(c echo.Context) error {
-	value := c.FormValue("files-tags")
-	var filesTags map[string][]string // hash[tags]
-	if err := json.Unmarshal([]byte(value), &filesTags); err != nil {
+	value := c.FormValue("hash-tags")
+	var hashTags map[string][]string
+	if err := json.Unmarshal([]byte(value), &hashTags); err != nil {
 		return err
 	}
-	log.Print(filesTags)
+	metadata, err := getMetadata()
+	if err != nil {
+		return err
+	}
+	var (
+		copiedFile []string
+		files      []*File // files to be insert
+	)
+	for _, file := range metadata {
+		f := db.NewFile()
+		file.ID = f.ID
+		file.CTime = f.CTime
+		file.UTime = f.UTime
+		files = append(files, &file)
+
+		srcPath := filepath.Join(cfg.WaitingFolder, file.Name)
+		dstPath := mainBucketFile(f.ID)
+		if err := util.CopyFile(dstPath, srcPath); err != nil {
+			return util.WrapErrors(err, util.DeleteFiles(copiedFile))
+		}
+		copiedFile = append(copiedFile, dstPath)
+		if file.Thumb {
+			srcPath := tempThumb(f.ID)
+			dstPath := mainBucketThumb(f.ID)
+			if err := util.CopyFile(dstPath, srcPath); err != nil {
+				return util.WrapErrors(err, util.DeleteFiles(copiedFile))
+			}
+			copiedFile = append(copiedFile, dstPath)
+		}
+	}
+	if err := db.InsertFiles(files); err != nil {
+		return util.WrapErrors(err, util.DeleteFiles(copiedFile))
+	}
+	// 如果一切正常，就清空全部临时文件。
 	return c.NoContent(OK)
+}
+
+// tempThumb 使用 id 组成临时缩略图的位置。
+func tempThumb(id string) string {
+	return filepath.Join(tempFolder, id+thumbSuffix)
+}
+func mainBucketFile(id string) string {
+	return filepath.Join(mainBucket, id)
+}
+func mainBucketThumb(id string) string {
+	return filepath.Join(thumbsFolder, id)
+}
+func cleanTempFolders() error {
+	err1 := os.RemoveAll(cfg.WaitingFolder)
+	err2 := os.RemoveAll(tempFolder)
+	util.MustMkdir(cfg.WaitingFolder)
+	util.MustMkdir(tempFolder)
+	return util.WrapErrors(err1, err2)
 }
