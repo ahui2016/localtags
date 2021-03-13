@@ -163,25 +163,25 @@ func addFiles(c echo.Context) error {
 	)
 	for _, file := range metadata {
 		f := db.NewFile()
-		file.ID = f.ID
-		file.CTime = f.CTime
-		file.UTime = f.UTime
-		files = append(files, &file)
-
-		srcPath := filepath.Join(cfg.WaitingFolder, file.Name)
-		dstPath := mainBucketFile(f.ID)
-		if err := util.CopyFile(dstPath, srcPath); err != nil {
-			return util.WrapErrors(err, util.DeleteFiles(copiedFile))
-		}
-		copiedFile = append(copiedFile, dstPath)
 		if file.Thumb {
-			srcPath := tempThumb(f.ID)
+			srcPath := tempThumb(file.ID)
 			dstPath := mainBucketThumb(f.ID)
 			if err := util.CopyFile(dstPath, srcPath); err != nil {
 				return util.WrapErrors(err, util.DeleteFiles(copiedFile))
 			}
 			copiedFile = append(copiedFile, dstPath)
 		}
+		srcPath := waitingFile(file.Name)
+		dstPath := mainBucketFile(f.ID)
+		if err := util.CopyFile(dstPath, srcPath); err != nil {
+			return util.WrapErrors(err, util.DeleteFiles(copiedFile))
+		}
+		copiedFile = append(copiedFile, dstPath)
+		file.ID = f.ID
+		file.CTime = f.CTime
+		file.UTime = f.UTime
+		file.Tags = hashTags[file.Hash]
+		files = append(files, &file)
 	}
 	if err := db.InsertFiles(files); err != nil {
 		return util.WrapErrors(err, util.DeleteFiles(copiedFile))
@@ -191,8 +191,11 @@ func addFiles(c echo.Context) error {
 }
 
 // tempThumb 使用 id 组成临时缩略图的位置。
-func tempThumb(id string) string {
-	return filepath.Join(tempFolder, id+thumbSuffix)
+func tempThumb(tempID string) string {
+	return filepath.Join(tempFolder, tempID+thumbSuffix)
+}
+func waitingFile(name string) string {
+	return filepath.Join(cfg.WaitingFolder, name)
 }
 func mainBucketFile(id string) string {
 	return filepath.Join(mainBucket, id)

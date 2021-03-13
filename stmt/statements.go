@@ -67,3 +67,17 @@ const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 const InsertFile = `INSERT INTO file (
   id, name, size, type, thumb, hash, like, ctime, utime, deleted)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+
+const GetTag = `SELECT * FROM tag WHERE id=?;`
+const InsertTag = `INSERT INTO tag (id, name, ctime) VALUES (?, ?, ?);`
+const InsertNoteTag = `INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?);`
+
+const GetTagGroupID = `SELECT id FROM taggroup WHERE tags=?;`
+const InsertTagGroup = `INSERT INTO taggroup (
+    id, tags, protected, ctime, utime)
+    VALUES (?, ?, ?, ?, ?);`
+const UpdateTagGroupNow = `UPDATE taggroup SET utime=? WHERE id=?;`
+const TagGroupCount = `SELECT count(*) FROM taggroup`
+const LastTagGroup = `SELECT id FROM taggroup WHERE protected=0
+    ORDER BY utime LIMIT 1;`
+const DeleteTagGroup = `DELETE FROM taggroup WHERE id=?;`

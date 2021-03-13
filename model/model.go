@@ -1,11 +1,13 @@
 package model
 
 import (
+	"encoding/base64"
 	"errors"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/ahui2016/localtags/stringset"
 	"github.com/ahui2016/localtags/util"
 )
 
@@ -26,6 +28,7 @@ type File struct {
 	CTime   int64  // created at
 	UTime   int64  // updated at
 	Deleted bool
+	Tags    []string // 该项目不在数据库中，放在这里只是为了方便
 }
 
 func NewFile(id string) *File {
@@ -72,17 +75,44 @@ func typeByFilename(filename string) (filetype string) {
 
 // Tag 标签
 type Tag struct {
-	ID    string // base64 of Name
+	ID    string // url-safe base64 of Name
 	Name  string
-	Count int
-	CTime int // created at
+	CTime int64 // created at
+	Count int64 // 该项目不在数据库中，放在这里只是为了方便
+}
+
+func NewTag(name string) *Tag {
+	return &Tag{
+		ID:    base64.URLEncoding.EncodeToString([]byte(name)),
+		Name:  name,
+		CTime: TimeNow(),
+	}
 }
 
 // TagGroup 标签组，其中 Tags 应该除重和排序。
 type TagGroup struct {
 	ID        string // primary key, random
 	Tags      []string
-	CTime     int // created at
-	UTime     int // updated at
+	CTime     int64 // created at
+	UTime     int64 // updated at
 	Protected bool
+}
+
+// NewTagGroup .
+func NewTagGroup() *TagGroup {
+	now := TimeNow()
+	return &TagGroup{
+		ID:    RandomID(),
+		CTime: now,
+		UTime: now,
+	}
+}
+
+func (group *TagGroup) SetTags(tags []string) {
+	group.Tags = stringset.UniqueSort(tags)
+}
+
+func (group *TagGroup) String() string {
+	tags := util.MustMarshal(group.Tags)
+	return string(tags)
 }

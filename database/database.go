@@ -13,9 +13,10 @@ import (
 var cfg = config.Public
 
 type (
-	Stmt    = sql.Stmt
-	File    = model.File
-	ShortID = model.ShortID
+	Stmt     = sql.Stmt
+	File     = model.File
+	ShortID  = model.ShortID
+	TagGroup = model.TagGroup
 )
 
 type TX interface {
@@ -48,29 +49,28 @@ func (db *DB) mustBegin() *sql.Tx {
 	return tx
 }
 
-func mustPrepare(tx TX, query string) *Stmt {
-	stmt, err := tx.Prepare(query)
-	util.Panic(err)
-	return stmt
-}
-
 func (db *DB) NewFile() *File {
 	return model.NewFile(db.GetNextFileID())
 }
 
-func (db *DB) InsertFiles(files []*File) error {
+func (db *DB) InsertFiles(files []*File) (err error) {
 	tx := db.mustBegin()
 	defer tx.Rollback()
 
 	for _, file := range files {
-		if err := insertFile(db.DB, file); err != nil {
-			return err
+		if err = addFile(tx, file); err != nil {
+			return
+		}
+		group := model.NewTagGroup()
+		group.SetTags(file.Tags)
+		if err = addTagGroup(tx, group); err != nil {
+			return
 		}
 	}
 	return tx.Commit()
 }
 
-func insertFile(tx TX, file *File) (err error) {
+func addFile(tx TX, file *File) (err error) {
 	_, err = tx.Exec(stmt.InsertFile,
 		file.ID,
 		file.Name,
@@ -84,6 +84,67 @@ func insertFile(tx TX, file *File) (err error) {
 		file.Deleted,
 	)
 	return
+}
+
+func addTag(tx TX, tag, noteID string) error {
+	tagID, err := getText1(tx, stmt.GetTag)
+}
+
+func addTagGroup(tx TX, group *TagGroup) error {
+	tags := group.String()
+	groupID, err := getText1(tx, stmt.GetTagGroupID, tags)
+
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+	if err == sql.ErrNoRows {
+		err = exec(tx, stmt.InsertTagGroup,
+			group.ID,
+			tags,
+			group.Protected,
+			group.CTime,
+			group.UTime)
+	} else {
+		// err == nil
+		err = updateNow(tx, stmt.UpdateTagGroupNow, groupID)
+	}
+	if err != nil {
+		return err
+	}
+	return deleteOldTagGroup(tx)
+}
+
+func deleteOldTagGroup(tx TX) error {
+	count, err := getInt1(tx, stmt.TagGroupCount)
+	if err != nil {
+		return err
+	}
+	if count < cfg.TagGroupLimit {
+		return nil
+	}
+	groupID, err := getText1(tx, stmt.LastTagGroup)
+	if err != nil {
+		return err
+	}
+	return exec(tx, stmt.DeleteTagGroup, groupID)
+}
+
+// getText1 gets one text value from the database.
+func getText1(tx TX, st string, args ...interface{}) (text string, err error) {
+	row := tx.QueryRow(st, args...)
+	err = row.Scan(&text)
+	return
+}
+
+// getInt1 gets one text value from the database.
+func getInt1(tx TX, st string, arg ...interface{}) (n int, err error) {
+	row := tx.QueryRow(st, arg...)
+	err = row.Scan(&n)
+	return
+}
+
+func updateNow(tx TX, st, arg string) error {
+	return exec(tx, st, model.TimeNow(), arg)
 }
 
 func (db *DB) GetNextFileID() string {
@@ -119,7 +180,7 @@ func (db *DB) Exec(query string, args ...interface{}) (err error) {
 	return
 }
 
-func exec(st *Stmt, args ...interface{}) (err error) {
-	_, err = st.Exec(args...)
+func exec(tx TX, st string, args ...interface{}) (err error) {
+	_, err = tx.Exec(st, args...)
 	return
 }

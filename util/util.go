@@ -85,6 +85,13 @@ func Sha256Hex(data []byte) string {
 	return hex.EncodeToString(sum[:])
 }
 
+// MustMarshal .
+func MustMarshal(data interface{}) []byte {
+	dataJSON, err := json.Marshal(data)
+	Panic(err)
+	return dataJSON
+}
+
 // MarshalWrite 把 data 转换为漂亮格式的 JSON 并写入文件 name 中。
 func MarshalWrite(data interface{}, name string) {
 	dataJSON, err := json.MarshalIndent(data, "", "    ")
