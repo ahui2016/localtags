@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -54,6 +55,26 @@ func (file *File) SetNameType(filename string) error {
 	file.Name = filename
 	file.Type = typeByFilename(filename)
 	return nil
+}
+
+// SetTags 对标签进行一些验证和处理（例如除重和排序）。
+// 尽量不要直接操作 file.Tags
+func (file *File) SetTags(names []string) error {
+	tags := stringset.UniqueSort(names)
+	if len(tags) < 2 {
+		return errors.New("too few tags (at least two)")
+	}
+	file.Tags = purify(tags)
+	return nil
+}
+
+// purify 清除标签中的非法字符。
+func purify(tags []string) []string {
+	re := regexp.MustCompile(`[#;,，'"/\+\n]`)
+	for i := range tags {
+		tags[i] = re.ReplaceAllString(tags[i], "")
+	}
+	return tags
 }
 
 func typeByFilename(filename string) (filetype string) {

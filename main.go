@@ -19,11 +19,13 @@ func main() {
 	light := e.Group("/light")
 	light.File("/waiting", "public/waiting.html")
 
+	// api 只使用 GET, POST, 不采用 RESTful.
 	api := e.Group("/api")
 	api.GET("/waitingFolder", waitingFolder)
-	api.GET("/waitingFiles", waitingFiles)
+	api.GET("/waiting-files", waitingFiles)
 	api.GET("/check", checkFFmpeg)
-	api.POST("/files", addFiles)
+	api.GET("/all-files", allFiles) // file.Deleted == false
+	api.POST("/add-files", addFiles)
 
 	log.Print("localtags database path: ", dbPath)
 	e.Logger.Fatal(e.Start(":80"))

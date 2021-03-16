@@ -35,6 +35,14 @@ func waitingFolder(c echo.Context) error {
 	return c.JSON(OK, Text{cfg.WaitingFolder})
 }
 
+func allFiles(c echo.Context) error {
+	files, err := db.AllFiles()
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, files)
+}
+
 func waitingFiles(c echo.Context) error {
 	fileNames, err1 := getTempFiles()
 	metadata, err2 := getMetadata()
@@ -42,7 +50,7 @@ func waitingFiles(c echo.Context) error {
 		return err
 	}
 
-	var files []File
+	var files []*File
 	for _, name := range fileNames {
 		info, err := os.Lstat(name)
 		if err != nil {
@@ -66,7 +74,7 @@ func waitingFiles(c echo.Context) error {
 	return c.JSON(OK, files)
 }
 
-func cleanThumbFiles(thumbFiles []File) error {
+func cleanThumbFiles(thumbFiles []*File) error {
 	var files []string
 	for _, file := range thumbFiles {
 		if file.Thumb {
@@ -81,10 +89,10 @@ func getTempFiles() ([]string, error) {
 	return filepath.Glob(pattern)
 }
 
-func infoToFile(name string, info fs.FileInfo, meta map[string]File) (
-	file File, err error) {
+func infoToFile(name string, info fs.FileInfo, meta map[string]*File) (
+	file *File, err error) {
 
-	file = File{Size: info.Size()}
+	file = &File{Size: info.Size()}
 	file.SetNameType(info.Name())
 
 	fileBytes, err := os.ReadFile(name)
@@ -123,8 +131,8 @@ func infoToFile(name string, info fs.FileInfo, meta map[string]File) (
 	return
 }
 
-func getMetadata() (map[string]File, error) {
-	metadata := make(map[string]File)
+func getMetadata() (map[string]*File, error) {
+	metadata := make(map[string]*File)
 	metaJSON, err := os.ReadFile(tempMetadata)
 	if err != nil {
 		// 如果读取文件失败，则反回一个空的 metadata, 不处理错误。
@@ -134,8 +142,8 @@ func getMetadata() (map[string]File, error) {
 	return metadata, err
 }
 
-func filesToMeta(files []File) map[string]File {
-	meta := make(map[string]File)
+func filesToMeta(files []*File) map[string]*File {
+	meta := make(map[string]*File)
 	for _, file := range files {
 		meta[file.Hash] = file
 	}
@@ -163,7 +171,9 @@ func addFiles(c echo.Context) error {
 	)
 	for _, file := range metadata {
 		f := db.NewFile()
+
 		if file.Thumb {
+			// copy the thumb file
 			srcPath := tempThumb(file.ID)
 			dstPath := mainBucketThumb(f.ID)
 			if err := util.CopyFile(dstPath, srcPath); err != nil {
@@ -171,6 +181,8 @@ func addFiles(c echo.Context) error {
 			}
 			copiedFile = append(copiedFile, dstPath)
 		}
+
+		// copy the file
 		srcPath := waitingFile(file.Name)
 		dstPath := mainBucketFile(f.ID)
 		if err := util.CopyFile(dstPath, srcPath); err != nil {
@@ -180,14 +192,18 @@ func addFiles(c echo.Context) error {
 		file.ID = f.ID
 		file.CTime = f.CTime
 		file.UTime = f.UTime
-		file.Tags = hashTags[file.Hash]
-		files = append(files, &file)
+		tags := hashTags[file.Hash]
+		file.SetTags(tags)
+		files = append(files, file)
 	}
+
+	// insert files to the database.
 	if err := db.InsertFiles(files); err != nil {
 		return util.WrapErrors(err, util.DeleteFiles(copiedFile))
 	}
+
 	// 如果一切正常，就清空全部临时文件。
-	return c.NoContent(OK)
+	return cleanTempFolders()
 }
 
 // tempThumb 使用 id 组成临时缩略图的位置。

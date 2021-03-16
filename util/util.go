@@ -8,8 +8,6 @@ import (
 	"io"
 	"os"
 	"strings"
-
-	"github.com/ahui2016/mima-go/util"
 )
 
 // WrapErrors 把多个错误合并为一个错误.
@@ -125,7 +123,7 @@ func CreateReturnFile(filePath string, src io.Reader) (int64, *os.File, error) {
 func DeleteFiles(files []string) (err error) {
 	for _, file := range files {
 		e := os.Remove(file)
-		err = util.WrapErrors(err, e)
+		err = WrapErrors(err, e)
 	}
 	return err
 }
@@ -154,7 +152,7 @@ func CopyFile(destPath, sourcePath string) error {
 
 	_, err1 := io.Copy(outputFile, inputFile)
 	err2 := outputFile.Sync()
-	return util.WrapErrors(err1, err2)
+	return WrapErrors(err1, err2)
 }
 
 // GetMIME returns the content-type of a file extension.

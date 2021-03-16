@@ -64,13 +64,15 @@ const InsertTextValue = `INSERT INTO metadata (name, text_value) VALUES (?, ?);`
 const GetTextValue = `SELECT text_value FROM metadata WHERE name=?;`
 const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 
+const GetFiles = `SELECT * FROM file WHERE deleted=0 ORDER BY utime;`
 const InsertFile = `INSERT INTO file (
   id, name, size, type, thumb, hash, like, ctime, utime, deleted)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 const GetTag = `SELECT * FROM tag WHERE id=?;`
+const GetTagID = `SELECT id FROM tag WHERE name=?;`
 const InsertTag = `INSERT INTO tag (id, name, ctime) VALUES (?, ?, ?);`
-const InsertNoteTag = `INSERT INTO note_tag (note_id, tag_id) VALUES (?, ?);`
+const InsertFileTag = `INSERT INTO file_tag (file_id, tag_id) VALUES (?, ?);`
 
 const GetTagGroupID = `SELECT id FROM taggroup WHERE tags=?;`
 const InsertTagGroup = `INSERT INTO taggroup (

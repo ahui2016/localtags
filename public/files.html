@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
   <script src="/public/util.js"></script>
   
-  <title>Waiting - localtags</title>
+  <title>Files - localtags</title>
 </head>
 <body>
   <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
@@ -19,71 +19,21 @@
 
   const Alerts = CreateAlerts();
   
-  const Tags = cc('textarea');
-  const SetTagsBtn = cc('button');
-  const TagsArea = cc('div', null, [
-    m(Tags).addClass('form-control').attr({placeholder:'tags...'}),
-    m('p').addClass('text-end mt-2').append([
-      m(SetTagsBtn).text('set').addClass('btn btn-primary').attr({type:'button'}),
-    ]),
-  ]);
-
   const FileList = cc('div');
 
-  const SubmitAlerts = CreateAlerts();
-  
-  const SubmitBtn = cc('button');
-  const SubmitBtnAera = cc('p', null, [
-    m(SubmitBtn).text('Submit').addClass('btn btn-primary').attr({type:'button'}),
-  ])
-
   $('#root').append([
-    m(Spacer),
-    m(TagsArea),
     m(Spacer),
     m(Alerts),
     m(FileList).addClass('mt-3'),
     m(Spacer),
-    m(SubmitAlerts),
-    m(SubmitBtnAera).addClass('text-center'),
     m(BottomLine),
   ]);
 
   init()
   
   function init() {
-    $(SetTagsBtn.id).click(() => {
-      const tagsInput = $(Tags.id);
-      let tags = tagsInput.val();
-      const tagsSet = tagsStringToSet(tags);
-      tags = addPrefix(tagsSet, '#');
-      $('.Tags').text(tags);
-      tagsInput.val(tags).focus();
-    });
 
-    $(SubmitBtn.id).click(() => {
-      if (!checkTags()) {
-        return;
-      }
-      const hashTags = {}; // hash-tags 对应表。
-      $('.FileItem').each((i, item) => {
-        const tags = $(item).find('.Tags').text();
-        const id = $(item).attr('id');
-        hashTags[idHash[id]] = tagsStringToArray(tags);
-      });
-      const body = new FormData();
-      body.append('hash-tags', JSON.stringify(hashTags));
-      ajax({method:'POST',url:'/api/add-files',alerts:SubmitAlerts,body:body},
-        () => {
-          $(TagsArea.id).hide();
-          $(SubmitBtnAera.id).hide();
-          const msg = 'OK';
-          Alerts.insert('success', msg);
-          SubmitAlerts.insert('success', msg);
-        });
-    });
-
-    ajax({method:'GET',url:'/api/waiting-files',alerts:Alerts},
+    ajax({method:'GET',url:'/api/all-files',alerts:Alerts},
     (files) => {
       files.forEach(file => {
         idHash[file.ID] = file.Hash;
@@ -111,18 +61,6 @@
 
       window.setTimeout(() => { $(Tags.id).focus(); }, 200);
     });
-  }
-
-  // checkTags 返回 false 表示标签不符合要求，返回 true 表示标签没问题。
-  function checkTags() {
-    for (const elem of $('.Tags')) {
-      const tagsSet = tagsStringToSet(elem.innerText);
-      if (tagsSet.size < 2) {
-        SubmitAlerts.insert('danger', '每个文件至少需要 2 个标签');
-        return false;
-      }
-    }
-    return true;
   }
   
   function FileItem(file) {

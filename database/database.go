@@ -21,8 +21,13 @@ type (
 
 type TX interface {
 	Exec(string, ...interface{}) (sql.Result, error)
+	Query(string, ...interface{}) (*sql.Rows, error)
 	QueryRow(string, ...interface{}) *sql.Row
 	Prepare(string) (*Stmt, error)
+}
+
+type Row interface {
+	Scan(...interface{}) error
 }
 
 // DB 数据库
@@ -58,12 +63,20 @@ func (db *DB) InsertFiles(files []*File) (err error) {
 	defer tx.Rollback()
 
 	for _, file := range files {
+		// add the file
 		if err = addFile(tx, file); err != nil {
 			return
 		}
+
+		// add the tag group
 		group := model.NewTagGroup()
 		group.SetTags(file.Tags)
 		if err = addTagGroup(tx, group); err != nil {
+			return
+		}
+
+		// add tags
+		if err = addTags(tx, file.Tags, file.ID); err != nil {
 			return
 		}
 	}
@@ -86,8 +99,44 @@ func addFile(tx TX, file *File) (err error) {
 	return
 }
 
-func addTag(tx TX, tag, noteID string) error {
-	tagID, err := getText1(tx, stmt.GetTag)
+func scanFile(row Row) (file File, err error) {
+	err = row.Scan(
+		&file.ID,
+		&file.Name,
+		&file.Size,
+		&file.Type,
+		&file.Thumb,
+		&file.Hash,
+		&file.Like,
+		&file.CTime,
+		&file.UTime,
+		&file.Deleted,
+	)
+	return
+}
+
+func addTags(tx TX, tags []string, fileID string) (err error) {
+	for _, name := range tags {
+		if err = addTag(tx, name, fileID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func addTag(tx TX, name, fileID string) error {
+	tagID, err := getText1(tx, stmt.GetTagID, name)
+	if err == sql.ErrNoRows {
+		// add a new tag
+		tag := model.NewTag(name)
+		tagID = tag.ID
+		err = exec(tx, stmt.InsertTag, tag.ID, name, tag.CTime)
+	}
+	if err != nil {
+		return err
+	}
+	// update file-tag
+	return exec(tx, stmt.InsertFileTag, fileID, tagID)
 }
 
 func addTagGroup(tx TX, group *TagGroup) error {
@@ -182,5 +231,26 @@ func (db *DB) Exec(query string, args ...interface{}) (err error) {
 
 func exec(tx TX, st string, args ...interface{}) (err error) {
 	_, err = tx.Exec(st, args...)
+	return
+}
+
+func (db *DB) AllFiles() (files []*File, err error) {
+	return db.getFiles(db.DB, stmt.GetFiles)
+}
+
+func (db *DB) getFiles(tx TX, st string) (files []*File, err error) {
+	rows, err := tx.Query(st)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		file, err := scanFile(rows)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, &file)
+	}
+	err = rows.Err()
 	return
 }
