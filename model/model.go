@@ -1,7 +1,6 @@
 package model
 
 import (
-	"encoding/base64"
 	"errors"
 	"path/filepath"
 	"regexp"
@@ -96,16 +95,14 @@ func typeByFilename(filename string) (filetype string) {
 
 // Tag 标签
 type Tag struct {
-	ID    string // url-safe base64 of Name
-	Name  string
+	ID    string
 	CTime int64 // created at
 	Count int64 // 该项目不在数据库中，放在这里只是为了方便
 }
 
-func NewTag(name string) *Tag {
+func NewTag(id string) *Tag {
 	return &Tag{
-		ID:    base64.URLEncoding.EncodeToString([]byte(name)),
-		Name:  name,
+		ID:    id,
 		CTime: TimeNow(),
 	}
 }

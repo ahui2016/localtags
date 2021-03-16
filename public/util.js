@@ -2,9 +2,14 @@
 
 const tempFolder = "/temp/"
 const thumbSuffix  = ".small.jpg"
+const thumbsFolder = "/thumbs/"
 
 function getTempThumb(id) {
   return tempFolder + id + thumbSuffix;
+}
+
+function getThumbURL(id) {
+  return thumbsFolder + id;
 }
 
 // make a new vnode by name, or return its view.

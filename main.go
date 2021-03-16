@@ -14,10 +14,12 @@ func main() {
 
 	e.Static("/public", "public")
 	e.Static("/temp", tempFolder)
+	e.Static("/thumbs", thumbsFolder)
 	e.File("/", "public/hello.html")
 
 	light := e.Group("/light")
 	light.File("/waiting", "public/waiting.html")
+	light.File("/files", "public/files.html")
 
 	// api 只使用 GET, POST, 不采用 RESTful.
 	api := e.Group("/api")

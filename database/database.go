@@ -124,19 +124,31 @@ func addTags(tx TX, tags []string, fileID string) (err error) {
 	return nil
 }
 
-func addTag(tx TX, name, fileID string) error {
-	tagID, err := getText1(tx, stmt.GetTagID, name)
-	if err == sql.ErrNoRows {
-		// add a new tag
-		tag := model.NewTag(name)
-		tagID = tag.ID
-		err = exec(tx, stmt.InsertTag, tag.ID, name, tag.CTime)
-	}
+func addTag(tx TX, tagID, fileID string) error {
+	tagExist, err := isTagExist(tx, tagID)
 	if err != nil {
 		return err
 	}
-	// update file-tag
+	// 如果在数据库中还没有这个标签, 则添加。
+	if !tagExist {
+		tag := model.NewTag(tagID)
+		if err := exec(tx, stmt.InsertTag, tagID, tag.CTime); err != nil {
+			return err
+		}
+	}
+	// 最后，不管有没有添加新标签，都与文件关联。
 	return exec(tx, stmt.InsertFileTag, fileID, tagID)
+}
+
+func isTagExist(tx TX, tagID string) (bool, error) {
+	_, err := getInt1(tx, stmt.GetTagCTime, tagID)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func addTagGroup(tx TX, group *TagGroup) error {
@@ -235,10 +247,12 @@ func exec(tx TX, st string, args ...interface{}) (err error) {
 }
 
 func (db *DB) AllFiles() (files []*File, err error) {
-	return db.getFiles(db.DB, stmt.GetFiles)
+	files, err = getFiles(db.DB, stmt.GetFiles)
+	err = fillTags(db.DB, files)
+	return
 }
 
-func (db *DB) getFiles(tx TX, st string) (files []*File, err error) {
+func getFiles(tx TX, st string) (files []*File, err error) {
 	rows, err := tx.Query(st)
 	if err != nil {
 		return nil, err
@@ -250,6 +264,38 @@ func (db *DB) getFiles(tx TX, st string) (files []*File, err error) {
 			return nil, err
 		}
 		files = append(files, &file)
+	}
+	err = rows.Err()
+	return
+}
+
+func fillTags(tx TX, files []*File) error {
+	for _, file := range files {
+		tags, err := getTagsByFile(tx, file.ID)
+		if err != nil {
+			return err
+		}
+		file.Tags = tags
+	}
+	return nil
+}
+
+func getTagsByFile(tx TX, id string) ([]string, error) {
+	rows, err := tx.Query(stmt.GetTagsByFile, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return scanTags(rows)
+}
+
+func scanTags(rows *sql.Rows) (tags []string, err error) {
+	for rows.Next() {
+		var tag string
+		if err = rows.Scan(&tag); err != nil {
+			return
+		}
+		tags = append(tags, tag)
 	}
 	err = rows.Err()
 	return

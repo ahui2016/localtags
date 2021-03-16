@@ -14,89 +14,100 @@
 </head>
 <body>
   <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
-<script>
-  const idHash = {}; // id-hash 对应表。
+  <script>
+const idHash = {}; // id-hash 对应表。
 
-  const Alerts = CreateAlerts();
+const Alerts = CreateAlerts();
+
+const FileList = cc('div');
+
+$('#root').append([
+  m(Spacer),
+  m(Alerts),
+  m(FileList).addClass('mt-3'),
+  m(Spacer),
+  m(BottomLine),
+]);
   
-  const FileList = cc('div');
+init()
 
-  $('#root').append([
-    m(Spacer),
-    m(Alerts),
-    m(FileList).addClass('mt-3'),
-    m(Spacer),
-    m(BottomLine),
-  ]);
-
-  init()
+function init() {
   
-  function init() {
-
-    ajax({method:'GET',url:'/api/all-files',alerts:Alerts},
-    (files) => {
-      files.forEach(file => {
-        idHash[file.ID] = file.Hash;
-
-        const item = FileItem(file);
-        $(FileList.id).prepend(m(item));
-
-        // item 里的按钮事件，要在 item 被 append 之后添加。
-        const tagsText = $(item.id + ' .Tags');
-        const tagsInput = $(item.id + ' .TagsInput');
-        const inputGroup = $(item.id + ' .input-group');
-        $(item.id + ' .OK').click(() => {
-          const tags = tagsInput.val();
-          const tagsSet = tagsStringToSet(tags);
-          tagsText.show().text(addPrefix(tagsSet, '#'));
-          inputGroup.hide();
-        });
-
-        tagsText.dblclick(() => {
-          inputGroup.show();
-          tagsInput.val(tagsText.text()).focus();
-          tagsText.hide();
-        });
-      });
-
-      window.setTimeout(() => { $(Tags.id).focus(); }, 200);
+  ajax({method:'GET',url:'/api/all-files',alerts:Alerts},
+  (files) => {
+    if (!files || files.length == 0) {
+      Alerts.insert('info', '啥都没有');
+      return;
+    }
+    files.forEach(file => {
+      idHash[file.ID] = file.Hash;
+      const item = FileItem(file);
+      $(FileList.id).prepend(m(item));
+      item.attachEvents();
     });
+  });
+}
+  
+function FileItem(file) {
+  let thumbClass;
+  if (file.Thumb) {
+    thumbClass = 'col-md-2 col-3';
+    file.Thumb = getThumbURL(file.ID);
+  } else {
+    thumbClass = 'col-md-2 col-2';
+    file.Thumb = getThumbByFiletype(file.Type);
+  }
+
+  let cardSubtitle;
+  if (file.ID.length > 10) {
+    cardSubtitle = `(size: ${fileSizeToString(file.Size)})`;
+  } else {
+    cardSubtitle = `id:${file.ID} (size: ${fileSizeToString(file.Size)})`;
   }
   
-  function FileItem(file) {
-    let thumbClass;
-    if (file.Thumb) {
-      thumbClass = 'col-md-2 col-3';
-      file.Thumb = getTempThumb(file.ID);
-    } else {
-      thumbClass = 'col-md-2 col-2';
-      file.Thumb = getThumbByFiletype(file.Type);
-    }
+  const self = cc('div', file.ID);
 
-    const self = cc('div', file.ID);
-
-    self.view = () => m('div').attr({id: self.raw_id}).addClass('FileItem card mb-3').append([
-      m('div').addClass('row g-0').append([
-        m('div').addClass(thumbClass).append([
-          m('img').addClass('card-img ').attr({src: file.Thumb}),
-        ]),
-        m('div').addClass('col').append([
-          m('div').addClass('card-body d-flex flex-column h-100').append([
-            m('p').addClass('small card-subtitle text-muted').text(`(size: ${fileSizeToString(file.Size)})`),
-            m('p').addClass('card-text mb-0').text(file.Name),
-            m('div').addClass('Tags small text-muted mt-auto'),
-            m('div').addClass('input-group mt-auto').hide().append([
-              m('input').addClass('TagsInput form-control'),
-              m('button').text('ok').addClass('OK btn btn-outline-secondary').attr({type:'button'}),
-            ]),
+  self.view = () => m('div').attr({id: self.raw_id}).addClass('FileItem card mb-3').append([
+    m('div').addClass('row g-0').append([
+      m('div').addClass(thumbClass).append([
+        m('img').addClass('card-img ').attr({src: file.Thumb}),
+      ]),
+      m('div').addClass('col').append([
+        m('div').addClass('card-body d-flex flex-column h-100').append([
+          m('p').addClass('small card-subtitle text-muted').text(cardSubtitle),
+          m('p').addClass('card-text mb-0').text(file.Name),
+          m('div').addClass('Tags small text-muted mt-auto').text(addPrefix(file.Tags, '#')),
+          m('div').addClass('input-group mt-auto').hide().append([
+            m('input').addClass('TagsInput form-control'),
+            m('button').text('ok').addClass('OK btn btn-outline-secondary').attr({type:'button'}),
           ]),
         ]),
       ]),
-    ]);
+    ]),
+  ]);
 
-    return self;
-  }
+  // 有些事件要在该组件被实体化之后添加才有效。
+  self.attachEvents = () => {
+    const tagsText = $(self.id + ' .Tags');
+    const tagsInput = $(self.id + ' .TagsInput');
+    const inputGroup = $(self.id + ' .input-group');
+
+    $(self.id + ' .OK').click(() => {
+      const tags = tagsInput.val();
+      const tagsSet = tagsStringToSet(tags);
+      tagsText.show().text(addPrefix(tagsSet, '#'));
+      inputGroup.hide();
+    });
+    
+    tagsText.dblclick(() => {
+      inputGroup.show();
+      tagsInput.val(tagsText.text()).focus();
+      tagsText.hide();
+    });  
+  };
   
-</script>
+  return self;
+}    
+  </script>
 </body>
 </html>

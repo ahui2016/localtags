@@ -23,7 +23,6 @@ CREATE INDEX IF NOT EXISTS idx_file_utime ON file(utime);
 CREATE TABLE IF NOT EXISTS tag
 (
   id            text    PRIMARY KEY,
-  name          text    NOT NULL UNIQUE,
   ctime         int     NOT NULL
 );
 
@@ -70,8 +69,8 @@ const InsertFile = `INSERT INTO file (
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 const GetTag = `SELECT * FROM tag WHERE id=?;`
-const GetTagID = `SELECT id FROM tag WHERE name=?;`
-const InsertTag = `INSERT INTO tag (id, name, ctime) VALUES (?, ?, ?);`
+const GetTagCTime = `SELECT ctime FROM tag WHERE id=?;`
+const InsertTag = `INSERT INTO tag (id, ctime) VALUES ( ?, ?);`
 const InsertFileTag = `INSERT INTO file_tag (file_id, tag_id) VALUES (?, ?);`
 
 const GetTagGroupID = `SELECT id FROM taggroup WHERE tags=?;`
@@ -83,3 +82,8 @@ const TagGroupCount = `SELECT count(*) FROM taggroup`
 const LastTagGroup = `SELECT id FROM taggroup WHERE protected=0
     ORDER BY utime LIMIT 1;`
 const DeleteTagGroup = `DELETE FROM taggroup WHERE id=?;`
+
+const GetTagsByFile = `SELECT tag.id FROM file
+    INNER JOIN file_tag ON file.id = file_tag.file_id
+    INNER JOIN tag ON file_tag.tag_id = tag.id
+    WHERE file.id=?;`
