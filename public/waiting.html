@@ -39,13 +39,13 @@
 
   $('#root').append([
     m(Spacer),
-    m(TagsArea),
+    m(TagsArea).hide(),
     m(Spacer),
     m(Alerts),
     m(FileList).addClass('mt-3'),
     m(Spacer),
     m(SubmitAlerts),
-    m(SubmitBtnAera).addClass('text-center'),
+    m(SubmitBtnAera).addClass('text-center').hide(),
     m(BottomLine),
   ]);
 
@@ -84,15 +84,17 @@
     });
 
     ajax({method:'GET',url:'/api/waiting-files',alerts:Alerts},
-    (files) => {
-      files.forEach(file => {
-        idHash[file.ID] = file.Hash;
-        const item = FileItem(file);
-        $(FileList.id).prepend(m(item));
-        item.attachEvents();
+      (files) => {
+        $(TagsArea.id).show();
+        $(SubmitBtnAera.id).show();
+        files.forEach(file => {
+          idHash[file.ID] = file.Hash;
+          const item = FileItem(file);
+          $(FileList.id).prepend(m(item));
+          item.attachEvents();
+        });
+        window.setTimeout(() => { $(Tags.id).focus(); }, 200);
       });
-      window.setTimeout(() => { $(Tags.id).focus(); }, 200);
-    });
   }
 
   // checkTags 返回 false 表示标签不符合要求，返回 true 表示标签没问题。

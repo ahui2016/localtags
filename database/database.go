@@ -58,6 +58,15 @@ func (db *DB) NewFile() *File {
 	return model.NewFile(db.GetNextFileID())
 }
 
+func (db *DB) GetFileID(hash string) (id string, ok bool) {
+	id, err := getText1(db.DB, stmt.GetFileID, hash)
+	if err == sql.ErrNoRows {
+		return
+	}
+	util.Panic(err)
+	return id, true
+}
+
 func (db *DB) InsertFiles(files []*File) (err error) {
 	tx := db.mustBegin()
 	defer tx.Rollback()

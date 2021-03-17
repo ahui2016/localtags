@@ -47,7 +47,13 @@ function ajax(options, onSuccess, onFail, onAlways) {
         onSuccess(resp);
       }
     } else {
-      const msg = `${this.status} ${this.responseText}`;
+      let msg;
+      if (this.responseText) {
+        const resp = JSON.parse(this.responseText);
+        msg = resp.message ? resp.message : `${this.status} ${this.responseText}`
+      } else {
+        msg = `${this.status} ${this.statusText}`
+      }
       if (options.alerts) {
         options.alerts.insert('danger', msg);
       } else {

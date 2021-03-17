@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -69,7 +70,10 @@ func waitingFiles(c echo.Context) error {
 	}
 
 	// 更新 metadata, 因为文件有可能已经发生变化。
-	metadata = filesToMeta(files)
+	// 在 filesToMeta 里还会检查有没有重复的文件。
+	if metadata, err1 = filesToMeta(files); err1 != nil {
+		return err1
+	}
 	util.MarshalWrite(metadata, tempMetadata)
 	return c.JSON(OK, files)
 }
@@ -81,7 +85,11 @@ func cleanThumbFiles(thumbFiles []*File) error {
 			files = append(files, tempThumb(file.ID))
 		}
 	}
-	return util.DeleteFiles(files)
+	err := util.DeleteFiles(files)
+	if util.ErrorContains(err, "cannot find") {
+		err = nil
+	}
+	return err
 }
 
 func getTempFiles() ([]string, error) {
@@ -100,6 +108,11 @@ func infoToFile(name string, info fs.FileInfo, meta map[string]*File) (
 		return
 	}
 	file.Hash = util.Sha256Hex(fileBytes)
+
+	id, ok := db.GetFileID(file.Hash)
+	if ok {
+		return nil, fmt.Errorf("文件 [%s] 已存在于数据库中: id[%s]", file.Name, id)
+	}
 
 	// 如果文件已经在 metadata 里，则不进行处理，立即返回。
 	if metaFile, ok := meta[file.Hash]; ok {
@@ -142,12 +155,15 @@ func getMetadata() (map[string]*File, error) {
 	return metadata, err
 }
 
-func filesToMeta(files []*File) map[string]*File {
+func filesToMeta(files []*File) (map[string]*File, error) {
 	meta := make(map[string]*File)
 	for _, file := range files {
+		if f, ok := meta[file.Hash]; ok {
+			return nil, fmt.Errorf("[%s] 与 [%s] 重复了（两个文件内容相同）", file.Name, f.Name)
+		}
 		meta[file.Hash] = file
 	}
-	return meta
+	return meta, nil
 }
 
 func checkFFmpeg(c echo.Context) error {
@@ -166,44 +182,54 @@ func addFiles(c echo.Context) error {
 		return err
 	}
 	var (
-		copiedFile []string
-		files      []*File // files to be insert
+		copiedFiles []string
+		files       []*File // files to be insert
 	)
 	for _, file := range metadata {
 		f := db.NewFile()
-
-		if file.Thumb {
-			// copy the thumb file
-			srcPath := tempThumb(file.ID)
-			dstPath := mainBucketThumb(f.ID)
-			if err := util.CopyFile(dstPath, srcPath); err != nil {
-				return util.WrapErrors(err, util.DeleteFiles(copiedFile))
-			}
-			copiedFile = append(copiedFile, dstPath)
+		if err := copyTempThumb(file, f, &copiedFiles); err != nil {
+			return err
 		}
-
-		// copy the file
-		srcPath := waitingFile(file.Name)
-		dstPath := mainBucketFile(f.ID)
-		if err := util.CopyFile(dstPath, srcPath); err != nil {
-			return util.WrapErrors(err, util.DeleteFiles(copiedFile))
+		if err := copyTempFile(file, f, &copiedFiles); err != nil {
+			return err
 		}
-		copiedFile = append(copiedFile, dstPath)
 		file.ID = f.ID
 		file.CTime = f.CTime
 		file.UTime = f.UTime
-		tags := hashTags[file.Hash]
-		file.SetTags(tags)
+		file.SetTags(hashTags[file.Hash])
 		files = append(files, file)
 	}
 
 	// insert files to the database.
 	if err := db.InsertFiles(files); err != nil {
-		return util.WrapErrors(err, util.DeleteFiles(copiedFile))
+		return util.WrapErrors(err, util.DeleteFiles(copiedFiles))
 	}
 
 	// 如果一切正常，就清空全部临时文件。
 	return cleanTempFolders()
+}
+
+func copyFile(dstPath, srcPath string, copied *[]string) error {
+	if err := util.CopyFile(dstPath, srcPath); err != nil {
+		return util.WrapErrors(err, util.DeleteFiles(*copied))
+	}
+	*copied = append(*copied, dstPath)
+	return nil
+}
+
+func copyTempFile(tempFile, newFile *File, copied *[]string) error {
+	srcPath := waitingFile(tempFile.Name)
+	dstPath := mainBucketFile(newFile.ID)
+	return copyFile(dstPath, srcPath, copied)
+}
+
+func copyTempThumb(tempFile, newFile *File, copied *[]string) error {
+	if !tempFile.Thumb {
+		return nil
+	}
+	srcPath := tempThumb(tempFile.ID)
+	dstPath := mainBucketThumb(newFile.ID)
+	return copyFile(dstPath, srcPath, copied)
 }
 
 // tempThumb 使用 id 组成临时缩略图的位置。

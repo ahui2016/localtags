@@ -63,6 +63,7 @@ const InsertTextValue = `INSERT INTO metadata (name, text_value) VALUES (?, ?);`
 const GetTextValue = `SELECT text_value FROM metadata WHERE name=?;`
 const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 
+const GetFileID = `SELECT id FROM file WHERE hash=?;`
 const GetFiles = `SELECT * FROM file WHERE deleted=0 ORDER BY utime;`
 const InsertFile = `INSERT INTO file (
   id, name, size, type, thumb, hash, like, ctime, utime, deleted)
