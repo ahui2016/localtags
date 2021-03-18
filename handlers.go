@@ -45,12 +45,14 @@ func allFiles(c echo.Context) error {
 }
 
 func waitingFiles(c echo.Context) error {
-	fileNames, err1 := getTempFiles()
+	fileNames, err1 := getWaitingFiles()
 	metadata, err2 := getMetadata()
 	if err := util.WrapErrors(err1, err2); err != nil {
 		return err
 	}
 
+	// 逐一处理 waiting 文件夹里的文件，将合格的（不是文件夹、不与数据库中的文件重复人）文件
+	// 保存到 files 中。
 	var files []*File
 	for _, name := range fileNames {
 		info, err := os.Lstat(name)
@@ -60,41 +62,28 @@ func waitingFiles(c echo.Context) error {
 		if info.IsDir() {
 			return errors.New(`"waiting" 里面不可存放文件夹`)
 		}
+		// 在 infoToFile 里会生成缩略图，因此一旦出错需要删除多余的缩略图。
 		file, err1 := infoToFile(name, info, metadata)
 		if err1 != nil {
-			// 在函数 infoToFile 中可能生成一些缩略图，如果发生错误，要删除这些缩略图。
-			err2 := cleanThumbFiles(files)
+			// 这里的 metadata 是旧的，因此，如果一个缩略图不在这个 metadata 里，
+			// 那它就是新的（刚刚生成的）缩略图，就应该被删除。
+			err2 := cleanThumbFiles(metadata)
 			return util.WrapErrors(err1, err2)
 		}
 		files = append(files, file)
 	}
 
+	// 如果在上面的 for 循环中未发生错误，那么，此时我们得到一个 files,
+	// 该 files 反映了 waiting 文件夹的最新状态.
+
 	// 更新 metadata, 因为文件有可能已经发生变化。
 	// 在 filesToMeta 里还会检查有没有重复的文件。
-	if metadata, err1 = filesToMeta(files); err1 != nil {
-		return err1
+	newMeta, err := filesToMeta(files)
+	util.MarshalWrite(newMeta, tempMetadata)
+	if err != nil {
+		return err
 	}
-	util.MarshalWrite(metadata, tempMetadata)
 	return c.JSON(OK, files)
-}
-
-func cleanThumbFiles(thumbFiles []*File) error {
-	var files []string
-	for _, file := range thumbFiles {
-		if file.Thumb {
-			files = append(files, tempThumb(file.ID))
-		}
-	}
-	err := util.DeleteFiles(files)
-	if util.ErrorContains(err, "cannot find") {
-		err = nil
-	}
-	return err
-}
-
-func getTempFiles() ([]string, error) {
-	pattern := filepath.Join(cfg.WaitingFolder, "*")
-	return filepath.Glob(pattern)
 }
 
 func infoToFile(name string, info fs.FileInfo, meta map[string]*File) (
@@ -155,15 +144,26 @@ func getMetadata() (map[string]*File, error) {
 	return metadata, err
 }
 
-func filesToMeta(files []*File) (map[string]*File, error) {
-	meta := make(map[string]*File)
+// 注意这个函数即使错误也返回一个有用的 map
+func filesToMeta(files []*File) (meta map[string]*File, err error) {
+	meta = make(map[string]*File)
 	for _, file := range files {
 		if f, ok := meta[file.Hash]; ok {
-			return nil, fmt.Errorf("[%s] 与 [%s] 重复了（两个文件内容相同）", file.Name, f.Name)
+			err = util.WrapErrors(err, fmt.Errorf("[%s] 与 [%s] 重复了（两个文件内容相同）", file.Name, f.Name))
+			continue
 		}
 		meta[file.Hash] = file
 	}
-	return meta, nil
+	return
+}
+
+func indexByName(meta map[string]*File) map[string]*File {
+	byName := make(map[string]*File)
+	for _, file := range meta {
+		name := file.ID + thumbSuffix
+		byName[name] = file
+	}
+	return byName
 }
 
 func checkFFmpeg(c echo.Context) error {
@@ -244,6 +244,29 @@ func mainBucketFile(id string) string {
 }
 func mainBucketThumb(id string) string {
 	return filepath.Join(thumbsFolder, id)
+}
+func getWaitingFiles() ([]string, error) {
+	pattern := filepath.Join(cfg.WaitingFolder, "*")
+	return filepath.Glob(pattern)
+}
+func getTempThumbs() ([]string, error) {
+	pattern := filepath.Join(tempFolder, "*."+thumbSuffix)
+	return filepath.Glob(pattern)
+}
+func cleanThumbFiles(meta map[string]*File) error {
+	var toBeDelete []string
+	thumbs, err := getTempThumbs()
+	if err != nil {
+		return err
+	}
+	byName := indexByName(meta)
+	for _, thumb := range thumbs {
+		name := filepath.Base(thumb)
+		if _, ok := byName[name]; !ok {
+			toBeDelete = append(toBeDelete, thumb)
+		}
+	}
+	return util.DeleteFiles(toBeDelete)
 }
 func cleanTempFolders() error {
 	err1 := os.RemoveAll(cfg.WaitingFolder)
