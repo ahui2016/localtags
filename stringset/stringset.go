@@ -24,6 +24,22 @@ func (set *Set) Has(item string) bool {
 	return set.Map[item]
 }
 
+// Add .
+func (set *Set) Add(item string) {
+	set.Map[item] = true
+}
+
+// Intersect .
+func (set *Set) Intersect(other *Set) *Set {
+	result := NewSet()
+	for key := range set.Map {
+		if other.Has(key) {
+			result.Add(key)
+		}
+	}
+	return result
+}
+
 // Slice convert the set to a string slice.
 func (set *Set) Slice() (arr []string) {
 	for key := range set.Map {
@@ -42,4 +58,17 @@ func UniqueSort(arr []string) (result []string) {
 	result = From(arr).Slice()
 	sort.Strings(result)
 	return
+}
+
+// Intersect 取 group 里全部集合的交集。
+func Intersect(group []*Set) *Set {
+	length := len(group)
+	if length == 0 {
+		return NewSet()
+	}
+	result := group[0]
+	for i := 1; i < length; i++ {
+		result = result.Intersect(group[i])
+	}
+	return result
 }

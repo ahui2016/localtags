@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -256,4 +257,25 @@ func cleanTempFolders() error {
 	util.MustMkdir(cfg.WaitingFolder)
 	util.MustMkdir(tempFolder)
 	return util.WrapErrors(err1, err2)
+}
+
+func searchTags(c echo.Context) error {
+	tags, err := getTags(c)
+	if err != nil {
+		return err
+	}
+	files, err := db.SearchTags(tags)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, files)
+}
+
+func getTags(c echo.Context) ([]string, error) {
+	tagsStr, err := getParam(c, "tags")
+	return strings.Split(tagsStr, " "), err
+}
+
+func getParam(c echo.Context, key string) (string, error) {
+	return url.QueryUnescape(c.Param(key))
 }

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+  <script src="/public/util.js"></script>
+  <script src="/public/fileitem.js"></script>
+  
+  <title>Search - localtags</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
+  <script>
+    
+const Alerts = CreateAlerts();
+
+const ByTags = cc('input');
+const ByTitle = cc('input');
+const SearchInput = cc('textarea');
+const SubmitBtn = cc('button');
+const SearchForm = {
+  view: () => m('form').append([
+    m('span').text('Search by').css({marginRight:'1em'}),
+    m('div').addClass('form-check form-check-inline').append([
+      m(ByTags).addClass('form-check-input').attr({type:'radio',name:'search-by',value:'tags'}).prop('checked', true),
+      m('label').addClass('form-check-label').text('Tags').attr({for:ByTags.raw_id}),
+    ]),
+    m('div').addClass('form-check form-check-inline').append([
+      m(ByTitle).addClass('form-check-input').attr({type:'radio',name:'search-by',value:'title'}),
+      m('label').addClass('form-check-label').text('Title').attr({for:ByTitle.raw_id}),
+    ]),
+    m(SearchInput).addClass('form-control').attr({rows:2}).prop({autofocus:true,required:true}),
+    m('p').addClass('text-end mt-2').append([
+      m(SubmitBtn).text('search').attr({type:'submit'}).addClass('btn btn-primary').click(SearchForm.onsubmit),
+    ]),
+  ]),
+  onsubmit: (event) => {
+    event.preventDefault();
+    const pattern = $(SearchInput.id).val().trim();
+    if (!pattern) {
+      Alerts.insert('info', '请输入搜索内容');
+      $(SearchInput.id).focus();
+      return;
+    }
+    const searchBy = $('input[name="search-by"]:checked').val();
+    if (searchBy == 'tags') SearchForm.searchTags();
+    if (searchBy == 'title') SearchForm.searchTitle();
+  },
+  searchTags: () => {
+    const tagSet = tagsStringToSet($(SearchInput.id).val());
+    const tags = addPrefix(tagSet);
+    const url = '/api/search-tags/' + encodeURIComponent(tags);
+    Alerts.insert('info', 'searching tags: ' + addPrefix(tagSet, '#'));
+    SearchForm.search(url);
+  },
+  searchTitle: () => {
+    const title = $(SearchInput.id).val().trim();
+    const url = '/api/search-title/' + encodeURIComponent(title);
+    Alerts.insert('info', 'searching title: ' + title);
+    SearchForm.search(url);
+  },
+  search: (url) => {
+    ajax({method:'GET',url:url,alerts:Alerts,buttonID:SubmitBtn.id},
+        SearchForm.onSuccess, SearchForm.onFail);
+  },
+  onSuccess: (files) => {
+    if (!files || !files.length) {
+      Alerts.insert('danger', '找不到相关文件');
+      FileList.clear();
+      return;
+    }
+    Alerts.insert('success', `找到 ${files.length} 个文件`);
+    FileList.clear();
+    FileList.prepend(files);
+  },
+  onFail: () => {
+    FileList.clear();
+  },
+};
+
+$('#root').append([
+  m(Spacer),
+  m(SearchForm),
+  m(Alerts),
+  m(FileList).addClass('mt-3'),
+  m(Spacer),
+  m(BottomLine),
+]);
+
+init()
+
+function init() {
+}
+
+  </script>
+</body>
+</html>

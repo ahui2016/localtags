@@ -63,6 +63,7 @@ const InsertTextValue = `INSERT INTO metadata (name, text_value) VALUES (?, ?);`
 const GetTextValue = `SELECT text_value FROM metadata WHERE name=?;`
 const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 
+const GetFile = `SELECT * FROM file WHERE id=?;`
 const GetFileID = `SELECT id FROM file WHERE hash=?;`
 const GetFiles = `SELECT * FROM file WHERE deleted=0 ORDER BY utime;`
 const InsertFile = `INSERT INTO file (
@@ -88,3 +89,8 @@ const GetTagsByFile = `SELECT tag.id FROM file
     INNER JOIN file_tag ON file.id = file_tag.file_id
     INNER JOIN tag ON file_tag.tag_id = tag.id
     WHERE file.id=?;`
+
+const GetFilesByTag = `SELECT file.id FROM tag
+    INNER JOIN file_tag ON tag.id = file_tag.tag_id
+    INNER JOIN file ON file_tag.file_id = file.id
+    WHERE file.deleted=0 and tag.id=?;`
