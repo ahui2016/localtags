@@ -69,6 +69,12 @@ function ajax(options, onSuccess, onFail, onAlways) {
   xhr.send(options.body);
 }
 
+// 获取地址栏的参数。
+function getUrlParam(param) {
+  let loc = new URL(document.location);
+  return loc.searchParams.get(param);
+}
+
 // 把文件大小换算为 KB 或 MB
 function fileSizeToString(fileSize, fixed) {
   if (fixed == null) {

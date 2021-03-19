@@ -1,0 +1,30 @@
+.Tags .Tag + .Tag {
+    margin-left: 0.5rem;
+}
+
+.Tags .Tag {
+    text-decoration: none;
+}
+
+.Tags .Tag:hover {
+    text-decoration: underline;
+}
+
+.IconButtons {
+    margin-bottom: -0.75em;
+    margin-right: -0.5em;
+}
+
+.IconButtons .bi {
+    font-size: 1.25rem;
+    color: lightgray;
+    cursor: pointer;
+}
+
+.IconButtons .bi + .bi {
+    margin-left: 0.5rem;
+}
+
+.card:hover .bi {
+    color: black;
+}
