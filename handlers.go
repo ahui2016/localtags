@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,42 +51,44 @@ func waitingFiles(c echo.Context) error {
 	}
 
 	// 逐一处理 waiting 文件夹里的文件，将合格的（不是文件夹、不与数据库中的文件重复人）文件
-	// 保存到 files 中。
+	// 保存到 files 中。同时把全部错误合并为 allErr, 在 for 循环之后再统一处理 allErr。
 	var files []*File
+	var allErr error
 	for _, name := range fileNames {
-		info, err := os.Lstat(name)
+		file, err := infoToFile(name, metadata)
 		if err != nil {
-			return err
-		}
-		if info.IsDir() {
-			return errors.New(`"waiting" 里面不可存放文件夹`)
-		}
-		// 在 infoToFile 里会生成缩略图，因此一旦出错需要删除多余的缩略图。
-		file, err1 := infoToFile(name, info, metadata)
-		if err1 != nil {
-			// 这里的 metadata 是旧的，因此，如果一个缩略图不在这个 metadata 里，
-			// 那它就是新的（刚刚生成的）缩略图，就应该被删除。
-			err2 := cleanThumbFiles(metadata)
-			return util.WrapErrors(err1, err2)
+			allErr = util.WrapErrors(allErr, err)
+			continue
 		}
 		files = append(files, file)
 	}
 
-	// 如果在上面的 for 循环中未发生错误，那么，此时我们得到一个 files,
+	// 至此，不管在上面的 for 循环中有没有发生错误，我们都得到一个 files,
 	// 该 files 反映了 waiting 文件夹的最新状态.
 
 	// 更新 metadata, 因为文件有可能已经发生变化。
 	// 在 filesToMeta 里还会检查有没有重复的文件。
+	// 注意这里要先把 newMeta 写入硬盘，之后再处理错误。
 	newMeta, err := filesToMeta(files)
 	util.MarshalWrite(newMeta, tempMetadata)
-	if err != nil {
-		return err
+
+	allErr = util.WrapErrors(allErr, err)
+	if allErr != nil {
+		return allErr
 	}
 	return c.JSON(OK, files)
 }
 
-func infoToFile(name string, info fs.FileInfo, meta map[string]*File) (
+func infoToFile(name string, meta map[string]*File) (
 	file *File, err error) {
+
+	info, err := os.Lstat(name)
+	if err != nil {
+		return nil, err
+	}
+	if info.IsDir() {
+		return nil, errors.New(`"waiting" 里面不可存放文件夹`)
+	}
 
 	file = &File{Size: info.Size()}
 	file.SetNameType(info.Name())
@@ -248,25 +249,6 @@ func mainBucketThumb(id string) string {
 func getWaitingFiles() ([]string, error) {
 	pattern := filepath.Join(cfg.WaitingFolder, "*")
 	return filepath.Glob(pattern)
-}
-func getTempThumbs() ([]string, error) {
-	pattern := filepath.Join(tempFolder, "*."+thumbSuffix)
-	return filepath.Glob(pattern)
-}
-func cleanThumbFiles(meta map[string]*File) error {
-	var toBeDelete []string
-	thumbs, err := getTempThumbs()
-	if err != nil {
-		return err
-	}
-	byName := indexByName(meta)
-	for _, thumb := range thumbs {
-		name := filepath.Base(thumb)
-		if _, ok := byName[name]; !ok {
-			toBeDelete = append(toBeDelete, thumb)
-		}
-	}
-	return util.DeleteFiles(toBeDelete)
 }
 func cleanTempFolders() error {
 	err1 := os.RemoveAll(cfg.WaitingFolder)
