@@ -15,35 +15,46 @@ function FileItem(file) {
     cardSubtitle = `id:${file.ID} (size: ${fileSizeToString(file.Size)})`;
   }
   
+  const ItemAlerts = CreateAlerts();
   const self = cc('div', file.ID);
 
-  self.view = () => m('div').attr({id: self.raw_id}).addClass('FileItem card mb-3').append([
-    m('div').addClass('row g-0').append([
-      m('div').addClass(thumbClass).append([
-        m('img').addClass('card-img ').attr({src: file.Thumb}),
-      ]),
-      m('div').addClass('col').append([
-        m('div').addClass('card-body d-flex flex-column h-100').append([
-          m('p').addClass('small card-subtitle text-muted').text(cardSubtitle),
-          m('p').addClass('card-text mb-0').text(file.Name),
-          m('div').addClass('Tags small mt-auto'),
-          m('div').addClass('input-group').hide().append([
-            m('input').addClass('TagsInput form-control'),
-            m('button').text('ok').addClass('OK btn btn-outline-secondary').attr({type:'button'}),
-          ]),
-          m('div').addClass('IconButtons  mt-auto ms-auto').append([
-            m('i').addClass('bi bi-tag').attr({title:'edit tags'}),
-            m('i').addClass('bi bi-trash').attr({title:'delete'}),
-            m('i').addClass('bi bi-download').attr({title:'download'}),
+  self.view = () => m('div').attr({id: self.raw_id}).addClass('FileItem mb-3').append([
+    m('div').addClass('card').append([
+      m('div').addClass('row g-0').append([
+        m('div').addClass(thumbClass).append([
+          m('img').addClass('card-img').attr({src: file.Thumb}),
+        ]),
+        m('div').addClass('col').append([
+          m('div').addClass('card-body d-flex flex-column h-100').append([
+            m('p').addClass('small card-subtitle text-muted').text(cardSubtitle),
+            m('p').addClass('Filename card-text text-break').text(file.Name),
+            m('div').addClass('Tags small'),
+            m('div').addClass('input-group').hide().append([
+              m('input').addClass('TagsInput form-control'),
+              m('button').text('ok').addClass('OK btn btn-outline-secondary').attr({type:'button'}),
+            ]),
+            m('div').addClass('IconButtons mt-auto ms-auto').append([
+              m('i').addClass('bi bi-tag').attr({title:'edit tags'}),
+              m('i').addClass('bi bi-trash').attr({title:'delete'}),
+              m('i').addClass('bi bi-download').attr({title:'download'}),
+            ]),
+            m('div').addClass('Deleted mt-auto ms-auto').hide().append(
+              m('span').text('DELETED').addClass('badge bg-secondary')
+            ),
           ]),
         ]),
       ]),
     ]),
+    m(ItemAlerts),
   ]);
 
   // 有些事件要在该组件被实体化之后添加才有效。
   self.init = () => {
     const tagsArea = $(self.id + ' .Tags');
+    const tagsInput = $(self.id + ' .TagsInput');
+    const inputGroup = $(self.id + ' .input-group');
+    const buttons = $(self.id + ' .IconButtons');
+    const tagsBtn = $(self.id + ' .bi-tag');
 
     const tagGroup = addPrefix(file.Tags);
     const groupItem = cc('a');
@@ -61,10 +72,13 @@ function FileItem(file) {
           .addClass('Tag link-secondary')
       );
     });
-
-    const tagsText = $(self.id + ' .Tags');
-    const tagsInput = $(self.id + ' .TagsInput');
-    const inputGroup = $(self.id + ' .input-group');
+    
+    tagsBtn.click(() => {
+      inputGroup.show();
+      buttons.hide();
+      tagsInput.val(tagsText.text()).focus();
+      tagsArea.hide();
+    });  
 
     $(self.id + ' .OK').click(() => {
       const tags = tagsInput.val();
@@ -72,12 +86,29 @@ function FileItem(file) {
       tagsText.show().text(addPrefix(tagsSet, '#'));
       inputGroup.hide();
     });
-    
-    tagsText.dblclick(() => {
-      inputGroup.show();
-      tagsInput.val(tagsText.text()).focus();
-      tagsText.hide();
-    });  
+
+    const deleteBtn = $(self.id + ' .bi-trash');
+    const thumb = $(self.id + ' .card-img');
+    const deleted = $(self.id + ' .Deleted');
+    const filename = $(self.id + ' .Filename');
+    const tags = $(self.id + ' .Tag');
+    const body = new FormData();
+    body.append('id', file.ID);
+    deleteBtn.click(() => {
+      buttons.hide();
+      ajax({method:'POST',url:'/api/delete-file',alerts:ItemAlerts,body:body},
+          () => {
+            // onsuccess
+            thumb.css('filter', 'opacity(0.5) grayscale(1)');
+            filename.addClass('text-secondary');
+            tags.removeAttr('href');
+            deleted.show();
+          },
+          () => {
+            // onfail
+            buttons.show();
+          });
+    });
   };
   
   return self;

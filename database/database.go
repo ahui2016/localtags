@@ -105,6 +105,9 @@ func (db *DB) CurrentFileID() (string, error) {
 
 func (db *DB) AllFiles() (files []*File, err error) {
 	files, err = getFiles(db.DB, stmt.GetFiles)
+	if err != nil {
+		return
+	}
 	err = fillTags(db.DB, files)
 	return
 }
@@ -124,4 +127,15 @@ func (db *DB) SearchTags(tags []string) ([]*File, error) {
 		return nil, err
 	}
 	return db.getFilesByIDs(fileIDs)
+}
+
+func (db *DB) SetFileDeleted(id string, deleted bool) error {
+	ok, err := db.isFileDeleted(id)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return db.exec(stmt.SetFileDeleted, deleted, id)
+	}
+	return nil
 }

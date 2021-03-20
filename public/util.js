@@ -48,11 +48,11 @@ function ajax(options, onSuccess, onFail, onAlways) {
       }
     } else {
       let msg;
-      if (this.responseText) {
+      try {
         const resp = JSON.parse(this.responseText);
-        msg = resp.message ? resp.message : `${this.status} ${this.responseText}`
-      } else {
-        msg = `${this.status} ${this.statusText}`
+        msg = resp.message ? resp.message : `${this.status} ${this.responseText}`;
+      } catch {
+        msg = `${this.status} ${this.responseText}`;
       }
       if (options.alerts) {
         options.alerts.insert('danger', msg);
@@ -187,7 +187,7 @@ function CreateAlerts() {
   alerts.insert = (msgType, msg) => {
     const time = dayjs().format('HH:mm:ss');
     const elem = m('div')
-      .addClass(`alert alert-${msgType} alert-dismissible fade show`)
+      .addClass(`alert alert-${msgType} alert-dismissible fade show my-1`)
       .attr({role:'alert'})
       .append([
         m('span').text(`${time} ${msg}`),

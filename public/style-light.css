@@ -12,7 +12,7 @@
 
 .IconButtons {
     margin-bottom: -0.75em;
-    margin-right: -0.5em;
+    margin-right: -0.25em;
 }
 
 .IconButtons .bi {
@@ -22,7 +22,7 @@
 }
 
 .IconButtons .bi + .bi {
-    margin-left: 0.5rem;
+    margin-left: 1rem;
 }
 
 .card:hover .bi {

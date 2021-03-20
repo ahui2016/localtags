@@ -124,21 +124,21 @@ func deleteOldTagGroup(tx TX) error {
 }
 
 // getText1 gets one text value from the database.
-func getText1(tx TX, st string, args ...interface{}) (text string, err error) {
-	row := tx.QueryRow(st, args...)
+func getText1(tx TX, query string, args ...interface{}) (text string, err error) {
+	row := tx.QueryRow(query, args...)
 	err = row.Scan(&text)
 	return
 }
 
 // getInt1 gets one text value from the database.
-func getInt1(tx TX, st string, arg ...interface{}) (n int, err error) {
-	row := tx.QueryRow(st, arg...)
+func getInt1(tx TX, query string, arg ...interface{}) (n int, err error) {
+	row := tx.QueryRow(query, arg...)
 	err = row.Scan(&n)
 	return
 }
 
-func updateNow(tx TX, st, arg string) error {
-	return exec(tx, st, model.TimeNow(), arg)
+func updateNow(tx TX, query, arg string) error {
+	return exec(tx, query, model.TimeNow(), arg)
 }
 
 func (db *DB) getNextID(key string) (nextID string, err error) {
@@ -160,13 +160,13 @@ func (db *DB) exec(query string, args ...interface{}) (err error) {
 	return
 }
 
-func exec(tx TX, st string, args ...interface{}) (err error) {
-	_, err = tx.Exec(st, args...)
+func exec(tx TX, query string, args ...interface{}) (err error) {
+	_, err = tx.Exec(query, args...)
 	return
 }
 
-func getFiles(tx TX, st string) (files []*File, err error) {
-	rows, err := tx.Query(st)
+func getFiles(tx TX, query string) (files []*File, err error) {
+	rows, err := tx.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -182,8 +182,8 @@ func getFiles(tx TX, st string) (files []*File, err error) {
 	return
 }
 
-func getFileIDs(tx TX, st string, arg string) (fileIDs []string, err error) {
-	rows, err := tx.Query(st, arg)
+func getFileIDs(tx TX, query string, arg string) (fileIDs []string, err error) {
+	rows, err := tx.Query(query, arg)
 	if err != nil {
 		return
 	}
@@ -265,4 +265,12 @@ func (db *DB) getFilesByIDs(fileIDs []string) (files []*File, err error) {
 		files = append(files, &file)
 	}
 	return
+}
+
+func (db *DB) isFileDeleted(id string) (bool, error) {
+	file, err := db.GetFileByID(id)
+	if err != nil {
+		return false, err
+	}
+	return file.Deleted, nil
 }

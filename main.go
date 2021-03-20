@@ -24,11 +24,13 @@ func main() {
 
 	// api 只使用 GET, POST, 不采用 RESTful.
 	api := e.Group("/api")
+	api.Use(sleep)
 	api.GET("/waitingFolder", waitingFolder)
 	api.GET("/waiting-files", waitingFiles)
 	api.GET("/check", checkFFmpeg)
 	api.GET("/all-files", allFiles) // file.Deleted == false
 	api.POST("/add-files", addFiles)
+	api.POST("/delete-file", deleteFile)
 
 	api.GET("/search-tags/:tags", searchTags)
 	// api.GET("/search-title/:pattern", searchTitle)
