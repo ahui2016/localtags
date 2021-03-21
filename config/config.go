@@ -24,7 +24,7 @@ type Config struct {
 
 	// TagGroupLimit 限制标签组数量上限。
 	// 当超过上限时，不受保护的标签组会被覆盖。可通过点击 "protect" 按钮保护标签。
-	TagGroupLimit int
+	TagGroupLimit int64
 }
 
 // Default 默认设定

@@ -88,6 +88,12 @@ func infoToFile(name string, meta map[string]*File) (
 	file = &File{Size: info.Size()}
 	file.SetNameType(info.Name())
 
+	count, err := db.CountFiles(file.Name)
+	if err != nil {
+		return
+	}
+	file.Count = count
+
 	fileBytes, err := os.ReadFile(name)
 	if err != nil {
 		return

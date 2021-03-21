@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS file
 (
   id            text    PRIMARY KEY,
   name          text    NOT NULL,
+  count         int     NOT NULL,
   size          int     NOT NULL,
   type          text    NOT NULL,
   thumb         int     NOT NULL,
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS file
   deleted       int     NOT NULL
 );
 
+CREATE INDEX IF NOT EXISTS idx_file_name ON file(name);
 CREATE INDEX IF NOT EXISTS idx_file_hash ON file(hash);
 CREATE INDEX IF NOT EXISTS idx_file_ctime ON file(ctime);
 CREATE INDEX IF NOT EXISTS idx_file_utime ON file(utime);
@@ -64,13 +66,17 @@ const GetTextValue = `SELECT text_value FROM metadata WHERE name=?;`
 const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 
 const GetFile = `SELECT * FROM file WHERE id=?;`
+const GetFileName = `SELECT name FROM file WHERE id=?;`
 const GetFileID = `SELECT id FROM file WHERE hash=?;`
+const GetFileIDsByName = `SELECT id FROM file WHERE name=?;`
+const CountFilesByName = `SELECT count(*) FROM file WHERE name=?;`
+const SetFilesCount = `UPDATE file SET count=? WHERE name=?;`
 const GetFiles = `SELECT * FROM file WHERE deleted=0 ORDER BY utime;`
 const InsertFile = `INSERT INTO file (
-  id, name, size, type, thumb, hash, like, ctime, utime, deleted)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+  id, name, count, size, type, thumb, hash, like, ctime, utime, deleted)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 const SetFileDeletedNow = `UPDATE file SET deleted=?, utime=? WHERE id=?;`
-const RenameFileNow = `UPDATE file SET name=?, type=?, utime=? WHERE id=?;`
+const RenameFileNow = `UPDATE file SET name=?, count=?, type=?, utime=? WHERE id=?;`
 const UpdateNow = `UPDATE file SET utime=? WHERE id=?;`
 
 const GetTag = `SELECT * FROM tag WHERE id=?;`

@@ -16,10 +16,15 @@ func (db *DB) mustBegin() *sql.Tx {
 	return tx
 }
 
+func countFiles(tx TX, name string) (int64, error) {
+	return getInt1(tx, stmt.CountFilesByName, name)
+}
+
 func addFile(tx TX, file *File) (err error) {
 	_, err = tx.Exec(stmt.InsertFile,
 		file.ID,
 		file.Name,
+		file.Count,
 		file.Size,
 		file.Type,
 		file.Thumb,
@@ -36,6 +41,7 @@ func scanFile(row Row) (file File, err error) {
 	err = row.Scan(
 		&file.ID,
 		&file.Name,
+		&file.Count,
 		&file.Size,
 		&file.Type,
 		&file.Thumb,
@@ -134,7 +140,7 @@ func getText1(tx TX, query string, args ...interface{}) (text string, err error)
 }
 
 // getInt1 gets one text value from the database.
-func getInt1(tx TX, query string, arg ...interface{}) (n int, err error) {
+func getInt1(tx TX, query string, arg ...interface{}) (n int64, err error) {
 	row := tx.QueryRow(query, arg...)
 	err = row.Scan(&n)
 	return
@@ -285,4 +291,19 @@ func deleteTags(tx TX, toDelete []string, fileID string) error {
 		}
 	}
 	return nil
+}
+
+func getSameNameFiles(tx TX, fileID string) ([]string, error) {
+	name, err := getText1(tx, stmt.GetFileName, fileID)
+	if err != nil {
+		return nil, err
+	}
+	return getFileIDs(tx, stmt.GetFileIDsByName, name)
+}
+
+func updateTags(tx TX, fileID string, toAdd, toDelete []string) error {
+	e1 := deleteTags(tx, toDelete, fileID)
+	e2 := addTags(tx, toAdd, fileID)
+	e3 := exec(tx, stmt.UpdateNow, model.TimeNow(), fileID)
+	return util.WrapErrors(e1, e2, e3)
 }

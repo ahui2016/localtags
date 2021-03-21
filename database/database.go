@@ -65,26 +65,40 @@ func (db *DB) GetFileID(hash string) (id string, ok bool) {
 	return id, true
 }
 
-func (db *DB) InsertFiles(files []*File) (err error) {
+func (db *DB) CountFiles(name string) (int64, error) {
+	return countFiles(db.DB, name)
+}
+
+func (db *DB) InsertFiles(files []*File) error {
 	tx := db.mustBegin()
 	defer tx.Rollback()
 
 	for _, file := range files {
+		count, err := countFiles(tx, file.Name)
+		if err != nil {
+			return err
+		}
+		file.Count = count + 1
+		if count > 0 {
+			if err := exec(tx, stmt.SetFilesCount, file.Count, file.Name); err != nil {
+				return err
+			}
+		}
 		// add the file
 		if err = addFile(tx, file); err != nil {
-			return
+			return err
 		}
 
 		// add the tag group
 		group := model.NewTagGroup()
 		group.SetTags(file.Tags)
 		if err = addTagGroup(tx, group); err != nil {
-			return
+			return err
 		}
 
 		// add tags
 		if err = addTags(tx, file.Tags, file.ID); err != nil {
-			return
+			return err
 		}
 	}
 	return tx.Commit()
@@ -142,6 +156,11 @@ func (db *DB) SetFileDeleted(id string, deleted bool) error {
 }
 
 func (db *DB) UpdateTags(fileID string, tags []string) error {
+	newTags := stringset.UniqueSort(tags)
+	if len(newTags) < 2 {
+		return errors.New("a file needs at least two tags")
+	}
+
 	tx := db.mustBegin()
 	defer tx.Rollback()
 
@@ -149,28 +168,70 @@ func (db *DB) UpdateTags(fileID string, tags []string) error {
 	if err != nil {
 		return err
 	}
-	newTags := stringset.UniqueSort(tags)
-	if len(newTags) < 2 {
-		return errors.New("a file needs at least two tags")
-	}
-	toAdd, toDelete := util.StrSliceDiff(newTags, oldTags)
+
 	group := model.NewTagGroup()
 	group.Tags = newTags
-
-	e1 := deleteTags(tx, toDelete, fileID)
-	e2 := addTags(tx, toAdd, fileID)
-	e3 := addTagGroup(tx, group)
-	e4 := exec(tx, stmt.UpdateNow, model.TimeNow(), fileID)
-	if err := util.WrapErrors(e1, e2, e3, e4); err != nil {
+	if err := addTagGroup(tx, group); err != nil {
 		return err
+	}
+
+	toAdd, toDelete := util.StrSliceDiff(newTags, oldTags)
+	ids, err := getSameNameFiles(tx, fileID)
+	if err != nil {
+		return err
+	}
+	for _, id := range ids {
+		if err = updateTags(tx, id, toAdd, toDelete); err != nil {
+			return err
+		}
 	}
 	return tx.Commit()
 }
 
+// RenameFiles 统一修改全部同名文件的文件名。
+func (db *DB) RenameFiles(name string) error {
+	return nil
+}
+
 func (db *DB) RenameFile(id, name string) error {
-	file := model.NewFile(id)
+	file, err := db.GetFileByID(id)
+	if err != nil {
+		return err
+	}
+	if file.Name == name {
+		return nil
+	}
+
+	tx := db.mustBegin()
+	defer tx.Rollback()
+
+	// 如果旧文件名有重名文件，则减少它们的重名文件数。
+	if file.Count > 1 {
+		if err := exec(tx, stmt.SetFilesCount, file.Count-1, file.Name); err != nil {
+			return err
+		}
+	}
+
+	// 如果新文件名有重名文件，则增加它们的重名文件数。
 	if err := file.SetNameType(name); err != nil {
 		return err
 	}
-	return db.exec(stmt.RenameFileNow, name, file.Type, model.TimeNow(), id)
+	// 注意此时 file.Name 已经是新文件名
+	count, err := countFiles(tx, file.Name)
+	if err != nil {
+		return err
+	}
+	file.Count = count + 1
+	if count > 0 {
+		if err := exec(tx, stmt.SetFilesCount, file.Count, file.Name); err != nil {
+			return err
+		}
+	}
+
+	err = db.exec(stmt.RenameFileNow,
+		name, file.Count, file.Type, model.TimeNow(), id)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }

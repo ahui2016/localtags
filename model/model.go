@@ -20,6 +20,7 @@ const (
 type File struct {
 	ID      string
 	Name    string
+	Count   int64 // how many files with the same name
 	Size    int64
 	Type    string
 	Thumb   bool   // has a thumbnail or not
