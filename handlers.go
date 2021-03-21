@@ -155,3 +155,15 @@ func updateTags(c echo.Context) error {
 	}
 	return db.UpdateTags(id, tags)
 }
+
+func renameFile(c echo.Context) error {
+	id, err1 := getFormValue(c, "id")
+	name, err2 := getFormValue(c, "name")
+	if err := util.WrapErrors(err1, err2); err != nil {
+		return err
+	}
+	if err := tryFileName(name); err != nil {
+		return err
+	}
+	return db.RenameFile(id, name)
+}

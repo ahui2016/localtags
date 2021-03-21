@@ -31,6 +31,7 @@ func main() {
 	api.POST("/add-files", addFiles)
 	api.POST("/delete-file", deleteFile)
 	api.POST("/update-tags", updateTags)
+	api.POST("/rename-file", renameFile)
 
 	api.POST("/search-tags", searchTags)
 	// api.POST("/search-title", searchTitle)

@@ -136,7 +136,7 @@ func (db *DB) SetFileDeleted(id string, deleted bool) error {
 		return err
 	}
 	if !ok {
-		return db.exec(stmt.SetFileDeleted, deleted, id)
+		return db.exec(stmt.SetFileDeletedNow, deleted, model.TimeNow(), id)
 	}
 	return nil
 }
@@ -160,8 +160,17 @@ func (db *DB) UpdateTags(fileID string, tags []string) error {
 	e1 := deleteTags(tx, toDelete, fileID)
 	e2 := addTags(tx, toAdd, fileID)
 	e3 := addTagGroup(tx, group)
-	if err := util.WrapErrors(e1, e2, e3); err != nil {
+	e4 := exec(tx, stmt.UpdateNow, model.TimeNow(), fileID)
+	if err := util.WrapErrors(e1, e2, e3, e4); err != nil {
 		return err
 	}
 	return tx.Commit()
+}
+
+func (db *DB) RenameFile(id, name string) error {
+	file := model.NewFile(id)
+	if err := file.SetNameType(name); err != nil {
+		return err
+	}
+	return db.exec(stmt.RenameFileNow, name, file.Type, model.TimeNow(), id)
 }

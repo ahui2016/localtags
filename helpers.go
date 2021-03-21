@@ -181,3 +181,8 @@ func getTags(c echo.Context) ([]string, error) {
 	err = json.Unmarshal([]byte(tagsString), &tags)
 	return tags, err
 }
+
+func tryFileName(name string) error {
+	fullpath := filepath.Join(tempFolder, name)
+	return os.WriteFile(fullpath, []byte("abc"), 0666)
+}

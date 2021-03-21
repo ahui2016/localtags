@@ -69,7 +69,9 @@ const GetFiles = `SELECT * FROM file WHERE deleted=0 ORDER BY utime;`
 const InsertFile = `INSERT INTO file (
   id, name, size, type, thumb, hash, like, ctime, utime, deleted)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-const SetFileDeleted = `UPDATE file SET deleted=? WHERE id=?;`
+const SetFileDeletedNow = `UPDATE file SET deleted=?, utime=? WHERE id=?;`
+const RenameFileNow = `UPDATE file SET name=?, type=?, utime=? WHERE id=?;`
+const UpdateNow = `UPDATE file SET utime=? WHERE id=?;`
 
 const GetTag = `SELECT * FROM tag WHERE id=?;`
 const GetTagCTime = `SELECT ctime FROM tag WHERE id=?;`

@@ -28,10 +28,14 @@ function FileItem(file) {
           m('div').addClass('card-body d-flex flex-column h-100').append([
             m('p').addClass('small card-subtitle text-muted').text(cardSubtitle),
             m('p').addClass('Filename card-text text-break').text(file.Name),
+            m('div').addClass('NameInputGroup input-group').hide().append([
+              m('input').addClass('NameInput form-control'),
+              m('button').text('ok').addClass('NameOK btn btn-outline-secondary').attr({type:'button'}),
+            ]),
             m('div').addClass('Tags small'),
-            m('div').addClass('input-group').hide().append([
+            m('div').addClass('TagsInputGroup input-group').hide().append([
               m('input').addClass('TagsInput form-control'),
-              m('button').text('ok').addClass('OK btn btn-outline-secondary').attr({type:'button'}),
+              m('button').text('ok').addClass('TagsOK btn btn-outline-secondary').attr({type:'button'}),
             ]),
             m('div').addClass('IconButtons mt-auto ms-auto').append([
               m('i').addClass('bi bi-tag').attr({title:'edit tags'}),
@@ -75,11 +79,18 @@ function FileItem(file) {
 
   self.toggleTagsArea = () => {
     const tagsArea = $(self.id + ' .Tags');
-    const inputGroup = $(self.id + ' .input-group');
+    const tagsInputGroup = $(self.id + ' .TagsInputGroup');
     const buttons = $(self.id + ' .IconButtons');
     tagsArea.toggle();
-    inputGroup.toggle();
+    tagsInputGroup.toggle();
     buttons.toggle();
+  }
+
+  self.toggleFilename = () => {
+    const filename = $(self.id + ' .Filename');
+    const nameInputGroup = $(self.id + ' .NameInputGroup');
+    filename.toggle();
+    nameInputGroup.toggle();
   }
 
   // 有些事件要在该组件被实体化之后添加才有效。
@@ -95,7 +106,7 @@ function FileItem(file) {
       tagsInput.val(addPrefix(self.tags, '#')).focus();
     });
 
-    $(self.id + ' .OK').click(() => {
+    $(self.id + ' .TagsOK').click(() => {
       const tags = tagsInput.val();
       const tagsSet = tagsStringToSet(tags);
       if (tagsSet.size == 0 || eqSets(tagsSet, self.tags)) {
@@ -105,7 +116,7 @@ function FileItem(file) {
       const body = new FormData();
       body.append('id', file.ID);
       body.append('tags', JSON.stringify(Array.from(tagsSet)));
-      ajax({method:'POST',url:'/api/update-tags',alerts:ItemAlerts,buttonID:self.id+' .OK',body:body},
+      ajax({method:'POST',url:'/api/update-tags',alerts:ItemAlerts,buttonID:self.id+' .TagsOK',body:body},
           () => {
             // onsuccess
             self.toggleTagsArea();
@@ -137,6 +148,34 @@ function FileItem(file) {
           () => {
             // onfail
             buttons.show();
+          });
+    });
+
+    const nameInput = $(self.id + ' .NameInput');
+
+    filename.dblclick(() => {
+      self.toggleFilename();
+      nameInput.val(filename.text()).focus();
+    });
+    $(self.id + ' .NameOK').click(() => {
+      const oldName = filename.text();
+      const newName = nameInput.val();
+      if (newName.length == 0 || newName == oldName) {
+        self.toggleFilename();
+        return;
+      }
+      const body = new FormData();
+      body.append('id', file.ID);
+      body.append('name', newName);
+      ajax({method:'POST',url:'/api/rename-file',alerts:ItemAlerts,buttonID:self.id+' .NameOK',body:body},
+          () => {
+            // onsuccess
+            self.toggleFilename();
+            filename.text(newName);
+          },
+          () => {
+            // onfail
+            nameInput.focus();
           });
     });
   };
