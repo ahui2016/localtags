@@ -85,6 +85,9 @@ func isTagExist(tx TX, tagID string) (bool, error) {
 }
 
 func addTagGroup(tx TX, group *TagGroup) error {
+	if len(group.Tags) < 2 {
+		return errors.New("a tag group needs at least two tags")
+	}
 	tags := group.String()
 	groupID, err := getText1(tx, stmt.GetTagGroupID, tags)
 
@@ -273,4 +276,13 @@ func (db *DB) isFileDeleted(id string) (bool, error) {
 		return false, err
 	}
 	return file.Deleted, nil
+}
+
+func deleteTags(tx TX, toDelete []string, fileID string) error {
+	for _, tag := range toDelete {
+		if err := exec(tx, stmt.DeleteTag, fileID, tag); err != nil {
+			return err
+		}
+	}
+	return nil
 }

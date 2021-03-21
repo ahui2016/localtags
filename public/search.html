@@ -56,20 +56,23 @@ const SearchForm = {
   },
   searchTags: () => {
     const tagSet = tagsStringToSet($(SearchInput.id).val());
-    const tags = addPrefix(tagSet);
-    const url = '/api/search-tags/' + encodeURIComponent(tags);
     Alerts.insert('info', 'searching tags: ' + addPrefix(tagSet, '#'));
-    SearchForm.search(url);
+    const tags = Array.from(tagSet);
+    const body = new FormData()
+    body.append('tags', JSON.stringify(tags));
+    const options = {method:'POST',url:'/api/search-tags',alerts:Alerts,buttonID:SubmitBtn.id,body:body};
+    SearchForm.search(options);
   },
   searchTitle: () => {
     const title = $(SearchInput.id).val().trim();
-    const url = '/api/search-title/' + encodeURIComponent(title);
     Alerts.insert('info', 'searching title: ' + title);
-    SearchForm.search(url);
+    const body = new FormData();
+    body.append('title', title);
+    const options = {method:'POST',url:'/api/search-title',alerts:Alerts,buttonID:SubmitBtn.id,body:body};
+    SearchForm.search(options);
   },
-  search: (url) => {
-    ajax({method:'GET',url:url,alerts:Alerts,buttonID:SubmitBtn.id},
-        SearchForm.onSuccess, SearchForm.onFail);
+  search: (options) => {
+    ajax(options, SearchForm.onSuccess, SearchForm.onFail);
   },
   onSuccess: (files) => {
     if (!files || !files.length) {

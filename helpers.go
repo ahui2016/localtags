@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +14,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func getTags(c echo.Context) ([]string, error) {
+/*
+func getParamTags(c echo.Context) ([]string, error) {
 	tagsStr, err := getParam(c, "tags")
 	return strings.Split(tagsStr, " "), err
 }
@@ -23,6 +23,7 @@ func getTags(c echo.Context) ([]string, error) {
 func getParam(c echo.Context, key string) (string, error) {
 	return url.QueryUnescape(c.Param(key))
 }
+*/
 
 // tempThumb 使用 id 组成临时缩略图的位置。
 func tempThumb(tempID string) string {
@@ -161,7 +162,22 @@ func indexByName(meta map[string]*File) map[string]*File {
 	return byName
 }
 
-func checkFFmpeg(c echo.Context) error {
-	ok := thumb.CheckFFmpeg()
-	return c.JSON(OK, ok)
+// getFormValue gets the c.FormValue(key), trims its spaces,
+// and checks if it is empty or not.
+func getFormValue(c echo.Context, key string) (string, error) {
+	value := strings.TrimSpace(c.FormValue(key))
+	if value == "" {
+		return "", errors.New(key + " is empty")
+	}
+	return value, nil
+}
+
+func getTags(c echo.Context) ([]string, error) {
+	tagsString, err := getFormValue(c, "tags")
+	if err != nil {
+		return nil, err
+	}
+	var tags []string
+	err = json.Unmarshal([]byte(tagsString), &tags)
+	return tags, err
 }

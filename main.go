@@ -27,13 +27,13 @@ func main() {
 	api.Use(sleep)
 	api.GET("/waitingFolder", waitingFolder)
 	api.GET("/waiting-files", waitingFiles)
-	api.GET("/check", checkFFmpeg)
 	api.GET("/all-files", allFiles) // file.Deleted == false
 	api.POST("/add-files", addFiles)
 	api.POST("/delete-file", deleteFile)
+	api.POST("/update-tags", updateTags)
 
-	api.GET("/search-tags/:tags", searchTags)
-	// api.GET("/search-title/:pattern", searchTitle)
+	api.POST("/search-tags", searchTags)
+	// api.POST("/search-title", searchTitle)
 
 	log.Print("localtags database path: ", dbPath)
 	e.Logger.Fatal(e.Start(":80"))

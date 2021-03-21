@@ -132,11 +132,26 @@ func searchTags(c echo.Context) error {
 }
 
 func deleteFile(c echo.Context) error {
-	id := c.FormValue("id")
+	id, err := getFormValue(c, "id")
+	if err != nil {
+		return err
+	}
 	return db.SetFileDeleted(id, true)
 }
 
 func undeleteFile(c echo.Context) error {
-	id := c.Param("id")
+	id, err := getFormValue(c, "id")
+	if err != nil {
+		return err
+	}
 	return db.SetFileDeleted(id, false)
+}
+
+func updateTags(c echo.Context) error {
+	id, err1 := getFormValue(c, "id")
+	tags, err2 := getTags(c)
+	if err := util.WrapErrors(err1, err2); err != nil {
+		return err
+	}
+	return db.UpdateTags(id, tags)
 }

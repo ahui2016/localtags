@@ -48,23 +48,22 @@ function FileItem(file) {
     m(ItemAlerts),
   ]);
 
-  // 有些事件要在该组件被实体化之后添加才有效。
-  self.init = () => {
-    const tagsArea = $(self.id + ' .Tags');
-    const tagsInput = $(self.id + ' .TagsInput');
-    const inputGroup = $(self.id + ' .input-group');
-    const buttons = $(self.id + ' .IconButtons');
-    const tagsBtn = $(self.id + ' .bi-tag');
+  self.tags = new Set();
 
-    const tagGroup = addPrefix(file.Tags);
+  self.resetTags = (tags) => {
+    self.tags = new Set(tags);
+    const tagGroup = addPrefix(self.tags);
     const groupItem = cc('a');
     const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroup);
+  
+    const tagsArea = $(self.id + ' .Tags');
+    tagsArea.html('');
     tagsArea.append(
       m(groupItem).text('tags:').attr({href:groupLink, target:'_blank'})
         .addClass('Tag link-secondary')
     );
-
-    file.Tags.forEach(name => {
+  
+    self.tags.forEach(name => {
       const tagItem = cc('a');
       const tagLink = '/light/search?tags=' + encodeURIComponent(name);
       tagsArea.append(
@@ -72,19 +71,50 @@ function FileItem(file) {
           .addClass('Tag link-secondary')
       );
     });
+  }
+
+  self.toggleTagsArea = () => {
+    const tagsArea = $(self.id + ' .Tags');
+    const inputGroup = $(self.id + ' .input-group');
+    const buttons = $(self.id + ' .IconButtons');
+    tagsArea.toggle();
+    inputGroup.toggle();
+    buttons.toggle();
+  }
+
+  // 有些事件要在该组件被实体化之后添加才有效。
+  self.init = () => {
+    const tagsInput = $(self.id + ' .TagsInput');
+    const buttons = $(self.id + ' .IconButtons');
+    const tagsBtn = $(self.id + ' .bi-tag');
+    
+    self.resetTags(file.Tags);
     
     tagsBtn.click(() => {
-      inputGroup.show();
-      buttons.hide();
-      tagsInput.val(tagsText.text()).focus();
-      tagsArea.hide();
-    });  
+      self.toggleTagsArea();
+      tagsInput.val(addPrefix(self.tags, '#')).focus();
+    });
 
     $(self.id + ' .OK').click(() => {
       const tags = tagsInput.val();
       const tagsSet = tagsStringToSet(tags);
-      tagsText.show().text(addPrefix(tagsSet, '#'));
-      inputGroup.hide();
+      if (tagsSet.size == 0 || eqSets(tagsSet, self.tags)) {
+        self.toggleTagsArea();
+        return;
+      }
+      const body = new FormData();
+      body.append('id', file.ID);
+      body.append('tags', JSON.stringify(Array.from(tagsSet)));
+      ajax({method:'POST',url:'/api/update-tags',alerts:ItemAlerts,buttonID:self.id+' .OK',body:body},
+          () => {
+            // onsuccess
+            self.toggleTagsArea();
+            self.resetTags(tagsSet);
+          },
+          () => {
+            // onfail
+            tagsInput.focus();
+          });
     });
 
     const deleteBtn = $(self.id + ' .bi-trash');

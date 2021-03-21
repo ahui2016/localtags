@@ -155,6 +155,40 @@ func CopyFile(destPath, sourcePath string) error {
 	return WrapErrors(err1, err2)
 }
 
+// HasString reports whether item is in the slice.
+func HasString(slice []string, item string) bool {
+	i := StringIndex(slice, item)
+	return i >= 0
+}
+
+// StringIndex returns the index of item in the slice.
+// returns -1 if not found.
+func StringIndex(slice []string, item string) int {
+	for i, v := range slice {
+		if v == item {
+			return i
+		}
+	}
+	return -1
+}
+
+// StrSliceDiff 对比新旧数组的差异，并返回需要新增的项目与需要删除的项目。
+func StrSliceDiff(newArr, oldArr []string) (toAdd, toDelete []string) {
+	// newArr 里有，oldArr 里没有的，需要添加到数据库。
+	for _, newItem := range newArr {
+		if !HasString(oldArr, newItem) {
+			toAdd = append(toAdd, newItem)
+		}
+	}
+	// oldTags 里有，newTags 里没有的，需要从数据库中删除。
+	for _, oldItem := range oldArr {
+		if !HasString(newArr, oldItem) {
+			toDelete = append(toDelete, oldItem)
+		}
+	}
+	return
+}
+
 // GetMIME returns the content-type of a file extension.
 // https://github.com/gofiber/fiber/blob/master/utils/http.go (edited).
 func GetMIME(extension string) (mime string) {

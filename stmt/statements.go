@@ -75,6 +75,7 @@ const GetTag = `SELECT * FROM tag WHERE id=?;`
 const GetTagCTime = `SELECT ctime FROM tag WHERE id=?;`
 const InsertTag = `INSERT INTO tag (id, ctime) VALUES ( ?, ?);`
 const InsertFileTag = `INSERT INTO file_tag (file_id, tag_id) VALUES (?, ?);`
+const DeleteTag = `DELETE FROM file_tag WHERE file_id=? and tag_id=?;`
 
 const GetTagGroupID = `SELECT id FROM taggroup WHERE tags=?;`
 const InsertTagGroup = `INSERT INTO taggroup (

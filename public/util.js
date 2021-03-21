@@ -109,6 +109,15 @@ function tagsStringToArray(tags) {
   return Array.from(tagsStringToSet(tags));
 }
 
+// checks if two sets are equal
+function eqSets(a, b) {
+  if (a.size != b.size) return false;
+  for (const item of a) {
+    if (!b.has(item)) return false;
+  }
+  return true;
+}
+
 function getThumbByFiletype(filetype) {
   let prefix = filetype.split('/').shift();
   let suffix = filetype.split('/').pop();

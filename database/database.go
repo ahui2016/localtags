@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/ahui2016/localtags/config"
 	"github.com/ahui2016/localtags/model"
@@ -138,4 +139,29 @@ func (db *DB) SetFileDeleted(id string, deleted bool) error {
 		return db.exec(stmt.SetFileDeleted, deleted, id)
 	}
 	return nil
+}
+
+func (db *DB) UpdateTags(fileID string, tags []string) error {
+	tx := db.mustBegin()
+	defer tx.Rollback()
+
+	oldTags, err := getTagsByFile(tx, fileID)
+	if err != nil {
+		return err
+	}
+	newTags := stringset.UniqueSort(tags)
+	if len(newTags) < 2 {
+		return errors.New("a file needs at least two tags")
+	}
+	toAdd, toDelete := util.StrSliceDiff(newTags, oldTags)
+	group := model.NewTagGroup()
+	group.Tags = newTags
+
+	e1 := deleteTags(tx, toDelete, fileID)
+	e2 := addTags(tx, toAdd, fileID)
+	e3 := addTagGroup(tx, group)
+	if err := util.WrapErrors(e1, e2, e3); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
