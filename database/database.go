@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/ahui2016/localtags/config"
 	"github.com/ahui2016/localtags/model"
@@ -74,13 +75,20 @@ func (db *DB) InsertFiles(files []*File) error {
 	defer tx.Rollback()
 
 	for _, file := range files {
-		count, err := countFiles(tx, file.Name)
+		ids, err := getFileIDs(tx, stmt.GetFileIDsByName, file.Name)
 		if err != nil {
 			return err
 		}
+		count := int64(len(ids))
 		file.Count = count + 1
+
+		// 如果系统中有同名文件，要先统一全部同名文件的标签。
+		// 必须在插入新文件之前更新同名文件的标签。
 		if count > 0 {
 			if err := exec(tx, stmt.SetFilesCount, file.Count, file.Name); err != nil {
+				return err
+			}
+			if err := updateTags(tx, ids[0], file.Tags); err != nil {
 				return err
 			}
 		}
@@ -91,7 +99,7 @@ func (db *DB) InsertFiles(files []*File) error {
 
 		// add the tag group
 		group := model.NewTagGroup()
-		group.SetTags(file.Tags)
+		group.Tags = file.Tags
 		if err = addTagGroup(tx, group); err != nil {
 			return err
 		}
@@ -164,9 +172,21 @@ func (db *DB) UpdateTags(fileID string, tags []string) error {
 	tx := db.mustBegin()
 	defer tx.Rollback()
 
+	if err := updateTags(tx, fileID, newTags); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func updateTags(tx TX, fileID string, newTags []string) error {
 	oldTags, err := getTagsByFile(tx, fileID)
 	if err != nil {
 		return err
+	}
+	toAdd, toDelete := util.StrSliceDiff(newTags, oldTags)
+	if len(toAdd)+len(toDelete) == 0 {
+		return nil
 	}
 
 	group := model.NewTagGroup()
@@ -175,63 +195,42 @@ func (db *DB) UpdateTags(fileID string, tags []string) error {
 		return err
 	}
 
-	toAdd, toDelete := util.StrSliceDiff(newTags, oldTags)
 	ids, err := getSameNameFiles(tx, fileID)
 	if err != nil {
 		return err
 	}
 	for _, id := range ids {
-		if err = updateTags(tx, id, toAdd, toDelete); err != nil {
+		if err = updateTagsNow(tx, id, toAdd, toDelete); err != nil {
 			return err
 		}
 	}
-	return tx.Commit()
-}
-
-// RenameFiles 统一修改全部同名文件的文件名。
-func (db *DB) RenameFiles(name string) error {
 	return nil
 }
 
-func (db *DB) RenameFile(id, name string) error {
-	file, err := db.GetFileByID(id)
+// RenameFiles 统一修改全部同名文件的文件名。
+func (db *DB) RenameFiles(id, name string) error {
+	// 1.如果新文件等于旧文件名，不需要改名，直接返回。
+	oldName, err := getText1(db.DB, stmt.GetFileName, id)
 	if err != nil {
 		return err
 	}
-	if file.Name == name {
+	if name == oldName {
 		return nil
 	}
-
-	tx := db.mustBegin()
-	defer tx.Rollback()
-
-	// 如果旧文件名有重名文件，则减少它们的重名文件数。
-	if file.Count > 1 {
-		if err := exec(tx, stmt.SetFilesCount, file.Count-1, file.Name); err != nil {
-			return err
-		}
+	// 2.如果新文件名发生冲突，返回错误。
+	count, err := countFiles(db.DB, name)
+	if err != nil {
+		return err
 	}
-
-	// 如果新文件名有重名文件，则增加它们的重名文件数。
+	if count > 0 {
+		return fmt.Errorf("文件名冲突(重名): %s", name)
+	}
+	// 3.利用 SetNameType 检查新文件名的长度，并根据新文件名更改文件类型
+	file := model.NewFile(id)
 	if err := file.SetNameType(name); err != nil {
 		return err
 	}
-	// 注意此时 file.Name 已经是新文件名
-	count, err := countFiles(tx, file.Name)
-	if err != nil {
-		return err
-	}
-	file.Count = count + 1
-	if count > 0 {
-		if err := exec(tx, stmt.SetFilesCount, file.Count, file.Name); err != nil {
-			return err
-		}
-	}
-
-	err = db.exec(stmt.RenameFileNow,
-		name, file.Count, file.Type, model.TimeNow(), id)
-	if err != nil {
-		return err
-	}
-	return tx.Commit()
+	// 4.统一改名
+	return db.exec(stmt.RenameFilesNow,
+		file.Name, file.Type, file.UTime, oldName)
 }

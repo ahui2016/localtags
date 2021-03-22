@@ -188,6 +188,7 @@ func getTags(c echo.Context) ([]string, error) {
 	return tags, err
 }
 
+// tryFileName 检查文件名是否符合操作系统的要求。
 func tryFileName(name string) error {
 	fullpath := filepath.Join(tempFolder, name)
 	return os.WriteFile(fullpath, []byte("abc"), 0666)

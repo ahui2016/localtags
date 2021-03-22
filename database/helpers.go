@@ -301,7 +301,7 @@ func getSameNameFiles(tx TX, fileID string) ([]string, error) {
 	return getFileIDs(tx, stmt.GetFileIDsByName, name)
 }
 
-func updateTags(tx TX, fileID string, toAdd, toDelete []string) error {
+func updateTagsNow(tx TX, fileID string, toAdd, toDelete []string) error {
 	e1 := deleteTags(tx, toDelete, fileID)
 	e2 := addTags(tx, toAdd, fileID)
 	e3 := exec(tx, stmt.UpdateNow, model.TimeNow(), fileID)

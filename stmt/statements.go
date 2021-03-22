@@ -76,7 +76,7 @@ const InsertFile = `INSERT INTO file (
   id, name, count, size, type, thumb, hash, like, ctime, utime, deleted)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 const SetFileDeletedNow = `UPDATE file SET deleted=?, utime=? WHERE id=?;`
-const RenameFileNow = `UPDATE file SET name=?, count=?, type=?, utime=? WHERE id=?;`
+const RenameFilesNow = `UPDATE file SET name=?, type=?, utime=? WHERE name=?;`
 const UpdateNow = `UPDATE file SET utime=? WHERE id=?;`
 
 const GetTag = `SELECT * FROM tag WHERE id=?;`

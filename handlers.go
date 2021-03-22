@@ -165,5 +165,5 @@ func renameFile(c echo.Context) error {
 	if err := tryFileName(name); err != nil {
 		return err
 	}
-	return db.RenameFile(id, name)
+	return db.RenameFiles(id, name)
 }
