@@ -298,7 +298,15 @@ func getSameNameFiles(tx TX, fileID string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return getFileIDs(tx, stmt.GetFileIDsByName, name)
+	return getFileIDsByName(tx, name)
+}
+
+func getFileIDsByName(tx TX, name string) ([]string, error) {
+	ids, err := getFileIDs(tx, stmt.GetFileIDsByName, name)
+	if util.ErrorContains(err, "no files") {
+		err = nil
+	}
+	return ids, err
 }
 
 func updateTagsNow(tx TX, fileID string, toAdd, toDelete []string) error {
@@ -306,4 +314,32 @@ func updateTagsNow(tx TX, fileID string, toAdd, toDelete []string) error {
 	e2 := addTags(tx, toAdd, fileID)
 	e3 := exec(tx, stmt.UpdateNow, model.TimeNow(), fileID)
 	return util.WrapErrors(e1, e2, e3)
+}
+
+func updateTags(tx TX, fileID string, newTags []string) error {
+	oldTags, err := getTagsByFile(tx, fileID)
+	if err != nil {
+		return err
+	}
+	toAdd, toDelete := util.StrSliceDiff(newTags, oldTags)
+	if len(toAdd)+len(toDelete) == 0 {
+		return nil
+	}
+
+	group := model.NewTagGroup()
+	group.Tags = newTags
+	if err := addTagGroup(tx, group); err != nil {
+		return err
+	}
+
+	ids, err := getSameNameFiles(tx, fileID)
+	if err != nil {
+		return err
+	}
+	for _, id := range ids {
+		if err = updateTagsNow(tx, id, toAdd, toDelete); err != nil {
+			return err
+		}
+	}
+	return nil
 }

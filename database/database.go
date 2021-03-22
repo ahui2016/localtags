@@ -66,8 +66,12 @@ func (db *DB) GetFileID(hash string) (id string, ok bool) {
 	return id, true
 }
 
-func (db *DB) CountFiles(name string) (int64, error) {
-	return countFiles(db.DB, name)
+func (db *DB) GetFileIDsByName(name string) ([]string, error) {
+	return getFileIDsByName(db.DB, name)
+}
+
+func (db *DB) GetTagsByFile(id string) ([]string, error) {
+	return getTagsByFile(db.DB, id)
 }
 
 func (db *DB) InsertFiles(files []*File) error {
@@ -75,7 +79,7 @@ func (db *DB) InsertFiles(files []*File) error {
 	defer tx.Rollback()
 
 	for _, file := range files {
-		ids, err := getFileIDs(tx, stmt.GetFileIDsByName, file.Name)
+		ids, err := getFileIDsByName(tx, file.Name)
 		if err != nil {
 			return err
 		}
@@ -177,34 +181,6 @@ func (db *DB) UpdateTags(fileID string, tags []string) error {
 	}
 
 	return tx.Commit()
-}
-
-func updateTags(tx TX, fileID string, newTags []string) error {
-	oldTags, err := getTagsByFile(tx, fileID)
-	if err != nil {
-		return err
-	}
-	toAdd, toDelete := util.StrSliceDiff(newTags, oldTags)
-	if len(toAdd)+len(toDelete) == 0 {
-		return nil
-	}
-
-	group := model.NewTagGroup()
-	group.Tags = newTags
-	if err := addTagGroup(tx, group); err != nil {
-		return err
-	}
-
-	ids, err := getSameNameFiles(tx, fileID)
-	if err != nil {
-		return err
-	}
-	for _, id := range ids {
-		if err = updateTagsNow(tx, id, toAdd, toDelete); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // RenameFiles 统一修改全部同名文件的文件名。

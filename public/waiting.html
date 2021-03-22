@@ -3,14 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Waiting - localtags</title>
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/public/style-light.css">
+
   <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
   <script src="/public/util.js"></script>
-  
-  <title>Waiting - localtags</title>
+
+  <style>
+    .bi-tag {
+      cursor: pointer;
+      margin-right: 0.5rem;
+    }
+  </style>
 </head>
 <body>
   <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
@@ -91,7 +101,7 @@
           idHash[file.ID] = file.Hash;
           const item = FileItem(file);
           $(FileList.id).prepend(m(item));
-          item.attachEvents();
+          item.init();
         });
         window.setTimeout(() => { $(Tags.id).focus(); }, 200);
       });
@@ -136,8 +146,11 @@
         m('div').addClass('col').append([
           m('div').addClass('card-body d-flex flex-column h-100').append([
             m('p').addClass('small card-subtitle text-muted').text(cardSubtitle),
-            m('p').addClass('card-text mb-0').text(file.Name),
-            m('div').addClass('Tags small text-muted mt-auto').text(addPrefix(file.Tags, '#')),
+            m('p').addClass('card-text').text(file.Name),
+            m('div').addClass('TagsArea mt-auto').append([
+              m('i').addClass('bi bi-tag').attr({title:'edit tags'}),
+              m('span').addClass('Tags small text-muted').text(addPrefix(file.Tags, '#')),
+            ]),
             m('div').addClass('input-group mt-auto').hide().append([
               m('input').addClass('TagsInput form-control'),
               m('button').text('ok').addClass('OK btn btn-outline-secondary').attr({type:'button'}),
@@ -148,7 +161,8 @@
     ]);
 
     // 有些事件要在该组件被实体化之后添加才有效。
-    self.attachEvents = () => {
+    self.init = () => {
+      const tagsArea = $(self.id + ' .TagsArea');
       const tagsText = $(self.id + ' .Tags');
       const tagsInput = $(self.id + ' .TagsInput');
       const inputGroup = $(self.id + ' .input-group');
@@ -156,14 +170,15 @@
       $(self.id + ' .OK').click(() => {
         const tags = tagsInput.val();
         const tagsSet = tagsStringToSet(tags);
-        tagsText.show().text(addPrefix(tagsSet, '#'));
+        tagsArea.show();
+        tagsText.text(addPrefix(tagsSet, '#'));
         inputGroup.hide();
       });
       
-      tagsText.dblclick(() => {
+      $(self.id + ' .bi-tag').click(() => {
         inputGroup.show();
         tagsInput.val(tagsText.text()).focus();
-        tagsText.hide();
+        tagsArea.hide();
       });  
     }
   

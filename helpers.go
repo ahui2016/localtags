@@ -74,6 +74,8 @@ func copyTempThumb(tempFile, newFile *File, copied *[]string) error {
 	return copyFile(dstPath, srcPath, copied)
 }
 
+// infoToFile 把 waiting 文件夹里的文件转换为 model.File,
+// 如果遇到文件夹则返回错误，如果遇到新文件与数据库中的文件同名，则自动获取标签。
 func infoToFile(name string, meta map[string]*File) (
 	file *File, err error) {
 
@@ -85,15 +87,27 @@ func infoToFile(name string, meta map[string]*File) (
 		return nil, errors.New(`"waiting" 里面不可存放文件夹`)
 	}
 
+	// 填充文件体积、文件名、文件类型
 	file = &File{Size: info.Size()}
 	file.SetNameType(info.Name())
 
-	count, err := db.CountFiles(file.Name)
+	// 填充同名文件数
+	ids, err := db.GetFileIDsByName(file.Name)
 	if err != nil {
-		return
+		return nil, err
 	}
-	file.Count = count
+	file.Count = int64(len(ids))
 
+	// 填充文件标签
+	if file.Count > 0 {
+		tags, err := db.GetTagsByFile(ids[0])
+		if err != nil {
+			return nil, err
+		}
+		file.Tags = tags
+	}
+
+	// 填充文件哈希值
 	fileBytes, err := os.ReadFile(name)
 	if err != nil {
 		return
@@ -112,9 +126,11 @@ func infoToFile(name string, meta map[string]*File) (
 		return
 	}
 
+	// 填充文件 ID
 	file.ID = model.RandomID()
 	thumbPath := tempThumb(file.ID)
 
+	// 填充文件缩略图
 	if strings.HasPrefix(file.Type, "image") {
 		file.Thumb = true
 		// 注意下面这个 err 是个新变量，不同于函数返回值的那个 err.
@@ -132,6 +148,8 @@ func infoToFile(name string, meta map[string]*File) (
 			file.Thumb = false
 		}
 	}
+
+	// 全部填充完毕，返回文件
 	return
 }
 
