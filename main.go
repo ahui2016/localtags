@@ -28,7 +28,7 @@ func main() {
 	api.GET("/waitingFolder", waitingFolder)
 	api.GET("/waiting-files", waitingFiles)
 	api.GET("/all-files", allFiles) // file.Deleted == false
-	api.POST("/add-files", addFiles)
+	api.POST("/add-files", addFiles, autoCheck)
 	api.POST("/delete-file", deleteFile)
 	api.POST("/update-tags", updateTags)
 	api.POST("/rename-file", renameFile)

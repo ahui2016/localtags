@@ -83,6 +83,15 @@ func Sha256Hex(data []byte) string {
 	return hex.EncodeToString(sum[:])
 }
 
+// FileSha256Hex 返回文件 name 的 hex 字符串。
+func FileSha256Hex(name string) (string, error) {
+	fileBytes, err := os.ReadFile(name)
+	if err != nil {
+		return "", err
+	}
+	return Sha256Hex(fileBytes), nil
+}
+
 // MustMarshal .
 func MustMarshal(data interface{}) []byte {
 	dataJSON, err := json.Marshal(data)
@@ -170,6 +179,11 @@ func StringIndex(slice []string, item string) int {
 		}
 	}
 	return -1
+}
+
+// StrSliceRemove 删除 slice 中的第 i 个元素。
+func StrSliceRemove(slice []string, i int) []string {
+	return append(slice[:i], slice[i+1:]...)
 }
 
 // StrSliceDiff 对比新旧数组的差异，并返回需要新增的项目与需要删除的项目。

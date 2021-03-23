@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/util"
@@ -24,13 +23,6 @@ func errorHandler(err error, c echo.Context) {
 		c.JSON(e.Code, e.Message)
 	}
 	c.JSON(500, Text{err.Error()})
-}
-
-func sleep(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		time.Sleep(time.Second)
-		return next(c)
-	}
 }
 
 func waitingFolder(c echo.Context) error {

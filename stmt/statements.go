@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS file
   like          int     NOT NULL,
   ctime         int     NOT NULL,
   utime         int     NOT NULL,
+  checked       int     NOT NULL,
+  damaged       int     NOT NULL,
+  backup        int     NOT NULL,
   deleted       int     NOT NULL
 );
 
@@ -21,6 +24,7 @@ CREATE INDEX IF NOT EXISTS idx_file_name ON file(name);
 CREATE INDEX IF NOT EXISTS idx_file_hash ON file(hash);
 CREATE INDEX IF NOT EXISTS idx_file_ctime ON file(ctime);
 CREATE INDEX IF NOT EXISTS idx_file_utime ON file(utime);
+CREATE INDEX IF NOT EXISTS idx_file_checked ON file(checked);
 
 CREATE TABLE IF NOT EXISTS tag
 (
@@ -72,9 +76,11 @@ const GetFileIDsByName = `SELECT id FROM file WHERE name=?;`
 const CountFilesByName = `SELECT count(*) FROM file WHERE name=?;`
 const SetFilesCount = `UPDATE file SET count=? WHERE name=?;`
 const GetFiles = `SELECT * FROM file WHERE deleted=0 ORDER BY utime;`
+const GetFilesNeedCheck = `SELECT * FROM file WHERE checked<?;`
+const SetFileChecked = `UPDATE file SET checked=?, damaged=? WHERE id=?;`
 const InsertFile = `INSERT INTO file (
-  id, name, count, size, type, thumb, hash, like, ctime, utime, deleted)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+  id, name, count, size, type, thumb, hash, like, ctime, utime, checked, damaged, backup, deleted)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 const SetFileDeletedNow = `UPDATE file SET deleted=?, utime=? WHERE id=?;`
 const RenameFilesNow = `UPDATE file SET name=?, type=?, utime=? WHERE name=?;`
 const UpdateNow = `UPDATE file SET utime=? WHERE id=?;`

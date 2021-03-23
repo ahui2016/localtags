@@ -32,6 +32,9 @@ func addFile(tx TX, file *File) (err error) {
 		file.Like,
 		file.CTime,
 		file.UTime,
+		file.Checked,
+		file.Damaged,
+		file.Backup,
 		file.Deleted,
 	)
 	return
@@ -49,6 +52,9 @@ func scanFile(row Row) (file File, err error) {
 		&file.Like,
 		&file.CTime,
 		&file.UTime,
+		&file.Checked,
+		&file.Damaged,
+		&file.Backup,
 		&file.Deleted,
 	)
 	return
@@ -174,8 +180,8 @@ func exec(tx TX, query string, args ...interface{}) (err error) {
 	return
 }
 
-func getFiles(tx TX, query string) (files []*File, err error) {
-	rows, err := tx.Query(query)
+func getFiles(tx TX, query string, args ...interface{}) (files []*File, err error) {
+	rows, err := tx.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

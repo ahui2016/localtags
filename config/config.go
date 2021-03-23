@@ -9,6 +9,7 @@ import (
 const (
 	dataFolderName = "localtags_data_folder"
 	waitingDirName = "waiting"
+	timeUnit       = 1000 * 60 * 60 * 24 // 1天(24小时)
 )
 
 var Public = Default()
@@ -25,6 +26,9 @@ type Config struct {
 	// TagGroupLimit 限制标签组数量上限。
 	// 当超过上限时，不受保护的标签组会被覆盖。可通过点击 "protect" 按钮保护标签。
 	TagGroupLimit int64
+
+	// 当 TimeNow - file.Checked > checkInterval 时，该文件需要重新检查。
+	CheckInterval int64
 }
 
 // Default 默认设定
@@ -34,5 +38,6 @@ func Default() Config {
 		DataFolder:    dataDir,
 		WaitingFolder: filepath.Join(dataDir, waitingDirName),
 		TagGroupLimit: 100,
+		CheckInterval: timeUnit * 30, // 30天
 	}
 }

@@ -28,6 +28,9 @@ type File struct {
 	Like    int64  // 点赞
 	CTime   int64  // created at
 	UTime   int64  // updated at
+	Checked int64  // checked at 上次校验时间
+	Damaged bool   // 上次校验结果（文件是否损坏）
+	Backup  bool   // 是否曾经备份过（备份时间记录在数据库的 metadata 中）
 	Deleted bool
 	Tags    []string // 该项目不在数据库中，放在这里只是为了方便
 }
@@ -35,9 +38,10 @@ type File struct {
 func NewFile(id string) *File {
 	now := TimeNow()
 	return &File{
-		ID:    id,
-		CTime: now,
-		UTime: now,
+		ID:      id,
+		CTime:   now,
+		UTime:   now,
+		Checked: now,
 	}
 }
 

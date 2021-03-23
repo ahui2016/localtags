@@ -108,11 +108,10 @@ func infoToFile(name string, meta map[string]*File) (
 	}
 
 	// 填充文件哈希值
-	fileBytes, err := os.ReadFile(name)
+	file.Hash, err = util.FileSha256Hex(name)
 	if err != nil {
 		return
 	}
-	file.Hash = util.Sha256Hex(fileBytes)
 
 	id, ok := db.GetFileID(file.Hash)
 	if ok {
@@ -209,5 +208,8 @@ func getTags(c echo.Context) ([]string, error) {
 // tryFileName 检查文件名是否符合操作系统的要求。
 func tryFileName(name string) error {
 	fullpath := filepath.Join(tempFolder, name)
-	return os.WriteFile(fullpath, []byte("abc"), 0666)
+	if err := os.WriteFile(fullpath, []byte("abc"), 0666); err != nil {
+		return err
+	}
+	return os.Remove(fullpath)
 }
