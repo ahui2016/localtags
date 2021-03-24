@@ -61,7 +61,7 @@ func initIntValue(key string, value int64, tx TX) error {
 func initTextValue(key string, value string, tx TX) error {
 	_, err := getTextValue(key, tx)
 	if err == sql.ErrNoRows {
-		err = exec(tx, stmt.InsertIntValue, key, value)
+		err = exec(tx, stmt.InsertTextValue, key, value)
 	}
 	return err
 }
@@ -145,9 +145,16 @@ func checkFile(tx TX, folder string, file *File) error {
 	return exec(tx, stmt.SetFileChecked, model.TimeNow(), file.Damaged, file.ID)
 }
 
+func (db *DB) GetBackupBuckets() ([]string, error) {
+	return getBackupBuckets(db.DB)
+}
+
 func getBackupBuckets(tx TX) (buckets []string, err error) {
 	s, err := getTextValue(backup_buckets_key, tx)
 	if err != nil {
+		return
+	}
+	if s == "" {
 		return
 	}
 	err = json.Unmarshal([]byte(s), &buckets)
@@ -159,13 +166,13 @@ func saveBackupBuckets(tx TX, buckets []string) error {
 	return exec(tx, stmt.UpdateTextValue, string(bucketsJSON), backup_buckets_key)
 }
 
-func addBackupBucket(tx TX, bucket string) error {
-	buckets, err := getBackupBuckets(tx)
+func (db *DB) AddBackupBucket(bucket string) error {
+	buckets, err := getBackupBuckets(db.DB)
 	if err != nil {
 		return err
 	}
 	buckets = append(buckets, bucket)
-	return saveBackupBuckets(tx, buckets)
+	return saveBackupBuckets(db.DB, buckets)
 }
 
 func deleteBackupBucket(tx TX, i int) error {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -176,6 +177,7 @@ func filesToMeta(files []*File) (meta map[string]*File, err error) {
 	return
 }
 
+/*
 func indexByName(meta map[string]*File) map[string]*File {
 	byName := make(map[string]*File)
 	for _, file := range meta {
@@ -184,6 +186,7 @@ func indexByName(meta map[string]*File) map[string]*File {
 	}
 	return byName
 }
+*/
 
 // getFormValue gets the c.FormValue(key), trims its spaces,
 // and checks if it is empty or not.
@@ -212,4 +215,38 @@ func tryFileName(name string) error {
 		return err
 	}
 	return os.Remove(fullpath)
+}
+
+func checkBucketFolder(name string) error {
+	empty, err := isEmpty(name)
+	if err != nil {
+		return err
+	}
+	if !empty {
+		return fmt.Errorf("[%s] 不是空文件夹，请指定一个空文件夹。", name)
+	}
+	return nil
+}
+
+// https://stackoverflow.com/questions/30697324/how-to-check-if-directory-on-path-is-empty
+func isEmpty(folder string) (empty bool, err error) {
+	f, err := os.Open(folder)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	info, err := f.Stat()
+	if err != nil {
+		return
+	}
+	if !info.IsDir() {
+		return false, fmt.Errorf("[%s] 不是文件夹。", folder)
+	}
+
+	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return
 }

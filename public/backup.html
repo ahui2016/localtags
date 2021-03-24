@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/public/style-light.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+  <script src="/public/util.js"></script>
+  <script src="/public/filelist.js"></script>
+  
+  <title>Backup - localtags</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
+  <script>
+
+const Alerts = CreateAlerts();
+
+const BucketInput = cc('textarea');
+const AddBtn = cc('button');
+const AddBucketArea = cc('div', null, [
+  m(BucketInput).addClass('form-control').attr({placeholder:'backup bucket folder'}),
+  m('p').addClass('text-end mt-2').append([
+    m(AddBtn).text('add').addClass('btn btn-outline-primary').attr({type:'button'}),
+  ]),
+]);
+
+const Buckets = cc('div');
+
+Buckets.view = () => m('div')
+    .attr({id:Buckets.raw_id}).addClass('accordion');
+
+Buckets.prepend = (bucket) => {
+  const ItemHeader = cc('h2');
+  const ItemBody = cc('div');
+  const Item = {
+    view: () => m('div').addClass('accordion-item').append([
+      m(ItemHeader).addClass('accordion-header').append([
+        m('button').text(bucket).addClass('accordion-button collapsed')
+            .attr({type:'button', 'data-bs-toggle':'collapse', 'data-bs-target':ItemBody.id}),
+      ]),
+      m(ItemBody).addClass('accordion-collapse collapse').attr({'data-bs-parent': Buckets.id}).append([
+        m('div').addClass('accordion-body').append([
+          m('button').text('use').attr({type:'button'}).addClass('UseBtn btn btn-sm btn-primary'),
+          m('button').text('delete').attr({type:'button'}).addClass('DeleteBtn btn btn-sm btn-secondary'),
+        ]),
+      ]),
+    ]),
+  };
+  $(Buckets.id).prepend(m(Item));
+};
+
+$('#root').append([
+  m(Spacer),
+  m(AddBucketArea),
+  m(Alerts),
+  m(Spacer),
+  m(Buckets),
+  m(BottomLine),
+]);
+
+init()
+
+function init() {
+
+  $(AddBtn.id).click(() => {
+    const bucketInput = $(BucketInput.id);
+    const bucket = bucketInput.val().trim();
+    if (!bucket) {
+      bucketInput.focus();
+      return;
+    }
+
+    const body = new FormData();
+    body.append('bucket', bucket);
+
+    ajax({method:'POST',url:'/api/add-bk-bucket',
+        alerts:Alerts,buttonID:AddBtn.id,body:body}, () => {
+          Buckets.prepend(bucket);
+          bucketInput.val('');
+        }, null, () => {
+          // onAlways
+          bucketInput.focus();
+        });
+  });
+
+  ajax({method:'GET',url:'/api/get-bk-buckets',alerts:Alerts},
+      (buckets) => {
+        if (!buckets) return;
+        buckets.forEach(Buckets.prepend);
+      });
+}
+
+</script>
+</body>
+</html>

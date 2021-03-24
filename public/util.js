@@ -22,7 +22,7 @@ function m(name) {
 
 // cc creates a component with an id.
 function cc(name, id, elements) {
-  if (!id) id = '' + Math.round(Math.random() * 100000000);
+  if (!id) id = 'r' + Math.round(Math.random() * 100000000);
   const vnode = m(name).attr('id', id);
   if (elements) vnode.append(elements);
   return {id: '#'+id, raw_id: id, view: () => vnode};

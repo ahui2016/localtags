@@ -56,8 +56,8 @@ CREATE INDEX IF NOT EXISTS idx_taggroup_utime ON taggroup(utime);
 CREATE TABLE IF NOT EXISTS metadata
 (
   name         text    NOT NULL UNIQUE,
-  int_value    int     DEFAULT NULL,
-  text_value   text    DEFAULT NULL
+  int_value    int     NOT NULL DEFAULT 0,
+  text_value   text    NOT NULL DEFAULT "" 
 );
 `
 

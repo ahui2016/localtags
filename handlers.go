@@ -171,3 +171,22 @@ func getDatabaseInfo(c echo.Context) error {
 func forceCheckFiles(c echo.Context) error {
 	return db.ForceCheckFilesHash(mainBucket)
 }
+
+func getBackupBuckets(c echo.Context) error {
+	buckets, err := db.GetBackupBuckets()
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, buckets)
+}
+
+func addBackupBucket(c echo.Context) error {
+	bucket, err := getFormValue(c, "bucket")
+	if err != nil {
+		return err
+	}
+	if err = checkBucketFolder(bucket); err != nil {
+		return err
+	}
+	return db.AddBackupBucket(bucket)
+}
