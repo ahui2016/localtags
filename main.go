@@ -21,10 +21,13 @@ func main() {
 	light.File("/waiting", "public/waiting.html")
 	light.File("/files", "public/files.html")
 	light.File("/search", "public/search.html")
+	light.File("/info", "public/info.html")
 
 	// api 只使用 GET, POST, 不采用 RESTful.
 	api := e.Group("/api")
 	api.Use(sleep)
+	api.GET("/get-db-info", getDatabaseInfo)
+	api.GET("/force-check-files", forceCheckFiles)
 	api.GET("/waitingFolder", waitingFolder)
 	api.GET("/waiting-files", waitingFiles)
 	api.GET("/all-files", allFiles) // file.Deleted == false

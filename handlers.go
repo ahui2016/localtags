@@ -159,3 +159,15 @@ func renameFile(c echo.Context) error {
 	}
 	return db.RenameFiles(id, name)
 }
+
+func getDatabaseInfo(c echo.Context) error {
+	info, err := db.GetInfo()
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, info)
+}
+
+func forceCheckFiles(c echo.Context) error {
+	return db.ForceCheckFilesHash(mainBucket)
+}

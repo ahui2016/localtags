@@ -76,6 +76,7 @@ const GetFileIDsByName = `SELECT id FROM file WHERE name=?;`
 const CountFilesByName = `SELECT count(*) FROM file WHERE name=?;`
 const SetFilesCount = `UPDATE file SET count=? WHERE name=?;`
 const GetFiles = `SELECT * FROM file WHERE deleted=0 ORDER BY utime;`
+const GetAllFiles = `SELECT * FROM file;`
 const GetFilesNeedCheck = `SELECT * FROM file WHERE checked<?;`
 const SetFileChecked = `UPDATE file SET checked=?, damaged=? WHERE id=?;`
 const InsertFile = `INSERT INTO file (
@@ -84,6 +85,8 @@ const InsertFile = `INSERT INTO file (
 const SetFileDeletedNow = `UPDATE file SET deleted=?, utime=? WHERE id=?;`
 const RenameFilesNow = `UPDATE file SET name=?, type=?, utime=? WHERE name=?;`
 const UpdateNow = `UPDATE file SET utime=? WHERE id=?;`
+const CountAllFiles = `SELECT count(*) FROM file;`
+const CountDamagedFiles = `SELECT count(*) FROM file WHERE damaged>0;`
 
 const GetTag = `SELECT * FROM tag WHERE id=?;`
 const GetTagCTime = `SELECT ctime FROM tag WHERE id=?;`

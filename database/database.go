@@ -23,6 +23,14 @@ type (
 	Set      = stringset.Set
 )
 
+// Info of the database
+type Info struct {
+	LastChecked       int64
+	LastBackup        int64
+	AllFilesCount     int64
+	DamagedFilesCount int64
+}
+
 type TX interface {
 	Exec(string, ...interface{}) (sql.Result, error)
 	Query(string, ...interface{}) (*sql.Rows, error)
@@ -209,4 +217,19 @@ func (db *DB) RenameFiles(id, name string) error {
 	// 4.统一改名
 	return db.exec(stmt.RenameFilesNow,
 		file.Name, file.Type, file.UTime, oldName)
+}
+
+func (db *DB) GetInfo() (Info, error) {
+	lastChecked, e1 := getIntValue(last_check_key, db.DB)
+	lastBackup, e2 := getIntValue(last_backup_key, db.DB)
+	allFiles, e3 := getInt1(db.DB, stmt.CountAllFiles)
+	damagedFiles, e4 := getInt1(db.DB, stmt.CountDamagedFiles)
+	err := util.WrapErrors(e1, e2, e3, e4)
+	info := Info{
+		LastChecked:       lastChecked,
+		LastBackup:        lastBackup,
+		AllFilesCount:     allFiles,
+		DamagedFilesCount: damagedFiles,
+	}
+	return info, err
 }

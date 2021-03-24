@@ -50,6 +50,22 @@ func initFirstID(key, prefix string, tx TX) (err error) {
 	return
 }
 
+func initIntValue(key string, value int64, tx TX) error {
+	_, err := getIntValue(key, tx)
+	if err == sql.ErrNoRows {
+		err = exec(tx, stmt.InsertIntValue, key, value)
+	}
+	return err
+}
+
+func initTextValue(key string, value string, tx TX) error {
+	_, err := getTextValue(key, tx)
+	if err == sql.ErrNoRows {
+		err = exec(tx, stmt.InsertIntValue, key, value)
+	}
+	return err
+}
+
 func needToCheck(tx TX) (need bool, err error) {
 	lastCheckTime, err := getIntValue(last_check_key, tx)
 	if err != nil {
@@ -61,6 +77,7 @@ func needToCheck(tx TX) (need bool, err error) {
 	return
 }
 
+// CheckFilesHash 只校验长时间未校验的文件，忽略短期内曾校验过的文件。
 func (db *DB) CheckFilesHash(bucket string) error {
 	need, err := needToCheck(db.DB)
 	if err != nil {
@@ -86,9 +103,30 @@ func (db *DB) CheckFilesHash(bucket string) error {
 	}
 
 	// 最后记录本次校验时间
-	if err := exec(tx, stmt.InsertIntValue, last_check_key, model.TimeNow()); err != nil {
+	if err := exec(tx, stmt.UpdateIntValue, model.TimeNow(), last_check_key); err != nil {
 		return err
 	}
+	return tx.Commit()
+}
+
+// ForceCheckFilesHash 不检查上次校验日期，强制校验全部文件。
+func (db *DB) ForceCheckFilesHash(bucket string) error {
+	tx := db.mustBegin()
+	defer tx.Rollback()
+
+	files, err := getFiles(tx, stmt.GetAllFiles)
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		if err := checkFile(tx, bucket, file); err != nil {
+			return err
+		}
+	}
+	if err := exec(tx, stmt.UpdateIntValue, model.TimeNow(), last_check_key); err != nil {
+		return err
+	}
+
 	return tx.Commit()
 }
 
@@ -118,7 +156,7 @@ func getBackupBuckets(tx TX) (buckets []string, err error) {
 
 func saveBackupBuckets(tx TX, buckets []string) error {
 	bucketsJSON := util.MustMarshal(buckets)
-	return exec(tx, stmt.InsertTextValue, backup_buckets_key, string(bucketsJSON))
+	return exec(tx, stmt.UpdateTextValue, string(bucketsJSON), backup_buckets_key)
 }
 
 func addBackupBucket(tx TX, bucket string) error {

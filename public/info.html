@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/public/style-light.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+  <script src="/public/util.js"></script>
+  <script src="/public/filelist.js"></script>
+  
+  <title>Infomation - localtags</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
+  <script>
+
+const Alerts = CreateAlerts();
+
+const LastChecked = cc('span');
+const LastBackup = cc('span');
+const AllFilesCount = cc('span');
+const DamagedFilesCount = cc('span');
+const ForceCheckBtn = cc('button');
+
+const InfoArea = {
+  view: () => m('div').append([
+    m('p').append([
+      m('span').append(['上次校验时间: ', m(LastChecked)], ' '),
+      m(ForceCheckBtn).text('force check').attr({type:'button'})
+          .addClass('btn btn-sm btn-outline-secondary'),
+    ]),
+    m('p').append(['上次备份时间: ', m(LastBackup)]),
+    m('p').append(['全部文件（个）: ', m(AllFilesCount)]),
+    m('p').append(['其中损坏文件（个）: ', m(DamagedFilesCount)]),
+  ])
+}
+
+$('#root').append([
+  m(Spacer),
+  m(Alerts),
+  m(Spacer),
+  m(InfoArea),
+  m(BottomLine),
+]);
+
+init()
+
+function init() {
+  $(ForceCheckBtn.id).click(() => {
+    Alerts.insert('info', '强制校验文件完整性......');
+    Alerts.insert('info', '校验完成时会自动刷新页面，请耐心等待。');
+    ajax({method:'GET',url:'/api/force-check-files',alerts:Alerts,buttonID:ForceCheckBtn.id},
+        () => {
+          window.location.reload();
+        });
+  });
+
+  ajax({method:'GET',url:'/api/get-db-info',alerts:Alerts},
+      (info) => {
+        const lastChecked = info.LastChecked ? 
+            dayjs.unix(info.LastChecked).format('MMMM D, YYYY') : 'Never';
+        const lastBackup = info.LastBackup ? 
+            dayjs.unix(info.LastBackup).format('MMMM D, YYYY') : 'Never';
+        $(LastChecked.id).text(lastChecked);
+        $(LastBackup.id).text(lastBackup);
+        $(AllFilesCount.id).text(info.AllFilesCount);
+        $(DamagedFilesCount.id).text(info.DamagedFilesCount);
+        if (info.DamagedFilesCount > 0) {
+          $(DamagedFilesCount.id).addClass('text-danger fw-bold');
+        }
+      });
+}
+
+</script>
+</body>
+</html>
