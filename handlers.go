@@ -190,3 +190,7 @@ func addBackupBucket(c echo.Context) error {
 	}
 	return db.AddBackupBucket(bucket)
 }
+
+func deleteBackupBucket(c echo.Context) error {
+
+}

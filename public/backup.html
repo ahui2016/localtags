@@ -36,24 +36,30 @@ const Buckets = cc('div');
 Buckets.view = () => m('div')
     .attr({id:Buckets.raw_id}).addClass('accordion');
 
-Buckets.prepend = (bucket) => {
-  const ItemHeader = cc('h2');
-  const ItemBody = cc('div');
-  const Item = {
-    view: () => m('div').addClass('accordion-item').append([
-      m(ItemHeader).addClass('accordion-header').append([
-        m('button').text(bucket).addClass('accordion-button collapsed')
-            .attr({type:'button', 'data-bs-toggle':'collapse', 'data-bs-target':ItemBody.id}),
-      ]),
-      m(ItemBody).addClass('accordion-collapse collapse').attr({'data-bs-parent': Buckets.id}).append([
-        m('div').addClass('accordion-body').append([
-          m('button').text('use').attr({type:'button'}).addClass('UseBtn btn btn-sm btn-primary'),
-          m('button').text('delete').attr({type:'button'}).addClass('DeleteBtn btn btn-sm btn-secondary'),
-        ]),
+Buckets.prepend = (bucket, index) => {
+  const Item = cc('div', 'bucket-'+index);
+  const data_target = Item.id + ' .accordion-collapse';
+  Item.view = () => m('div').attr({id:Item.raw_id}).addClass('accordion-item').append([
+    m('h2').addClass('accordion-header').append([
+      m('button').text(bucket).addClass('accordion-button collapsed')
+          .attr({type:'button', 'data-bs-toggle':'collapse', 'data-bs-target':data_target}),
+    ]),
+    m('div').addClass('accordion-collapse collapse').attr({'data-bs-parent': Buckets.id}).append([
+      m('div').addClass('accordion-body').append([
+        m('button').text('use').attr({type:'button'}).addClass('UseBtn btn btn-sm btn-primary'),
+        m('button').text('delete').attr({type:'button'}).addClass('DeleteBtn btn btn-sm btn-secondary'),
       ]),
     ]),
-  };
+  ]);
+
   $(Buckets.id).prepend(m(Item));
+
+  const use_btn_id = Item.id + ' .UseBtn';
+  $(use_btn_id).click(() => {
+    const body = new FormData();
+    body.append('index', index);
+    ajax({method:'POST'});
+  });
 };
 
 $('#root').append([
@@ -77,15 +83,19 @@ function init() {
       return;
     }
 
+    Alerts.insert('info', '正在添加备份仓库......');
+
     const body = new FormData();
     body.append('bucket', bucket);
 
     ajax({method:'POST',url:'/api/add-bk-bucket',
         alerts:Alerts,buttonID:AddBtn.id,body:body}, () => {
-          Buckets.prepend(bucket);
-          bucketInput.val('');
-        }, null, () => {
-          // onAlways
+          // onSuccess
+          Alerts.insert('info', '添加成功后会自动刷新页面');
+          window.setTimeout(() => { window.location.reload(); }, 1000);
+        },
+        () => {
+          // onFail
           bucketInput.focus();
         });
   });

@@ -31,6 +31,7 @@ func main() {
 	api.GET("/force-check-files", forceCheckFiles)
 	api.GET("/get-bk-buckets", getBackupBuckets)
 	api.POST("/add-bk-bucket", addBackupBucket)
+	api.POST("/delete-bk-bucket", deleteBackupBucket)
 	api.GET("/waitingFolder", waitingFolder)
 	api.GET("/waiting-files", waitingFiles)
 	api.GET("/all-files", allFiles) // file.Deleted == false
