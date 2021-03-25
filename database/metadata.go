@@ -175,11 +175,11 @@ func (db *DB) AddBackupBucket(bucket string) error {
 	return saveBackupBuckets(db.DB, buckets)
 }
 
-func deleteBackupBucket(tx TX, i int) error {
-	buckets, err := getBackupBuckets(tx)
+func (db *DB) DeleteBackupBucket(i int) error {
+	buckets, err := getBackupBuckets(db.DB)
 	if err != nil {
 		return err
 	}
 	buckets = append(buckets[:i], buckets[i+1:]...)
-	return saveBackupBuckets(tx, buckets)
+	return saveBackupBuckets(db.DB, buckets)
 }

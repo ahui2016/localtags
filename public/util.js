@@ -160,15 +160,13 @@ const Spacer = { view: () => $('<div style="margin-bottom: 2em;"></div>') };
 const BottomLine = { view: () => $('<div style="margin-top: 200px;"></div>') };
 
 const Loading = {
-  view: () => $('<p id="loading" class="alert-info">Loading...</p>'),
+  view: () => m('div').attr({id:'loading'}).addClass('text-center').append([
+    m('div').addClass('spinner-border').attr({role:'status'}).append(
+      m('span').addClass('visually-hidden').text('Loading...')
+    ),
+  ]),
   hide: () => { $('#loading').hide(); },
-  reset: (text) => {
-    if (!text) {
-      $('#loading').show();
-      return;
-    }
-    $('#loading').show().text(text); 
-  },
+  show: () => { $('#loading').show(); },
 };
 
 function CreateInfoPair(name, msg) {

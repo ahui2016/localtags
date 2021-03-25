@@ -57,6 +57,15 @@ func (db *DB) Open(dbPath string) (err error) {
 	return db.initMetadata()
 }
 
+// OpenBackup opens a backup database.
+func (db *DB) OpenBackup(dbPath string) (err error) {
+	if util.PathIsNotExist(dbPath) {
+		return fmt.Errorf("not found: %s", dbPath)
+	}
+	db.DB, err = sql.Open("sqlite3", dbPath+"?_fk=1")
+	return
+}
+
 func (db *DB) Close() error {
 	return db.DB.Close()
 }

@@ -18,7 +18,9 @@ const (
 )
 const (
 	dbFileName       = "localtags.db"
+	backupDBFileName = "localtags.bak.db"
 	mainBucketName   = "mainbucket"    // 主仓库文件夹名
+	bakBucketName    = "backup_bucket" // 备份仓库文件夹名
 	thumbsFolderName = "thumbs"        // 仓库里的缩略图的文件夹名
 	tempFolderName   = "temp"          // 临时文件夹名称
 	thumbSuffix      = ".small.jpg"    // 缩略图的后缀名

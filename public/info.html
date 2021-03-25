@@ -64,9 +64,9 @@ function init() {
   ajax({method:'GET',url:'/api/get-db-info',alerts:Alerts},
       (info) => {
         const lastChecked = info.LastChecked ? 
-            dayjs.unix(info.LastChecked).format('MMMM D, YYYY') : 'Never';
+            dayjs.unix(info.LastChecked).format('MMMM D, YYYY') : 'not yet';
         const lastBackup = info.LastBackup ? 
-            dayjs.unix(info.LastBackup).format('MMMM D, YYYY') : 'Never';
+            dayjs.unix(info.LastBackup).format('MMMM D, YYYY') : 'not yet';
         $(LastChecked.id).text(lastChecked);
         $(LastBackup.id).text(lastBackup);
         $(AllFilesCount.id).text(info.AllFilesCount);

@@ -160,7 +160,7 @@ func renameFile(c echo.Context) error {
 	return db.RenameFiles(id, name)
 }
 
-func getDatabaseInfo(c echo.Context) error {
+func databaseInfo(c echo.Context) error {
 	info, err := db.GetInfo()
 	if err != nil {
 		return err
@@ -172,7 +172,7 @@ func forceCheckFiles(c echo.Context) error {
 	return db.ForceCheckFilesHash(mainBucket)
 }
 
-func getBackupBuckets(c echo.Context) error {
+func backupBuckets(c echo.Context) error {
 	buckets, err := db.GetBackupBuckets()
 	if err != nil {
 		return err
@@ -192,5 +192,21 @@ func addBackupBucket(c echo.Context) error {
 }
 
 func deleteBackupBucket(c echo.Context) error {
+	index, err := getNumber(c, "index")
+	if err != nil {
+		return err
+	}
+	return db.DeleteBackupBucket(index)
+}
 
+func bucketsInfo(c echo.Context) error {
+	bkFolder, err := getFormValue(c, "bucket")
+	if err != nil {
+		return err
+	}
+	info, err := getBucketsInfo(bkFolder)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, info)
 }

@@ -7,8 +7,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
+	"github.com/ahui2016/localtags/database"
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/thumb"
 	"github.com/ahui2016/localtags/util"
@@ -193,9 +195,17 @@ func indexByName(meta map[string]*File) map[string]*File {
 func getFormValue(c echo.Context, key string) (string, error) {
 	value := strings.TrimSpace(c.FormValue(key))
 	if value == "" {
-		return "", errors.New(key + " is empty")
+		return "", fmt.Errorf("form value [%s] is empty", key)
 	}
 	return value, nil
+}
+
+func getNumber(c echo.Context, key string) (int, error) {
+	s, err := getFormValue(c, key)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.Atoi(s)
 }
 
 func getTags(c echo.Context) ([]string, error) {
@@ -217,36 +227,81 @@ func tryFileName(name string) error {
 	return os.Remove(fullpath)
 }
 
-func checkBucketFolder(name string) error {
-	empty, err := isEmpty(name)
-	if err != nil {
-		return err
-	}
-	if !empty {
-		return fmt.Errorf("[%s] 不是空文件夹，请指定一个空文件夹。", name)
-	}
-	return nil
-}
-
 // https://stackoverflow.com/questions/30697324/how-to-check-if-directory-on-path-is-empty
-func isEmpty(folder string) (empty bool, err error) {
+func checkBucketFolder(folder string) error {
 	f, err := os.Open(folder)
 	if err != nil {
-		return
+		return err
 	}
 	defer f.Close()
 
 	info, err := f.Stat()
 	if err != nil {
-		return
+		return err
 	}
 	if !info.IsDir() {
-		return false, fmt.Errorf("[%s] 不是文件夹。", folder)
+		return fmt.Errorf("[%s] 不是文件夹。", folder)
 	}
 
-	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	// 备份仓库的第一层目录内应该不超过 10 个项目。
+	files, err := f.Readdir(10) // Or f.Readdir(1)
+
+	// 如果是空文件夹，则没有问题。
 	if err == io.EOF {
-		return true, nil
+		return nil
 	}
-	return
+	// 如果有其他错误，则返回错误。
+	if err != nil {
+		return err
+	}
+	// 如果文件夹内有文件，则检查有没有 backupDatabase
+	for _, file := range files {
+		if file.Name() == backupDBFileName {
+			return nil
+		}
+	}
+	// 如果文件夹内有文件，但找不到 backupDatabase
+	return fmt.Errorf("[%s] 不是空文件夹，请指定一个空文件夹。", folder)
+}
+
+// getBucketsInfo 返回主仓库与备份仓库的状态信息。
+func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
+	// 检查备份仓库文件夹的有效性
+	if err := checkBucketFolder(bkFolder); err != nil {
+		return nil, err
+	}
+
+	// 获取 main bucket 的状态信息
+	info := make(map[string]database.Info)
+	dbInfo, err := db.GetInfo()
+	if err != nil {
+		return nil, err
+	}
+	info["main-bucket"] = dbInfo
+	info["backup-bucket"] = database.Info{}
+
+	// 如果找不到备份数据库文件，则说明这是一个空文件夹，是一个全新的备份仓库。
+	bkPath := filepath.Join(bkFolder, backupDBFileName)
+	if util.PathIsNotExist(bkPath) {
+		return info, nil
+	}
+
+	// 如果能找到备份数据库文件，则打开备份数据库。
+	bk := new(database.DB)
+	if err := bk.OpenBackup(bkPath); err != nil {
+		return nil, err
+	}
+
+	// 强制检查全部备份文件的完整性后获取备份仓库的状态信息。
+	bakBucket := filepath.Join(bkFolder, bakBucketName)
+	if err := bk.ForceCheckFilesHash(bakBucket); err != nil {
+		return nil, err
+	}
+	info["backup-bucket"], err = bk.GetInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	// 最后返回主仓库与备份仓库的状态信息
+	return info, nil
 }

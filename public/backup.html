@@ -22,6 +22,8 @@
 
 const Alerts = CreateAlerts();
 
+const BucketsInfo = cc('div');
+
 const BucketInput = cc('textarea');
 const AddBtn = cc('button');
 const AddBucketArea = cc('div', null, [
@@ -31,12 +33,12 @@ const AddBucketArea = cc('div', null, [
   ]),
 ]);
 
-const Buckets = cc('div');
+const BucketList = cc('div');
 
-Buckets.view = () => m('div')
-    .attr({id:Buckets.raw_id}).addClass('accordion');
+BucketList.view = () => m('div')
+    .attr({id:BucketList.raw_id}).addClass('accordion');
 
-Buckets.prepend = (bucket, index) => {
+BucketList.prepend = (bucket, index) => {
   const Item = cc('div', 'bucket-'+index);
   const data_target = Item.id + ' .accordion-collapse';
   Item.view = () => m('div').attr({id:Item.raw_id}).addClass('accordion-item').append([
@@ -44,30 +46,89 @@ Buckets.prepend = (bucket, index) => {
       m('button').text(bucket).addClass('accordion-button collapsed')
           .attr({type:'button', 'data-bs-toggle':'collapse', 'data-bs-target':data_target}),
     ]),
-    m('div').addClass('accordion-collapse collapse').attr({'data-bs-parent': Buckets.id}).append([
-      m('div').addClass('accordion-body').append([
-        m('button').text('use').attr({type:'button'}).addClass('UseBtn btn btn-sm btn-primary'),
-        m('button').text('delete').attr({type:'button'}).addClass('DeleteBtn btn btn-sm btn-secondary'),
+    m('div').addClass('accordion-collapse collapse').attr({'data-bs-parent': BucketList.id}).append([
+      m('div').addClass('accordion-body text-end').append([
+        m('div').addClass('Buttons').append([
+          m('button').text('use').attr({type:'button'}).addClass('UseBtn btn btn-sm btn-primary'),
+          ' ',
+          m('button').text('delete').attr({type:'button'}).addClass('DelBtn btn btn-sm btn-secondary'),
+        ]),
+        m('div').addClass('Confirm').hide().append([
+          '仅从该列表中移除该项目，不会删除文件，是否继续执行？',
+          m('button').text('yes').attr({type:'button'}).addClass('YesBtn btn btn-sm btn-danger'),
+          ' ',
+          m('button').text('no').attr({type:'button'}).addClass('NoBtn btn btn-sm btn-secondary'),
+        ]),
       ]),
     ]),
   ]);
 
-  $(Buckets.id).prepend(m(Item));
+  $(BucketList.id).prepend(m(Item));
+
+  const toggleConfirm = () => {
+    $(Item.id + ' .Buttons').toggle();
+    $(Item.id + ' .Confirm').toggle();
+  };
+
+  $(Item.id + ' .DelBtn').click(toggleConfirm);
+  $(Item.id + ' .NoBtn').click(toggleConfirm);
+
+  const yes_btn_id = Item.id + ' .YesBtn';
+  $(yes_btn_id).click(() => {
+    disable(yes_btn_id);
+    Alerts.insert('info', '正在删除备份仓库......');
+    const body = new FormData();
+    body.append('index', index);
+    ajax({method:'POST',url:'/api/delete-bk-bucket',alerts:Alerts,body:body},
+        () => {
+          // onSuccess
+          Alerts.insert('info', '删除成功后会自动刷新页面');
+          window.setTimeout(() => { window.location.reload(); }, 3000);
+        },
+        () => {
+          // onFail
+          enable(yes_btn_id);
+        });
+  });
 
   const use_btn_id = Item.id + ' .UseBtn';
   $(use_btn_id).click(() => {
+    Alerts.insert('info', '正在获取备份仓库的状态信息......');
+    Loading.show();
+    $(AddBucketArea.id).hide();
+    $(BucketList.id).hide();
+
     const body = new FormData();
-    body.append('index', index);
-    ajax({method:'POST'});
+    body.append('bucket', bucket);
+    ajax({method:'POST',url:'/api/get-buckets-info',alerts:Alerts,body:body},
+        (info) => {
+          // onSuccess
+          Alerts.insert('success', '成功获取备份仓库的状态信息');
+          const main = create_bucket_info('Main Bucket', info['main-bucket']);
+          const backup = create_bucket_info('Backup Bucket', info['backup-bucket']);
+          $(BucketsInfo.id).prepend(m(backup));
+          $(BucketsInfo.id).prepend(m(main));
+        },
+        () => {
+          // onFail
+          $(AddBucketArea.id).show();
+          $(BucketList.id).show();
+        },
+        () => {
+          // onAlways
+          Loading.hide();
+        });
   });
 };
 
 $('#root').append([
   m(Spacer),
-  m(AddBucketArea),
+  m(AddBucketArea).hide(),
+  m(Loading),
   m(Alerts),
   m(Spacer),
-  m(Buckets),
+  m(BucketList),
+  m(BucketsInfo),
   m(BottomLine),
 ]);
 
@@ -92,7 +153,7 @@ function init() {
         alerts:Alerts,buttonID:AddBtn.id,body:body}, () => {
           // onSuccess
           Alerts.insert('info', '添加成功后会自动刷新页面');
-          window.setTimeout(() => { window.location.reload(); }, 1000);
+          window.setTimeout(() => { window.location.reload(); }, 3000);
         },
         () => {
           // onFail
@@ -103,8 +164,27 @@ function init() {
   ajax({method:'GET',url:'/api/get-bk-buckets',alerts:Alerts},
       (buckets) => {
         if (!buckets) return;
-        buckets.forEach(Buckets.prepend);
+        buckets.forEach(BucketList.prepend);
+      }, null,
+      () => {
+        Loading.hide();
+        $(AddBucketArea.id).show();
       });
+}
+
+function create_bucket_info(name, info) {
+  const lastBackup = info.LastBackup ? 
+      dayjs.unix(info.LastBackup).format('MMMM D, YYYY') : 'not yet';
+  const BucketInfo = cc('div');
+  BucketInfo.view = () => m('div').attr({id:BucketInfo.raw_id}).addClass('card mb-3').append([
+    m('div').addClass('card-header').text(name),
+    m('div').addClass('card-body').append([
+      m('p').text('上次备份时间: ' + lastBackup),
+      m('p').text('全部文件（个）: ' + info.AllFilesCount),
+      m('p').text('其中损坏文件（个）: ' + info.DamagedFilesCount),
+    ]),
+  ]);
+  return BucketInfo;
 }
 
 </script>
