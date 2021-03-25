@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS file
   utime         int     NOT NULL,
   checked       int     NOT NULL,
   damaged       int     NOT NULL,
-  backup        int     NOT NULL,
   deleted       int     NOT NULL
 );
 
@@ -71,6 +70,7 @@ const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 
 const GetFile = `SELECT * FROM file WHERE id=?;`
 const GetFileName = `SELECT name FROM file WHERE id=?;`
+const GetFileUTime = `SELECT utime FROM file WHERE id=?;`
 const GetFileID = `SELECT id FROM file WHERE hash=?;`
 const GetFileIDsByName = `SELECT id FROM file WHERE name=?;`
 const CountFilesByName = `SELECT count(*) FROM file WHERE name=?;`
@@ -80,8 +80,8 @@ const GetAllFiles = `SELECT * FROM file;`
 const GetFilesNeedCheck = `SELECT * FROM file WHERE checked<?;`
 const SetFileChecked = `UPDATE file SET checked=?, damaged=? WHERE id=?;`
 const InsertFile = `INSERT INTO file (
-  id, name, count, size, type, thumb, hash, like, ctime, utime, checked, damaged, backup, deleted)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+  id, name, count, size, type, thumb, hash, like, ctime, utime, checked, damaged, deleted)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 const SetFileDeletedNow = `UPDATE file SET deleted=?, utime=? WHERE id=?;`
 const RenameFilesNow = `UPDATE file SET name=?, type=?, utime=? WHERE name=?;`
 const UpdateNow = `UPDATE file SET utime=? WHERE id=?;`

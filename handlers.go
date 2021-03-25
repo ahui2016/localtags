@@ -172,7 +172,7 @@ func forceCheckFiles(c echo.Context) error {
 	return db.ForceCheckFilesHash(mainBucket)
 }
 
-func backupBuckets(c echo.Context) error {
+func getBackupBuckets(c echo.Context) error {
 	buckets, err := db.GetBackupBuckets()
 	if err != nil {
 		return err
@@ -209,4 +209,12 @@ func bucketsInfo(c echo.Context) error {
 		return err
 	}
 	return c.JSON(OK, info)
+}
+
+func syncBackup(c echo.Context) error {
+	bkFolder, err := getFormValue(c, "bucket")
+	if err != nil {
+		return err
+	}
+	return syncMainToBackup(bkFolder)
 }

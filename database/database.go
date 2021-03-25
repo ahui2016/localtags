@@ -147,6 +147,10 @@ func (db *DB) CurrentFileID() (string, error) {
 	return currentID.String(), nil
 }
 
+func (db *DB) AllFilesWithoutTags() ([]*File, error) {
+	return getFiles(db.DB, stmt.GetAllFiles)
+}
+
 func (db *DB) AllFiles() (files []*File, err error) {
 	files, err = getFiles(db.DB, stmt.GetFiles)
 	if err != nil {
@@ -154,6 +158,15 @@ func (db *DB) AllFiles() (files []*File, err error) {
 	}
 	err = fillTags(db.DB, files)
 	return
+}
+
+func (db *DB) IsFileExist(id string) bool {
+	_, err := getText1(db.DB, stmt.GetFileName, id)
+	return err == nil
+}
+
+func (db *DB) FileUTime(id string) (int64, error) {
+	return getInt1(db.DB, stmt.GetFileUTime, id)
 }
 
 func (db *DB) GetFileByID(id string) (file File, err error) {

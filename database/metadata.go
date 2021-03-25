@@ -145,6 +145,10 @@ func checkFile(tx TX, folder string, file *File) error {
 	return exec(tx, stmt.SetFileChecked, model.TimeNow(), file.Damaged, file.ID)
 }
 
+func (db *DB) UpdateLastBackupNow() error {
+	return exec(db.DB, stmt.UpdateIntValue, model.TimeNow(), last_backup_key)
+}
+
 func (db *DB) GetBackupBuckets() ([]string, error) {
 	return getBackupBuckets(db.DB)
 }

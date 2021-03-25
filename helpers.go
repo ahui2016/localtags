@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -87,7 +86,7 @@ func infoToFile(name string, meta map[string]*File) (
 		return nil, err
 	}
 	if info.IsDir() {
-		return nil, errors.New(`"waiting" 里面不可存放文件夹`)
+		return nil, fmt.Errorf(`"waiting" 里面不可存放文件夹`)
 	}
 
 	// 填充文件体积、文件名、文件类型
@@ -281,8 +280,14 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 	info["backup-bucket"] = database.Info{}
 
 	// 如果找不到备份数据库文件，则说明这是一个空文件夹，是一个全新的备份仓库。
+	// 此时，生成一个新的备份仓库数据库文件，为后续的备份做准备。
 	bkPath := filepath.Join(bkFolder, backupDBFileName)
 	if util.PathIsNotExist(bkPath) {
+		bk := new(database.DB)
+		if err := bk.Open(bkPath); err != nil {
+			return nil, err
+		}
+		bk.Close()
 		return info, nil
 	}
 
@@ -291,6 +296,7 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 	if err := bk.OpenBackup(bkPath); err != nil {
 		return nil, err
 	}
+	defer bk.Close()
 
 	// 强制检查全部备份文件的完整性后获取备份仓库的状态信息。
 	bakBucket := filepath.Join(bkFolder, bakBucketName)
@@ -301,7 +307,63 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 	if err != nil {
 		return nil, err
 	}
+	// 主仓库的备份时间只可能等于或大于备份仓库的备份时间，
+	// 不可能备份仓库的备份日期是今天而主仓库的备份日期是昨天。
+	// (因为只能单向备份，备份时只能从主仓库复制文件到备份仓库。)
+	if info["backup-bucket"].LastBackup > info["main-bucket"].LastBackup {
+		return nil, fmt.Errorf("仓库不匹配：备份仓库的日期比主仓库更新")
+	}
 
 	// 最后返回主仓库与备份仓库的状态信息
 	return info, nil
+}
+
+// syncMainToBackup 同步主仓库与备份仓库，以主仓库为准单向同步，
+// 最终效果相当于清空备份仓库后把主仓库的全部文件复制到备份仓库。
+func syncMainToBackup(bkFolder string) error {
+	bkPath := filepath.Join(bkFolder, backupDBFileName)
+	bakBucket := filepath.Join(bkFolder, bakBucketName)
+	util.MustMkdir(bakBucket)
+
+	bk := new(database.DB)
+	if err := bk.OpenBackup(bkPath); err != nil {
+		return err
+	}
+	defer bk.Close()
+
+	// 在复制、删除文件之前更新备份时间。
+	if err := db.UpdateLastBackupNow(); err != nil {
+		return err
+	}
+
+	// 如果一个文件存在于备份仓库中，但不存在于主仓库中，
+	// 那么说明该文件已被彻底删除，因此在备份仓库中也需要删除它。
+	bkFiles, e1 := bk.AllFilesWithoutTags()
+	for _, bkFile := range bkFiles {
+		if !db.IsFileExist(bkFile.ID) {
+			if err := os.Remove(filepath.Join(bakBucket, bkFile.ID)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// 如果一个文件存在于主仓库中，但不存在于备份仓库中，则直接拷贝。
+	// 如果一个文件存在于两个仓库中，则进一步对比其更新日期，按需拷贝覆盖。
+	dbFiles, e2 := db.AllFilesWithoutTags()
+	if err := util.WrapErrors(e1, e2); err != nil {
+		return err
+	}
+	for _, file := range dbFiles {
+		bkUTime, err := bk.FileUTime(file.ID)
+		if err != nil || file.UTime > bkUTime {
+			bkFile := filepath.Join(bakBucket, file.ID)
+			if err := util.CopyFile(bkFile, mainBucketFile(file.ID)); err != nil {
+				return err
+			}
+		}
+	}
+
+	// 最后复制数据库文件
+	bk.Close()
+	return util.CopyFile(bkPath, dbPath)
 }

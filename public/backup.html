@@ -22,7 +22,9 @@
 
 const Alerts = CreateAlerts();
 
+const BucketList = cc('div');
 const BucketsInfo = cc('div');
+const SubmitBtnAera = cc('p');
 
 const BucketInput = cc('textarea');
 const AddBtn = cc('button');
@@ -32,8 +34,6 @@ const AddBucketArea = cc('div', null, [
     m(AddBtn).text('add').addClass('btn btn-outline-primary').attr({type:'button'}),
   ]),
 ]);
-
-const BucketList = cc('div');
 
 BucketList.view = () => m('div')
     .attr({id:BucketList.raw_id}).addClass('accordion');
@@ -107,7 +107,12 @@ BucketList.prepend = (bucket, index) => {
           const main = create_bucket_info('Main Bucket', info['main-bucket']);
           const backup = create_bucket_info('Backup Bucket', info['backup-bucket']);
           $(BucketsInfo.id).prepend(m(backup));
+          $(BucketsInfo.id).prepend(m('p').addClass('text-center my-1').append(
+            m('i').addClass('bi bi-arrow-down').css('font-size', '2rem')
+          ));
           $(BucketsInfo.id).prepend(m(main));
+          $(SubmitBtnAera.id).show();
+          BucketList.formBody = body;
         },
         () => {
           // onFail
@@ -121,6 +126,28 @@ BucketList.prepend = (bucket, index) => {
   });
 };
 
+const SubmitAlerts = CreateAlerts();
+const BackupBtn = cc('button');
+
+SubmitBtnAera.view = () => m('p').attr({id:SubmitBtnAera.raw_id}).append([
+  m(BackupBtn).text('Backup').addClass('btn btn-primary').attr({type:'button'}).click(() => {
+    $(Alerts.id).hide();
+    disable(BackupBtn.id);
+    SubmitAlerts.insert('info', '正在备份......');
+    ajax({method:'POST',url:'/api/sync-backup',alerts:SubmitAlerts,body:BucketList.formBody},
+        () => {
+          // onSuccess
+          SubmitAlerts.insert('success', '备份完成');
+          $(BucketsInfo.id).hide();
+          $(SubmitBtnAera.id).hide();
+        },
+        () => {
+          // onFail
+          enable(BackupBtn.id);
+        });
+  }),
+])
+
 $('#root').append([
   m(Spacer),
   m(AddBucketArea).hide(),
@@ -129,6 +156,8 @@ $('#root').append([
   m(Spacer),
   m(BucketList),
   m(BucketsInfo),
+  m(SubmitAlerts).addClass('my-3'),
+  m(SubmitBtnAera).addClass('text-center').hide(),
   m(BottomLine),
 ]);
 
@@ -176,7 +205,7 @@ function create_bucket_info(name, info) {
   const lastBackup = info.LastBackup ? 
       dayjs.unix(info.LastBackup).format('MMMM D, YYYY') : 'not yet';
   const BucketInfo = cc('div');
-  BucketInfo.view = () => m('div').attr({id:BucketInfo.raw_id}).addClass('card mb-3').append([
+  BucketInfo.view = () => m('div').attr({id:BucketInfo.raw_id}).addClass('card').append([
     m('div').addClass('card-header').text(name),
     m('div').addClass('card-body').append([
       m('p').text('上次备份时间: ' + lastBackup),

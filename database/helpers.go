@@ -34,7 +34,6 @@ func addFile(tx TX, file *File) (err error) {
 		file.UTime,
 		file.Checked,
 		file.Damaged,
-		file.Backup,
 		file.Deleted,
 	)
 	return
@@ -54,7 +53,6 @@ func scanFile(row Row) (file File, err error) {
 		&file.UTime,
 		&file.Checked,
 		&file.Damaged,
-		&file.Backup,
 		&file.Deleted,
 	)
 	return
