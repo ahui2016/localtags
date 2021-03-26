@@ -160,7 +160,7 @@ func (db *DB) getNextID(key string) (nextID string, err error) {
 		return
 	}
 	nextID = currentID.Next().String()
-	err = db.exec(stmt.UpdateTextValue, nextID, key)
+	err = db.Exec(stmt.UpdateTextValue, nextID, key)
 	return
 }
 
@@ -172,7 +172,7 @@ func (db *DB) initMetadata() error {
 	return util.WrapErrors(e1, e2, e3, e4)
 }
 
-func (db *DB) exec(query string, args ...interface{}) (err error) {
+func (db *DB) Exec(query string, args ...interface{}) (err error) {
 	_, err = db.DB.Exec(query, args...)
 	return
 }

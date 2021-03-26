@@ -218,3 +218,11 @@ func syncBackup(c echo.Context) error {
 	}
 	return syncMainToBackup(bkFolder)
 }
+
+func repairFiles(c echo.Context) error {
+	bkFolder, err := getFormValue(c, "bucket")
+	if err != nil {
+		return err
+	}
+	return repairDamagedFiles(bkFolder)
+}

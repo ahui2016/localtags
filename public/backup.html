@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+  <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/public/style-light.css">
   
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+  <script src="/public/jquery.min.js"></script>
+  <script src="/public/dayjs.min.js"></script>
+  <script src="/public/bootstrap.bundle.min.js"></script>
   <script src="/public/util.js"></script>
   <script src="/public/filelist.js"></script>
   
@@ -95,8 +95,7 @@ BucketList.prepend = (bucket, index) => {
   $(use_btn_id).click(() => {
     Alerts.insert('info', '正在获取备份仓库的状态信息......');
     Loading.show();
-    $(AddBucketArea.id).hide();
-    $(BucketList.id).hide();
+    $(BucketsInfo.id).html('');
 
     const body = new FormData();
     body.append('bucket', bucket);
@@ -104,22 +103,24 @@ BucketList.prepend = (bucket, index) => {
         (info) => {
           // onSuccess
           Alerts.insert('success', '成功获取备份仓库的状态信息');
-          const main = create_bucket_info('Main Bucket', info['main-bucket']);
+
           const backup = create_bucket_info('Backup Bucket', info['backup-bucket']);
           $(BucketsInfo.id).prepend(m(backup));
+          backup.init();
+
           $(BucketsInfo.id).prepend(m('p').addClass('text-center my-1').append(
             m('i').addClass('bi bi-arrow-down').css('font-size', '2rem')
           ));
+
+          const main = create_bucket_info('Main Bucket', info['main-bucket']);
           $(BucketsInfo.id).prepend(m(main));
-          $(SubmitBtnAera.id).show();
+          main.init();
+
+          $(SubmitBtnAera.id).show()
+          SubmitBtnAera.init(main.damaged + backup.damaged);
           BucketList.formBody = body;
-        },
-        () => {
-          // onFail
-          $(AddBucketArea.id).show();
-          $(BucketList.id).show();
-        },
-        () => {
+          scrollTop(BucketsInfo.id);
+        }, null, () => {
           // onAlways
           Loading.hide();
         });
@@ -128,33 +129,50 @@ BucketList.prepend = (bucket, index) => {
 
 const SubmitAlerts = CreateAlerts();
 const BackupBtn = cc('button');
+const RepairBtn = cc('button');
 
 SubmitBtnAera.view = () => m('p').attr({id:SubmitBtnAera.raw_id}).append([
   m(BackupBtn).text('Backup').addClass('btn btn-primary').attr({type:'button'}).click(() => {
     $(Alerts.id).hide();
-    disable(BackupBtn.id);
     SubmitAlerts.insert('info', '正在备份......');
-    ajax({method:'POST',url:'/api/sync-backup',alerts:SubmitAlerts,body:BucketList.formBody},
+    ajax({method:'POST',url:'/api/sync-backup',alerts:SubmitAlerts,buttonID:BackupBtn.id,body:BucketList.formBody},
         () => {
           // onSuccess
           SubmitAlerts.insert('success', '备份完成');
-          $(BucketsInfo.id).hide();
+          $(BucketsInfo.id).html('');
           $(SubmitBtnAera.id).hide();
-        },
-        () => {
-          // onFail
-          enable(BackupBtn.id);
         });
   }),
-])
+  m(RepairBtn).text('Repair').addClass('btn btn-primary').attr({type:'button'}).click(() => {
+    $(Alerts.id).hide();
+    SubmitAlerts.insert('info', '正在修复受损文件......');
+    ajax({method:'POST',url:'/api/repair-files',alerts:SubmitAlerts,buttonID:BackupBtn.id,body:BucketList.formBody},
+        () => {
+          // onSuccess
+          SubmitAlerts.insert('success', '修复完成');
+          $(BucketsInfo.id).html('');
+          $(SubmitBtnAera.id).hide();
+        });
+  }),
+]);
+
+SubmitBtnAera.init = (damaged_count) => {
+  if (damaged_count > 0) {
+    $(RepairBtn.id).show();
+    $(BackupBtn.id).hide();
+    SubmitAlerts.insert('info', `发现 ${damaged_count} 个损坏文件, 修复后才能备份`);
+  } else {
+    $(BackupBtn.id).show();
+    $(RepairBtn.id).hide();
+  }
+}
 
 $('#root').append([
   m(Spacer),
   m(AddBucketArea).hide(),
   m(Loading),
   m(Alerts),
-  m(Spacer),
-  m(BucketList),
+  m(BucketList).addClass('my-5'),
   m(BucketsInfo),
   m(SubmitAlerts).addClass('my-3'),
   m(SubmitBtnAera).addClass('text-center').hide(),
@@ -204,15 +222,32 @@ function init() {
 function create_bucket_info(name, info) {
   const lastBackup = info.LastBackup ? 
       dayjs.unix(info.LastBackup).format('MMMM D, YYYY') : 'not yet';
+  const lastChecked = info.LastChecked ? 
+      dayjs.unix(info.LastChecked).format('MMMM D, YYYY') : 'not yet';
+
+  const Damaged = cc('span');
   const BucketInfo = cc('div');
   BucketInfo.view = () => m('div').attr({id:BucketInfo.raw_id}).addClass('card').append([
-    m('div').addClass('card-header').text(name),
+    m('div').addClass('card-header').append([
+      m('span').text(name),
+      m('br'),
+      m('span').text(info.BucketLocation).addClass('small text-muted'),
+    ]),
     m('div').addClass('card-body').append([
       m('p').text('上次备份时间: ' + lastBackup),
+      m('p').text('上次校验时间: ' + lastChecked),
       m('p').text('全部文件（个）: ' + info.AllFilesCount),
-      m('p').text('其中损坏文件（个）: ' + info.DamagedFilesCount),
+      m('p').append(['其中损坏文件（个）: ', m(Damaged).text(info.DamagedFilesCount)]),
     ]),
   ]);
+
+  BucketInfo.init = () => {
+    BucketInfo.damaged = info.DamagedFilesCount;
+    if (BucketInfo.damaged > 0) {
+      $(Damaged.id).addClass('text-danger fw-bold');
+    }
+  }
+
   return BucketInfo;
 }
 

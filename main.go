@@ -34,6 +34,7 @@ func main() {
 	api.POST("/delete-bk-bucket", deleteBackupBucket)
 	api.POST("/get-buckets-info", bucketsInfo)
 	api.POST("/sync-backup", syncBackup)
+	api.POST("/repair-files", repairFiles)
 	api.GET("/waitingFolder", waitingFolder)
 	api.GET("/waiting-files", waitingFiles)
 	api.GET("/all-files", allFiles) // file.Deleted == false

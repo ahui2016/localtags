@@ -145,6 +145,31 @@ func checkFile(tx TX, folder string, file *File) error {
 	return exec(tx, stmt.SetFileChecked, model.TimeNow(), file.Damaged, file.ID)
 }
 
+// 注意这里的 folder 与 db 匹配, db 与 file 必须分别属于不同的仓库，进行对比。
+// 即，如果 db 是主仓库，则 file 应属于备份仓库; 如果 db 是备份仓库，则 file 应属于主仓库。
+func (db *DB) RecheckFile(folder string, file *File) (damaged bool, err error) {
+	// 如果在 db 中标记了该文件已损坏，则直接返回结果。
+	value, err := getInt1(db.DB, stmt.GetFileDamaged, file.ID)
+	if err != nil {
+		return
+	}
+	if value > 0 {
+		return true, nil
+	}
+
+	// 如果在 db 中标记了该文件未损坏，则再检查一次。
+	filePath := filepath.Join(folder, file.ID)
+	hash, err := util.FileSha256Hex(filePath)
+	if err != nil {
+		return
+	}
+	if file.Hash != hash {
+		damaged = true
+		err = exec(db.DB, stmt.SetFileChecked, model.TimeNow(), damaged, file.ID)
+	}
+	return
+}
+
 func (db *DB) UpdateLastBackupNow() error {
 	return exec(db.DB, stmt.UpdateIntValue, model.TimeNow(), last_backup_key)
 }

@@ -69,6 +69,10 @@ function ajax(options, onSuccess, onFail, onAlways) {
   xhr.send(options.body);
 }
 
+function scrollTop(id) {
+  $('html, body').scrollTop($(id).offset().top - 40);
+}
+
 // 获取地址栏的参数。
 function getUrlParam(param) {
   let loc = new URL(document.location);

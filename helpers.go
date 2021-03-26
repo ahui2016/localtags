@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/ahui2016/localtags/database"
 	"github.com/ahui2016/localtags/model"
+	"github.com/ahui2016/localtags/stmt"
 	"github.com/ahui2016/localtags/thumb"
 	"github.com/ahui2016/localtags/util"
 	"github.com/labstack/echo/v4"
@@ -298,9 +300,9 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 	}
 	defer bk.Close()
 
-	// 强制检查全部备份文件的完整性后获取备份仓库的状态信息。
+	// 检查备份文件的完整性后获取备份仓库的状态信息。
 	bakBucket := filepath.Join(bkFolder, bakBucketName)
-	if err := bk.ForceCheckFilesHash(bakBucket); err != nil {
+	if err := bk.CheckFilesHash(bakBucket); err != nil {
 		return nil, err
 	}
 	info["backup-bucket"], err = bk.GetInfo()
@@ -331,14 +333,28 @@ func syncMainToBackup(bkFolder string) error {
 	}
 	defer bk.Close()
 
+	// 如果有损坏文件则拒绝备份
+	n, err := damagedIn2Buckets(bk, db)
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		return fmt.Errorf("发现 %d 个损坏文件, 修复后才能备份", n)
+	}
+
 	// 在复制、删除文件之前更新备份时间。
 	if err := db.UpdateLastBackupNow(); err != nil {
 		return err
 	}
 
+	bkFiles, e1 := bk.AllFilesWithoutTags()
+	dbFiles, e2 := db.AllFilesWithoutTags()
+	if err := util.WrapErrors(e1, e2); err != nil {
+		return err
+	}
+
 	// 如果一个文件存在于备份仓库中，但不存在于主仓库中，
 	// 那么说明该文件已被彻底删除，因此在备份仓库中也需要删除它。
-	bkFiles, e1 := bk.AllFilesWithoutTags()
 	for _, bkFile := range bkFiles {
 		if !db.IsFileExist(bkFile.ID) {
 			if err := os.Remove(filepath.Join(bakBucket, bkFile.ID)); err != nil {
@@ -349,10 +365,6 @@ func syncMainToBackup(bkFolder string) error {
 
 	// 如果一个文件存在于主仓库中，但不存在于备份仓库中，则直接拷贝。
 	// 如果一个文件存在于两个仓库中，则进一步对比其更新日期，按需拷贝覆盖。
-	dbFiles, e2 := db.AllFilesWithoutTags()
-	if err := util.WrapErrors(e1, e2); err != nil {
-		return err
-	}
 	for _, file := range dbFiles {
 		bkUTime, err := bk.FileUTime(file.ID)
 		if err != nil || file.UTime > bkUTime {
@@ -366,4 +378,75 @@ func syncMainToBackup(bkFolder string) error {
 	// 最后复制数据库文件
 	bk.Close()
 	return util.CopyFile(bkPath, dbPath)
+}
+
+func damagedIn2Buckets(db1, db2 *database.DB) (int64, error) {
+	info1, e1 := db1.GetInfo()
+	info2, e2 := db2.GetInfo()
+	return info1.DamagedFilesCount + info2.DamagedFilesCount, util.WrapErrors(e1, e2)
+}
+
+// repairDamagedFiles 自动修复文件，对于主仓库里的损坏文件，尝试从备份仓库中获取未损坏版本，
+// 对于备份仓库中的损坏文件则尝试从主仓库中获取未损坏版本，如果一个文件在主仓库及备份仓库中都损坏了，
+// 则无法修复该文件，后续提醒用户手动修复。
+func repairDamagedFiles(bkFolder string) error {
+	bkPath := filepath.Join(bkFolder, backupDBFileName)
+	bakBucket := filepath.Join(bkFolder, bakBucketName)
+	bk := new(database.DB)
+	if err := bk.OpenBackup(bkPath); err != nil {
+		return err
+	}
+	defer bk.Close()
+
+	if err := repair(db, bk, mainBucket, bakBucket); err != nil {
+		return err
+	}
+	if err := repair(bk, db, bakBucket, mainBucket); err != nil {
+		return err
+	}
+
+	// 经自动修复后，再次检查有没有损坏文件。
+	n, err := damagedIn2Buckets(bk, db)
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		return fmt.Errorf("仍有 %d 个损坏文件无法使用该备份仓库进行修复，请使用另一个备份仓库(如有), 或手动修复。", n)
+	}
+	return nil
+}
+
+// 从 badDB 中找出 badFiles, 然后尝试从 goodDB 中获取未损坏版本进行修复。
+// 如果修复成功，则将 badFile 标记为未损坏，
+// 如果不可修复，则不进行任何操作, badFile 仍然保持 "已损坏" 的标记。
+func repair(badDB, goodDB *database.DB, badFolder, goodFolder string) error {
+	badFiles, err := badDB.DamagedFiles()
+	if err != nil {
+		return err
+	}
+	for _, file := range badFiles {
+		// 如果 goodDB 中的文件已损坏或找不到文件，则无法修复，如果未损坏则进行修复。
+		damaged, err := goodDB.RecheckFile(goodFolder, file)
+		if err == sql.ErrNoRows {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		if damaged {
+			continue
+		}
+
+		// 进行修复
+		goodFile := filepath.Join(goodFolder, file.ID)
+		badFile := filepath.Join(badFolder, file.ID)
+		if err := util.CopyFile(badFile, goodFile); err != nil {
+			return err
+		}
+		// 更新校验日期，标记为未损坏
+		if err = badDB.Exec(stmt.SetFileChecked, model.TimeNow(), false, file.ID); err != nil {
+			return err
+		}
+	}
+	return nil
 }

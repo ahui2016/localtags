@@ -71,6 +71,7 @@ const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 const GetFile = `SELECT * FROM file WHERE id=?;`
 const GetFileName = `SELECT name FROM file WHERE id=?;`
 const GetFileUTime = `SELECT utime FROM file WHERE id=?;`
+const GetFileDamaged = `SELECT damaged FROM file WHERE id=?;`
 const GetFileID = `SELECT id FROM file WHERE hash=?;`
 const GetFileIDsByName = `SELECT id FROM file WHERE name=?;`
 const CountFilesByName = `SELECT count(*) FROM file WHERE name=?;`
@@ -87,6 +88,7 @@ const RenameFilesNow = `UPDATE file SET name=?, type=?, utime=? WHERE name=?;`
 const UpdateNow = `UPDATE file SET utime=? WHERE id=?;`
 const CountAllFiles = `SELECT count(*) FROM file;`
 const CountDamagedFiles = `SELECT count(*) FROM file WHERE damaged>0;`
+const GetDamagedFiles = `SELECT * FROM file WHERE damaged>0;`
 
 const GetTag = `SELECT * FROM tag WHERE id=?;`
 const GetTagCTime = `SELECT ctime FROM tag WHERE id=?;`

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"github.com/ahui2016/localtags/config"
 	"github.com/ahui2016/localtags/model"
@@ -25,6 +26,7 @@ type (
 
 // Info of the database
 type Info struct {
+	BucketLocation    string
 	LastChecked       int64
 	LastBackup        int64
 	AllFilesCount     int64
@@ -44,14 +46,16 @@ type Row interface {
 
 // DB 数据库
 type DB struct {
-	DB *sql.DB
+	Folder string
+	DB     *sql.DB
 }
 
 func (db *DB) Open(dbPath string) (err error) {
 	if db.DB, err = sql.Open("sqlite3", dbPath+"?_fk=1"); err != nil {
 		return
 	}
-	if err = db.exec(stmt.CreateTables); err != nil {
+	db.Folder = filepath.Dir(dbPath)
+	if err = db.Exec(stmt.CreateTables); err != nil {
 		return
 	}
 	return db.initMetadata()
@@ -62,6 +66,7 @@ func (db *DB) OpenBackup(dbPath string) (err error) {
 	if util.PathIsNotExist(dbPath) {
 		return fmt.Errorf("not found: %s", dbPath)
 	}
+	db.Folder = filepath.Dir(dbPath)
 	db.DB, err = sql.Open("sqlite3", dbPath+"?_fk=1")
 	return
 }
@@ -151,6 +156,10 @@ func (db *DB) AllFilesWithoutTags() ([]*File, error) {
 	return getFiles(db.DB, stmt.GetAllFiles)
 }
 
+func (db *DB) DamagedFiles() ([]*File, error) {
+	return getFiles(db.DB, stmt.GetDamagedFiles)
+}
+
 func (db *DB) AllFiles() (files []*File, err error) {
 	files, err = getFiles(db.DB, stmt.GetFiles)
 	if err != nil {
@@ -192,7 +201,7 @@ func (db *DB) SetFileDeleted(id string, deleted bool) error {
 		return err
 	}
 	if !ok {
-		return db.exec(stmt.SetFileDeletedNow, deleted, model.TimeNow(), id)
+		return db.Exec(stmt.SetFileDeletedNow, deleted, model.TimeNow(), id)
 	}
 	return nil
 }
@@ -237,7 +246,7 @@ func (db *DB) RenameFiles(id, name string) error {
 		return err
 	}
 	// 4.统一改名
-	return db.exec(stmt.RenameFilesNow,
+	return db.Exec(stmt.RenameFilesNow,
 		file.Name, file.Type, file.UTime, oldName)
 }
 
@@ -248,6 +257,7 @@ func (db *DB) GetInfo() (Info, error) {
 	damagedFiles, e4 := getInt1(db.DB, stmt.CountDamagedFiles)
 	err := util.WrapErrors(e1, e2, e3, e4)
 	info := Info{
+		BucketLocation:    db.Folder,
 		LastChecked:       lastChecked,
 		LastBackup:        lastBackup,
 		AllFilesCount:     allFiles,
