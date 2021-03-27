@@ -283,7 +283,3 @@ func (db *DB) TagGroups() (groups []TagGroup, err error) {
 	err = rows.Err()
 	return
 }
-
-func (db *DB) SetTagGroupProtected(groupID string, protected bool) error {
-	return db.Exec(stmt.SetTagGroupProtected, protected, groupID)
-}

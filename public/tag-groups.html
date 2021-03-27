@@ -11,6 +11,7 @@
   <script src="/public/jquery.min.js"></script>
   <script src="/public/dayjs.min.js"></script>
   <script src="/public/bootstrap.bundle.min.js"></script>
+  <script src="/public/clipboard.min.js"></script>
   <script src="/public/util.js"></script>
   <script src="/public/filelist.js"></script>
   
@@ -62,6 +63,7 @@ const GroupList = cc('div');
 $('#root').append([
   m(Spacer),
   m(Form),
+  m(Loading),
   m(Alerts).addClass('my-3'),
   m(GroupList),
   m(BottomLine),
@@ -77,20 +79,23 @@ function init() {
         }
         groups.forEach(group => {
           const item = createTagGroup(group);
-          $(GroupList.id).append(m(item));
+          $(GroupList.id).prepend(m(item));
           item.init();
         });
       }, null,
       () => {
         // onAlways
+        Loading.hide();
         window.setTimeout(() => { $(TagsInput.id).focus(); }, 100);
       });
 }
 
 function createTagGroup(group) {
-  const utime = dayjs.unix(group.UTime).format('MMM D, YYYY');
-  const Alerts = CreateAlerts();
+  const tagGroupStr = addPrefix(group.Tags);
+  const utime = dayjs.unix(group.UTime).format('MMMM D, YYYY');
   const self = cc('div', 'g'+group.ID);
+
+  self.Alerts = CreateAlerts();
 
   self.view = () => m('div').attr({id: self.raw_id}).addClass('TagGroup card my-3').append([
     m('div').addClass('card-body').append([
@@ -98,26 +103,53 @@ function createTagGroup(group) {
         m('span').text(utime).addClass('Date small text-muted'),
         ' ',
         m('span').text('PROTECTED').addClass('Protected').hide(),
+        m('span').text('DELETED').addClass('Deleted').hide(),
         ' ',
         m('i').attr({title:'copy'}).addClass('IconBtn bi bi-stickies'),
-        m('i').attr({title:'protect'}).addClass('IconBtn bi bi-file-lock2-fill').click(self.protect),
+        m('i').attr({title:'protect'}).addClass('IconBtn bi bi-lock').click(self.protect),
         m('i').attr({title:'unprotect'}).addClass('IconBtn bi bi-unlock').hide().click(self.unprotect),
-        m('i').attr({title:'delete'}).addClass('IconBtn bi bi-trash'),
+        m('i').attr({title:'delete'}).addClass('IconBtn bi bi-trash').click(self.delete),
       ]),
       m('div').addClass('Tags'),
+      m('div').addClass('TagsText small text-muted').text('tags: ' + addPrefix(group.Tags, '#')).hide(),
     ]),
-    m(Alerts),
+    m(self.Alerts),
   ]);
+
+  self.delete = () => {
+    const url = '/api/delete-taggroup/'+group.ID;
+    const buttonID = self.id + ' .bi-trash';
+    ajax({method:'GET',url:url,alerts:self.Alerts,buttonID:buttonID},
+        () => {
+          $(self.id+' .Protected').hide();
+          $(self.id+' .Deleted').show();
+          $(self.id+' .bi').hide();
+          $(self.id+' .Tags').hide();
+          $(self.id+' .TagsText').show();
+        });
+  };
+
+  const clipboard = new ClipboardJS(self.id+' .bi-stickies', {
+    text: () => { return tagGroupStr; }
+  });
+  clipboard.on('success', () => {
+    self.Alerts.insert('success', '已复制标签组');
+  });
+  clipboard.on('error', e => {
+    console.error('Action:', e.action);
+    console.error('Trigger:', e.trigger);
+    self.Alerts.insert('danger', '复制失败，详细信息见控制台');
+  });
 
   self.toggleProtect = () => {
     $(self.id + ' .Protected').toggle(); 
-    $(self.id + ' .bi-file-lock2-fill').toggle();
+    $(self.id + ' .bi-lock').toggle();
     $(self.id + ' .bi-unlock').toggle();
   };
 
   self.protect = () => {
     const url = '/api/protect-taggroup/'+group.ID;
-    const buttonID = self.id + ' .bi-file-lock2-fill';
+    const buttonID = self.id + ' .bi-lock';
     self.setProtected(url, buttonID)
   };
 
@@ -128,7 +160,7 @@ function createTagGroup(group) {
   };
 
   self.setProtected = (url, buttonID) => {
-    ajax({method:'GET',url:url,alerts:Alerts,buttonID:buttonID},
+    ajax({method:'GET',url:url,alerts:self.Alerts,buttonID:buttonID},
         () => {
           self.toggleProtect();
         });
@@ -144,11 +176,11 @@ function createTagGroup(group) {
       tagsElem.append(item);
     });
 
-    const tagGroup = addPrefix(group.Tags);
-    const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroup);
-    const groupItem = m('span').text('group').addClass('badge bg-info').click(() => {
+    const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroupStr);
+    const groupItem = m('span').text('group').attr({title:'search tag group'}).addClass('badge bg-info')
+      .click(() => {
         window.open(groupLink, 'localtags-search');
-    });
+      });
     tagsElem.append(groupItem);
 
     if (group.Protected) {

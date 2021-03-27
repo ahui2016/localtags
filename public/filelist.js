@@ -42,9 +42,7 @@ function FileItem(file) {
               m('i').addClass('bi bi-trash').attr({title:'delete'}),
               m('i').addClass('bi bi-download').attr({title:'download'}),
             ]),
-            m('div').addClass('Deleted mt-auto ms-auto').hide().append(
-              m('span').text('DELETED').addClass('badge bg-secondary')
-            ),
+            m('div').text('DELETED').addClass('Deleted mt-auto ms-auto').hide(),
           ]),
         ]),
       ]),
@@ -106,7 +104,8 @@ function FileItem(file) {
       tagsInput.val(addPrefix(self.tags, '#')).focus();
     });
 
-    $(self.id + ' .TagsOK').click(() => {
+    const tags_ok_id = self.id+' .TagsOK';
+    $(tags_ok_id).click(() => {
       const tags = tagsInput.val();
       const tagsSet = tagsStringToSet(tags);
       if (tagsSet.size == 0 || eqSets(tagsSet, self.tags)) {
@@ -116,7 +115,7 @@ function FileItem(file) {
       const body = new FormData();
       body.append('id', file.ID);
       body.append('tags', JSON.stringify(Array.from(tagsSet)));
-      ajax({method:'POST',url:'/api/update-tags',alerts:ItemAlerts,buttonID:self.id+' .TagsOK',body:body},
+      ajax({method:'POST',url:'/api/update-tags',alerts:ItemAlerts,buttonID:tags_ok_id,body:body},
           () => {
             // onsuccess
             self.toggleTagsArea();
@@ -128,26 +127,22 @@ function FileItem(file) {
           });
     });
 
-    const deleteBtn = $(self.id + ' .bi-trash');
+    const del_btn_id = self.id + ' .bi-trash';
     const thumb = $(self.id + ' .card-img');
     const deleted = $(self.id + ' .Deleted');
     const filename = $(self.id + ' .Filename');
     const tags = $(self.id + ' .Tag');
     const body = new FormData();
     body.append('id', file.ID);
-    deleteBtn.click(() => {
-      buttons.hide();
-      ajax({method:'POST',url:'/api/delete-file',alerts:ItemAlerts,body:body},
+    $(del_btn_id).click(() => {
+      ajax({method:'POST',url:'/api/delete-file',alerts:ItemAlerts,buttonID:del_btn_id,body:body},
           () => {
             // onsuccess
             thumb.css('filter', 'opacity(0.5) grayscale(1)');
             filename.addClass('text-secondary');
-            tags.removeAttr('href');
+            tags.css('pointer-events', 'none');
+            buttons.hide();
             deleted.show();
-          },
-          () => {
-            // onfail
-            buttons.show();
           });
     });
 
@@ -157,7 +152,8 @@ function FileItem(file) {
       self.toggleFilename();
       nameInput.val(filename.text()).focus();
     });
-    $(self.id + ' .NameOK').click(() => {
+    const name_ok_id = self.id+' .NameOK';
+    $(name_ok_id).click(() => {
       const oldName = filename.text();
       const newName = nameInput.val();
       if (newName.length == 0 || newName == oldName) {
@@ -167,7 +163,7 @@ function FileItem(file) {
       const body = new FormData();
       body.append('id', file.ID);
       body.append('name', newName);
-      ajax({method:'POST',url:'/api/rename-file',alerts:ItemAlerts,buttonID:self.id+' .NameOK',body:body},
+      ajax({method:'POST',url:'/api/rename-file',alerts:ItemAlerts,buttonID:name_ok_id,body:body},
           () => {
             // onsuccess
             self.toggleFilename();

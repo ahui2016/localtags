@@ -43,9 +43,16 @@
     color: black;
 }
 
-.Protected {
+.card .Protected {
     font-size: smaller;
     color: #666;
     background-color: lightgreen;
+    padding: 0 2px 0 2px;
+}
+
+.card .Deleted {
+    font-size: smaller;
+    color: white;
+    background-color: #CCC;
     padding: 0 2px 0 2px;
 }

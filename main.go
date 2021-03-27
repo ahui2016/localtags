@@ -48,6 +48,7 @@ func main() {
 	api.GET("/tag-groups", getTagGroups)
 	api.GET("/protect-taggroup/:id", protectTagGroup)
 	api.GET("/unprotect-taggroup/:id", unprotectTagGroup)
+	api.GET("/delete-taggroup/:id", deleteTagGroup)
 
 	api.POST("/search-tags", searchTags)
 	// api.POST("/search-title", searchTitle)

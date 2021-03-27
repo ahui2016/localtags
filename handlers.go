@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/ahui2016/localtags/model"
+	"github.com/ahui2016/localtags/stmt"
 	"github.com/ahui2016/localtags/util"
 	"github.com/labstack/echo/v4"
 )
@@ -236,9 +237,13 @@ func getTagGroups(c echo.Context) error {
 }
 
 func protectTagGroup(c echo.Context) error {
-	return db.SetTagGroupProtected(c.Param("id"), true)
+	return db.Exec(stmt.SetTagGroupProtected, true, c.Param("id"))
 }
 
 func unprotectTagGroup(c echo.Context) error {
-	return db.SetTagGroupProtected(c.Param("id"), false)
+	return db.Exec(stmt.SetTagGroupProtected, false, c.Param("id"))
+}
+
+func deleteTagGroup(c echo.Context) error {
+	return db.Exec(stmt.DeleteTagGroup, c.Param("id"))
 }
