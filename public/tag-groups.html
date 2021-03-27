@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/public/style-light.css">
+  
+  <script src="/public/jquery.min.js"></script>
+  <script src="/public/dayjs.min.js"></script>
+  <script src="/public/bootstrap.bundle.min.js"></script>
+  <script src="/public/util.js"></script>
+  <script src="/public/filelist.js"></script>
+  
+  <title>Tag Groups - localtags</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
+  <script>
+    
+const Alerts = CreateAlerts();
+
+const TagsInput = cc('textarea');
+const CheckBtn = cc('button');
+const SubmitBtn = cc('button');
+const Form = {
+  view: () => m('div').append([
+    m(TagsInput).addClass('form-control').attr({placeholder:'new tag group'}).focus(() => {
+      $(SubmitBtn.id).hide();
+      $(CheckBtn.id).show();
+    }),
+    m('p').addClass('text-end mt-2').append([
+        m(CheckBtn).text('check').addClass('btn btn-secondary')
+            .attr({type:'button'}).click(Form.check),
+        m(SubmitBtn).text('add').addClass('btn btn-primary').attr({type:'button'}),
+    ]),
+  ]),
+
+  check: () => {
+    const tags = tagsStringToSet($(TagsInput.id).val());
+    if (tags.size == 0) {
+      $(TagsInput.id).focus();
+      return;
+    }
+    if (tags.size == 1) {
+      Alerts.insert('info', '标签组至少需要 2 个标签');
+      $(TagsInput.id).focus();
+      return;
+    }
+    Alerts.clear();
+    $(TagsInput.id).val(addPrefix(tags, '#'));
+    $(CheckBtn.id).hide();
+    $(SubmitBtn.id).show();
+    TagsInput.currentTagsSet = tags;
+  }
+};
+
+const GroupList = cc('div');
+
+$('#root').append([
+  m(Spacer),
+  m(Form),
+  m(Alerts).addClass('my-3'),
+  m(GroupList),
+  m(BottomLine),
+]);
+
+init()
+
+function init() {
+  ajax({method:'GET',url:'/api/tag-groups',alerts:Alerts},
+      (groups) => {
+        if (!groups) {
+          Alerts.insert('info', '没有标签组，一个都没有');
+        }
+        groups.forEach(group => {
+          const item = createTagGroup(group);
+          $(GroupList.id).append(m(item));
+          item.init();
+        });
+      }, null,
+      () => {
+        // onAlways
+        window.setTimeout(() => { $(TagsInput.id).focus(); }, 100);
+      });
+}
+
+function createTagGroup(group) {
+  const utime = dayjs.unix(group.UTime).format('MMM D, YYYY');
+  const Alerts = CreateAlerts();
+  const self = cc('div', 'g'+group.ID);
+
+  self.view = () => m('div').attr({id: self.raw_id}).addClass('TagGroup card my-3').append([
+    m('div').addClass('card-body').append([
+      m('div').append([
+        m('span').text(utime).addClass('Date small text-muted'),
+        ' ',
+        m('span').text('PROTECTED').addClass('Protected').hide(),
+        ' ',
+        m('i').attr({title:'copy'}).addClass('IconBtn bi bi-stickies'),
+        m('i').attr({title:'protect'}).addClass('IconBtn bi bi-file-lock2-fill').click(self.protect),
+        m('i').attr({title:'unprotect'}).addClass('IconBtn bi bi-unlock').hide().click(self.unprotect),
+        m('i').attr({title:'delete'}).addClass('IconBtn bi bi-trash'),
+      ]),
+      m('div').addClass('Tags'),
+    ]),
+    m(Alerts),
+  ]);
+
+  self.toggleProtect = () => {
+    $(self.id + ' .Protected').toggle(); 
+    $(self.id + ' .bi-file-lock2-fill').toggle();
+    $(self.id + ' .bi-unlock').toggle();
+  };
+
+  self.protect = () => {
+    const url = '/api/protect-taggroup/'+group.ID;
+    const buttonID = self.id + ' .bi-file-lock2-fill';
+    self.setProtected(url, buttonID)
+  };
+
+  self.unprotect = () => {
+    const url = '/api/unprotect-taggroup/'+group.ID;
+    const buttonID = self.id + ' .bi-unlock';
+    self.setProtected(url, buttonID)
+  };
+
+  self.setProtected = (url, buttonID) => {
+    ajax({method:'GET',url:url,alerts:Alerts,buttonID:buttonID},
+        () => {
+          self.toggleProtect();
+        });
+  }
+
+  self.init = () => {
+    const tagsElem = $(self.id + ' .Tags');
+    group.Tags.forEach(tag => {
+      const link = '/light/search?tags=' + encodeURIComponent(tag);
+      const item = m('span').text(tag).addClass('badge bg-primary').click(() => {
+        window.open(link, 'localtags-search');
+      });
+      tagsElem.append(item);
+    });
+
+    const tagGroup = addPrefix(group.Tags);
+    const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroup);
+    const groupItem = m('span').text('group').addClass('badge bg-info').click(() => {
+        window.open(groupLink, 'localtags-search');
+    });
+    tagsElem.append(groupItem);
+
+    if (group.Protected) {
+      self.toggleProtect();
+    }
+  };
+
+  return self;
+}
+
+  </script>
+</body>
+</html>

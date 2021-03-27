@@ -16,7 +16,7 @@ function FileItem(file) {
   }
   
   const ItemAlerts = CreateAlerts();
-  const self = cc('div', file.ID);
+  const self = cc('div', 'f'+file.ID);
 
   self.view = () => m('div').attr({id: self.raw_id}).addClass('FileItem mb-3').append([
     m('div').addClass('card').append([

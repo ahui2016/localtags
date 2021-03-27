@@ -23,6 +23,7 @@ func main() {
 	light.File("/search", "public/search.html")
 	light.File("/info", "public/info.html")
 	light.File("/backup", "public/backup.html")
+	light.File("/tag-groups", "public/tag-groups.html")
 
 	// api 只使用 GET, POST, 不采用 RESTful.
 	api := e.Group("/api")
@@ -35,6 +36,7 @@ func main() {
 	api.POST("/get-buckets-info", bucketsInfo)
 	api.POST("/sync-backup", syncBackup)
 	api.POST("/repair-files", repairFiles)
+
 	api.GET("/waitingFolder", waitingFolder)
 	api.GET("/waiting-files", waitingFiles)
 	api.GET("/all-files", allFiles) // file.Deleted == false
@@ -42,6 +44,10 @@ func main() {
 	api.POST("/delete-file", deleteFile)
 	api.POST("/update-tags", updateTags)
 	api.POST("/rename-file", renameFile)
+
+	api.GET("/tag-groups", getTagGroups)
+	api.GET("/protect-taggroup/:id", protectTagGroup)
+	api.GET("/unprotect-taggroup/:id", unprotectTagGroup)
 
 	api.POST("/search-tags", searchTags)
 	// api.POST("/search-title", searchTitle)

@@ -226,3 +226,19 @@ func repairFiles(c echo.Context) error {
 	}
 	return repairDamagedFiles(bkFolder)
 }
+
+func getTagGroups(c echo.Context) error {
+	groups, err := db.TagGroups()
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, groups)
+}
+
+func protectTagGroup(c echo.Context) error {
+	return db.SetTagGroupProtected(c.Param("id"), true)
+}
+
+func unprotectTagGroup(c echo.Context) error {
+	return db.SetTagGroupProtected(c.Param("id"), false)
+}

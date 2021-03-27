@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 
 	"github.com/ahui2016/localtags/model"
@@ -98,7 +99,7 @@ func addTagGroup(tx TX, group *TagGroup) error {
 	if len(group.Tags) < 2 {
 		return errors.New("a tag group needs at least two tags")
 	}
-	tags := group.String()
+	tags := group.Blob()
 	groupID, err := getText1(tx, stmt.GetTagGroupID, tags)
 
 	if err != nil && err != sql.ErrNoRows {
@@ -109,7 +110,6 @@ func addTagGroup(tx TX, group *TagGroup) error {
 			group.ID,
 			tags,
 			group.Protected,
-			group.CTime,
 			group.UTime)
 	} else {
 		// err == nil
@@ -350,4 +350,20 @@ func updateTags(tx TX, fileID string, newTags []string) error {
 		}
 	}
 	return nil
+}
+
+func scanTagGroup(rows *sql.Rows) (g TagGroup, err error) {
+	var tagsJSON []byte
+	if err = rows.Scan(&g.ID, &tagsJSON, &g.Protected, &g.UTime); err != nil {
+		return
+	}
+	g.Tags = mustGetTags(tagsJSON)
+	return
+}
+
+func mustGetTags(data []byte) []string {
+	var tags []string
+	err := json.Unmarshal(data, &tags)
+	util.Panic(err)
+	return tags
 }

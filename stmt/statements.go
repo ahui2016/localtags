@@ -45,11 +45,9 @@ CREATE TABLE IF NOT EXISTS taggroup
   id            text    PRIMARY KEY,
   tags          blob    NOT NULL UNIQUE,
   protected     int     NOT NULL,
-  ctime         int     NOT NULL,
   utime         int     NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_taggroup_ctime ON taggroup(ctime);
 CREATE INDEX IF NOT EXISTS idx_taggroup_utime ON taggroup(utime);
 
 CREATE TABLE IF NOT EXISTS metadata
@@ -96,15 +94,16 @@ const InsertTag = `INSERT INTO tag (id, ctime) VALUES ( ?, ?);`
 const InsertFileTag = `INSERT INTO file_tag (file_id, tag_id) VALUES (?, ?);`
 const DeleteTag = `DELETE FROM file_tag WHERE file_id=? and tag_id=?;`
 
+const AllTagGroups = `SELECT * FROM taggroup ORDER BY utime;`
 const GetTagGroupID = `SELECT id FROM taggroup WHERE tags=?;`
-const InsertTagGroup = `INSERT INTO taggroup (
-    id, tags, protected, ctime, utime)
-    VALUES (?, ?, ?, ?, ?);`
+const InsertTagGroup = `INSERT INTO taggroup
+    (id, tags, protected, utime) VALUES (?, ?, ?, ?);`
 const UpdateTagGroupNow = `UPDATE taggroup SET utime=? WHERE id=?;`
 const TagGroupCount = `SELECT count(*) FROM taggroup`
 const LastTagGroup = `SELECT id FROM taggroup WHERE protected=0
     ORDER BY utime LIMIT 1;`
 const DeleteTagGroup = `DELETE FROM taggroup WHERE id=?;`
+const SetTagGroupProtected = `UPDATE taggroup SET protected=? WHERE id=?;`
 
 const GetTagsByFile = `SELECT tag.id FROM file
     INNER JOIN file_tag ON file.id = file_tag.file_id

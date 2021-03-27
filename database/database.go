@@ -265,3 +265,25 @@ func (db *DB) GetInfo() (Info, error) {
 	}
 	return info, err
 }
+
+func (db *DB) TagGroups() (groups []TagGroup, err error) {
+	rows, err := db.DB.Query(stmt.AllTagGroups)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var group TagGroup
+		group, err = scanTagGroup(rows)
+		if err != nil {
+			return
+		}
+		groups = append(groups, group)
+	}
+	err = rows.Err()
+	return
+}
+
+func (db *DB) SetTagGroupProtected(groupID string, protected bool) error {
+	return db.Exec(stmt.SetTagGroupProtected, protected, groupID)
+}

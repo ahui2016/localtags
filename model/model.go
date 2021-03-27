@@ -115,18 +115,15 @@ func NewTag(id string) *Tag {
 type TagGroup struct {
 	ID        string // primary key, random
 	Tags      []string
-	CTime     int64 // created at
-	UTime     int64 // updated at
 	Protected bool
+	UTime     int64 // updated at
 }
 
 // NewTagGroup .
 func NewTagGroup() *TagGroup {
-	now := TimeNow()
 	return &TagGroup{
 		ID:    RandomID(),
-		CTime: now,
-		UTime: now,
+		UTime: TimeNow(),
 	}
 }
 
@@ -134,7 +131,6 @@ func (group *TagGroup) SetTags(tags []string) {
 	group.Tags = stringset.UniqueSort(tags)
 }
 
-func (group *TagGroup) String() string {
-	tags := util.MustMarshal(group.Tags)
-	return string(tags)
+func (group *TagGroup) Blob() []byte {
+	return util.MustMarshal(group.Tags)
 }

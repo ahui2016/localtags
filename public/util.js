@@ -28,9 +28,21 @@ function cc(name, id, elements) {
   return {id: '#'+id, raw_id: id, view: () => vnode};
 }
 
-function disable(id) { $(id).prop('disabled', true); }
+function disable(id) {
+  if ($(id).prop('nodeName') == 'I') {
+    $(id).css('pointer-events', 'none');
+  } else {
+    $(id).prop('disabled', true); 
+  }
+}
 
-function enable(id) { $(id).prop('disabled', false); }
+function enable(id) {
+  if ($(id).prop('nodeName') == 'I') {
+    $(id).css('pointer-events', 'auto');
+  } else {
+    $(id).prop('disabled', false);
+  }
+}
 
 // options = { method, url, body, alerts, buttonID }
 function ajax(options, onSuccess, onFail, onAlways) {
