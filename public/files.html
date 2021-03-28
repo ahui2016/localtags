@@ -22,8 +22,33 @@
 
 const Alerts = CreateAlerts();
 
+const Navbar = {
+  view: () => m('nav').addClass('navbar navbar-light bg-light').append([
+    m('div').addClass('container-fluid').append([
+      m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
+        m('i').addClass('bi bi-house-door'),
+      ),
+      m('span').addClass('PageTitle navbar-brand').text('Files'),
+      m('div').addClass('btn-group').append([
+        m('a').attr({title:'Tag Groups',href:'/light/tag-groups',type:'button'}).addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-tags')
+        ),
+        m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-file-earmark-plus')
+        ),
+        m('a').attr({title:'Recycle Bin',href:'/light/files?filter=deleted',type:'button'}).addClass('RecycleBtn btn btn-outline-dark').append(
+          m('i').addClass('bi bi-trash'),
+        ),
+        m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('AllFilesBtn btn btn-outline-dark').hide().append(
+          m('i').addClass('bi bi-card-list'),
+        ),
+      ]),
+    ]),
+  ]),
+};
+
 $('#root').append([
-  m(Spacer),
+  m(Navbar).addClass('mt-2 mb-5'),
   m(Alerts),
   m(FileList).addClass('mt-3'),
   m(Spacer),
@@ -33,11 +58,23 @@ $('#root').append([
 init()
 
 function init() {
-  
-  ajax({method:'GET',url:'/api/all-files',alerts:Alerts},
+  const filter = getUrlParam('filter');
+  let url = '/api/all-files';
+  let notFoundMsg = '没有文件，一个也没有。';
+  if (filter == 'deleted') {
+    url = '/api/deleted-files';
+    notFoundMsg = '数据库中没有标记为 "已删除" 的文件';
+    $('.PageTitle').text('Recycle Bin');
+    $('title').text('Recycle Bin - localtags');
+    // infoMsg.setMsg('这里是回收站，在这里删除文件是彻底删除，不可恢复。');
+    $('.RecycleBtn').hide();
+    $('.AllFilesBtn').show();
+  }
+
+  ajax({method:'GET',url:url,alerts:Alerts},
   (files) => {
     if (!files || files.length == 0) {
-      Alerts.insert('info', '啥都没有');
+      Alerts.insert('info', notFoundMsg);
       return;
     }
     FileList.prepend(files);

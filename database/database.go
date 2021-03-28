@@ -169,6 +169,15 @@ func (db *DB) AllFiles() (files []*File, err error) {
 	return
 }
 
+func (db *DB) DeletedFiles() (files []*File, err error) {
+	files, err = getFiles(db.DB, stmt.GetDeletedFiles)
+	if err != nil {
+		return
+	}
+	err = fillTags(db.DB, files)
+	return
+}
+
 func (db *DB) IsFileExist(id string) bool {
 	_, err := getText1(db.DB, stmt.GetFileName, id)
 	return err == nil
@@ -193,17 +202,6 @@ func (db *DB) SearchTags(tags []string) ([]*File, error) {
 		return nil, err
 	}
 	return db.getFilesByIDs(fileIDs)
-}
-
-func (db *DB) SetFileDeleted(id string, deleted bool) error {
-	ok, err := db.isFileDeleted(id)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return db.Exec(stmt.SetFileDeletedNow, deleted, model.TimeNow(), id)
-	}
-	return nil
 }
 
 func (db *DB) UpdateTags(fileID string, tags []string) error {

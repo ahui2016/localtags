@@ -40,8 +40,11 @@ function FileItem(file) {
             m('div').addClass('IconButtons mt-auto ms-auto').append([
               m('i').addClass('bi bi-tag').attr({title:'edit tags'}),
               m('i').addClass('bi bi-trash').attr({title:'delete'}),
+              m('i').addClass('bi bi-bootstrap-reboot').attr({title:'restore'}).hide(),
+              m('i').addClass('bi bi-trash-fill').attr({title:'permanently delete'}).hide(),
               m('i').addClass('bi bi-download').attr({title:'download'}),
             ]),
+            m('div').text('RESTORED').addClass('Restored mt-auto ms-auto').hide(),
             m('div').text('DELETED').addClass('Deleted mt-auto ms-auto').hide(),
           ]),
         ]),
@@ -49,6 +52,20 @@ function FileItem(file) {
     ]),
     m(ItemAlerts),
   ]);
+
+
+  const thumb_id = self.id + ' .card-img';
+  const filename_id = self.id + ' .Filename';
+  const filename = $(filename_id);
+  const name_input_id = self.id + ' .NameInputGroup';
+  const tags_id = self.id + ' .Tag';
+  const buttons_id = self.id + ' .IconButtons';
+
+  const tags_btn_id = self.id + ' .bi-tag';
+  const del_btn_id = self.id + ' .bi-trash';
+  const restore_btn_id = self.id + ' .bi-bootstrap-reboot';
+  const really_del_btn_id = self.id + ' .bi-trash-fill';
+  const dl_btn_id = self.id + ' .bi-download';
 
   self.tags = new Set();
 
@@ -76,38 +93,49 @@ function FileItem(file) {
   }
 
   self.toggleTagsArea = () => {
-    const tagsArea = $(self.id + ' .Tags');
-    const tagsInputGroup = $(self.id + ' .TagsInputGroup');
-    const buttons = $(self.id + ' .IconButtons');
-    tagsArea.toggle();
-    tagsInputGroup.toggle();
-    buttons.toggle();
+    $(self.id + ' .Tags').toggle();
+    $(self.id + ' .TagsInputGroup').toggle();
+    $(buttons_id).toggle();
   }
 
   self.toggleFilename = () => {
-    const filename = $(self.id + ' .Filename');
-    const nameInputGroup = $(self.id + ' .NameInputGroup');
-    filename.toggle();
-    nameInputGroup.toggle();
+    $(filename_id).toggle();
+    $(name_input_id).toggle();
   }
+
+  self.afterDeleted = () => {
+    $(thumb_id).css('filter', 'opacity(0.5) grayscale(1)');
+    $(name_input_id).hide();
+    $(filename_id).show().addClass('text-secondary')
+    disable(filename_id);
+    disable(tags_id);
+    $(buttons_id).hide();
+    $(self.id + ' .Deleted').show();
+  };
 
   // 有些事件要在该组件被实体化之后添加才有效。
   self.init = () => {
     const tagsInput = $(self.id + ' .TagsInput');
-    const buttons = $(self.id + ' .IconButtons');
-    const tagsBtn = $(self.id + ' .bi-tag');
+    const nameInput = $(self.id + ' .NameInput');
+
+    if (file.Deleted) {
+      disable(filename_id);
+      $(tags_btn_id).hide();
+      $(del_btn_id).hide();
+      $(restore_btn_id).show();
+      $(really_del_btn_id).show();
+    }
     
     self.resetTags(file.Tags);
     
-    tagsBtn.click(() => {
+    $(tags_btn_id).click(() => {
       self.toggleTagsArea();
       tagsInput.val(addPrefix(self.tags, '#')).focus();
     });
 
     const tags_ok_id = self.id+' .TagsOK';
     $(tags_ok_id).click(() => {
-      const tags = tagsInput.val();
-      const tagsSet = tagsStringToSet(tags);
+      const tagsSet = tagsStringToSet(tagsInput.val());
       if (tagsSet.size == 0 || eqSets(tagsSet, self.tags)) {
         self.toggleTagsArea();
         return;
@@ -127,26 +155,36 @@ function FileItem(file) {
           });
     });
 
-    const del_btn_id = self.id + ' .bi-trash';
-    const thumb = $(self.id + ' .card-img');
-    const deleted = $(self.id + ' .Deleted');
-    const filename = $(self.id + ' .Filename');
-    const tags = $(self.id + ' .Tag');
     const body = new FormData();
     body.append('id', file.ID);
-    $(del_btn_id).click(() => {
-      ajax({method:'POST',url:'/api/delete-file',alerts:ItemAlerts,buttonID:del_btn_id,body:body},
+
+    $(restore_btn_id).click(() => {
+      ajax({method:'POST',url:'/api/undelete-file',alerts:ItemAlerts,buttonID:restore_btn_id,body:body},
           () => {
-            // onsuccess
-            thumb.css('filter', 'opacity(0.5) grayscale(1)');
-            filename.addClass('text-secondary');
-            tags.css('pointer-events', 'none');
-            buttons.hide();
-            deleted.show();
+            $(buttons_id).hide();
+            $(self.id + ' .Restored').show();
           });
     });
 
-    const nameInput = $(self.id + ' .NameInput');
+    $(del_btn_id).click(() => {
+      ajax({method:'POST',url:'/api/delete-file',alerts:ItemAlerts,buttonID:del_btn_id,body:body},
+          () => {
+            self.afterDeleted();
+          });
+    });
+
+    $(really_del_btn_id).click(() => {
+      ItemAlerts.insert('info', '再点击一次删除按钮彻底删除该文件，不可恢复。');
+      $(really_del_btn_id).off();
+      window.setTimeout(() => {
+        $(really_del_btn_id).click(() => {
+          ajax({method:'POST',url:'/api/really-delete-file',alerts:ItemAlerts,buttonID:really_del_btn_id,body:body},
+          () => {
+            self.afterDeleted();
+          });
+        });
+      }, 1000);
+    });
 
     filename.dblclick(() => {
       self.toggleFilename();

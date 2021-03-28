@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"os"
 
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/stmt"
@@ -32,6 +33,14 @@ func waitingFolder(c echo.Context) error {
 
 func allFiles(c echo.Context) error {
 	files, err := db.AllFiles()
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, files)
+}
+
+func deletedFiles(c echo.Context) error {
+	files, err := db.DeletedFiles()
 	if err != nil {
 		return err
 	}
@@ -129,7 +138,7 @@ func deleteFile(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return db.SetFileDeleted(id, true)
+	return db.Exec(stmt.SetFileDeletedNow, true, model.TimeNow(), id)
 }
 
 func undeleteFile(c echo.Context) error {
@@ -137,7 +146,18 @@ func undeleteFile(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return db.SetFileDeleted(id, false)
+	return db.Exec(stmt.SetFileDeletedNow, false, model.TimeNow(), id)
+}
+
+func reallyDeleteFile(c echo.Context) error {
+	id, err := getFormValue(c, "id")
+	if err != nil {
+		return err
+	}
+	if err := os.Remove(mainBucketFile(id)); err != nil {
+		return err
+	}
+	return db.Exec(stmt.DeleteFile, id)
 }
 
 func updateTags(c echo.Context) error {

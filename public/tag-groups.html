@@ -23,6 +23,28 @@
     
 const Alerts = CreateAlerts();
 
+const Navbar = {
+  view: () => m('nav').addClass('navbar navbar-light bg-light').append([
+    m('div').addClass('container-fluid').append([
+      m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
+        m('i').addClass('bi bi-house-door'),
+      ),
+      m('span').addClass('navbar-brand').text('Tag Groups'),
+      m('div').addClass('btn-group').append([
+        m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-card-list')
+        ),
+        m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-file-earmark-plus')
+        ),
+        m('a').attr({href:'/light/files?filter=deleted',type:'button'}).addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-trash'),
+        ),
+      ]),
+    ]),
+  ]),
+};
+
 const GroupList = cc('div');
 GroupList.prepend = (group) => {
   const item = createTagGroup(group);
@@ -77,7 +99,7 @@ const Form = {
 };
 
 $('#root').append([
-  m(Spacer),
+  m(Navbar).addClass('mt-2 mb-5'),
   m(Form),
   m(Loading),
   m(Alerts).addClass('my-3'),

@@ -284,6 +284,7 @@ func (db *DB) getFilesByIDs(fileIDs []string) (files []*File, err error) {
 	return
 }
 
+/*
 func (db *DB) isFileDeleted(id string) (bool, error) {
 	file, err := db.GetFileByID(id)
 	if err != nil {
@@ -291,6 +292,7 @@ func (db *DB) isFileDeleted(id string) (bool, error) {
 	}
 	return file.Deleted, nil
 }
+*/
 
 func deleteTags(tx TX, toDelete []string, fileID string) error {
 	for _, tag := range toDelete {

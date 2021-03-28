@@ -29,18 +29,20 @@ function cc(name, id, elements) {
 }
 
 function disable(id) {
-  if ($(id).prop('nodeName') == 'I') {
-    $(id).css('pointer-events', 'none');
-  } else {
+  const nodeName = $(id).prop('nodeName');
+  if (nodeName == 'BUTTON' || nodeName == 'INPUT') {
     $(id).prop('disabled', true); 
+  } else {
+    $(id).css('pointer-events', 'none');
   }
 }
 
 function enable(id) {
-  if ($(id).prop('nodeName') == 'I') {
-    $(id).css('pointer-events', 'auto');
-  } else {
+  const nodeName = $(id).prop('nodeName');
+  if (nodeName == 'BUTTON' || nodeName == 'INPUT') {
     $(id).prop('disabled', false);
+  } else {
+    $(id).css('pointer-events', 'auto');
   }
 }
 

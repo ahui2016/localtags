@@ -26,7 +26,7 @@
 }
 
 .IconButtons .bi {
-    font-size: 1.25rem;
+    font-size: 1rem;
     color: lightgray;
     cursor: pointer;
 }
@@ -54,5 +54,12 @@
     font-size: smaller;
     color: white;
     background-color: #CCC;
+    padding: 0 2px 0 2px;
+}
+
+.card .Restored {
+    font-size: smaller;
+    color: white;
+    background-color: green;
     padding: 0 2px 0 2px;
 }
