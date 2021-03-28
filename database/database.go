@@ -283,3 +283,7 @@ func (db *DB) TagGroups() (groups []TagGroup, err error) {
 	err = rows.Err()
 	return
 }
+
+func (db *DB) AddTagGroup(group *TagGroup) error {
+	return addTagGroup(db.DB, group)
+}

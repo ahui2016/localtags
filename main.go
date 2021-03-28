@@ -45,6 +45,7 @@ func main() {
 	api.POST("/update-tags", updateTags)
 	api.POST("/rename-file", renameFile)
 
+	api.POST("/add-taggroup", addTagGroup)
 	api.GET("/tag-groups", getTagGroups)
 	api.GET("/protect-taggroup/:id", protectTagGroup)
 	api.GET("/unprotect-taggroup/:id", unprotectTagGroup)

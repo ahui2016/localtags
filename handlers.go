@@ -228,6 +228,19 @@ func repairFiles(c echo.Context) error {
 	return repairDamagedFiles(bkFolder)
 }
 
+func addTagGroup(c echo.Context) error {
+	tags, err := getTags(c)
+	if err != nil {
+		return err
+	}
+	group := model.NewTagGroup()
+	group.SetTags(tags)
+	if err := db.AddTagGroup(group); err != nil {
+		return err
+	}
+	return c.JSON(OK, group)
+}
+
 func getTagGroups(c echo.Context) error {
 	groups, err := db.TagGroups()
 	if err != nil {

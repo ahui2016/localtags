@@ -23,6 +23,13 @@
     
 const Alerts = CreateAlerts();
 
+const GroupList = cc('div');
+GroupList.prepend = (group) => {
+  const item = createTagGroup(group);
+  $(GroupList.id).prepend(m(item));
+  item.init();
+};
+
 const TagsInput = cc('textarea');
 const CheckBtn = cc('button');
 const SubmitBtn = cc('button');
@@ -35,7 +42,8 @@ const Form = {
     m('p').addClass('text-end mt-2').append([
         m(CheckBtn).text('check').addClass('btn btn-secondary')
             .attr({type:'button'}).click(Form.check),
-        m(SubmitBtn).text('add').addClass('btn btn-primary').attr({type:'button'}),
+        m(SubmitBtn).text('add').addClass('btn btn-primary').attr({type:'button'})
+            .hide().click(Form.submit),
     ]),
   ]),
 
@@ -55,10 +63,18 @@ const Form = {
     $(CheckBtn.id).hide();
     $(SubmitBtn.id).show();
     TagsInput.currentTagsSet = tags;
-  }
-};
+  },
 
-const GroupList = cc('div');
+  submit: () => {
+    const body = new FormData();
+    body.append('tags', JSON.stringify(Array.from(TagsInput.currentTagsSet)));
+    ajax({method:'POST',url:'/api/add-taggroup',body:body,alerts:Alerts,buttonID:SubmitBtn.id},
+        (group) => {
+          GroupList.prepend(group);
+          Alerts.insert('success', '添加了新标签组: ' + addPrefix(group.Tags, '#'));
+        });
+  },
+};
 
 $('#root').append([
   m(Spacer),
@@ -77,11 +93,7 @@ function init() {
         if (!groups) {
           Alerts.insert('info', '没有标签组，一个都没有');
         }
-        groups.forEach(group => {
-          const item = createTagGroup(group);
-          $(GroupList.id).prepend(m(item));
-          item.init();
-        });
+        groups.forEach(GroupList.prepend);
       }, null,
       () => {
         // onAlways
