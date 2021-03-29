@@ -20,6 +20,7 @@ type (
 	Stmt     = sql.Stmt
 	File     = model.File
 	ShortID  = model.ShortID
+	Tag      = model.Tag
 	TagGroup = model.TagGroup
 	Set      = stringset.Set
 )
@@ -284,4 +285,8 @@ func (db *DB) TagGroups() (groups []TagGroup, err error) {
 
 func (db *DB) AddTagGroup(group *TagGroup) error {
 	return addTagGroup(db.DB, group)
+}
+
+func (db *DB) AllTagsByDate() (tags []Tag, err error) {
+	return getAllTags(db.DB, stmt.AllTagsByDate)
 }

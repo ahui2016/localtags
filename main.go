@@ -24,6 +24,7 @@ func main() {
 	light.File("/info", "public/info.html")
 	light.File("/backup", "public/backup.html")
 	light.File("/tag-groups", "public/tag-groups.html")
+	light.File("/tags", "public/tags.html")
 
 	// api 只使用 GET, POST, 不采用 RESTful.
 	api := e.Group("/api")
@@ -48,6 +49,7 @@ func main() {
 	api.POST("/update-tags", updateTags)
 	api.POST("/rename-file", renameFile)
 
+	api.GET("/tags-by-date", allTagsByDate)
 	api.POST("/add-taggroup", addTagGroup)
 	api.GET("/tag-groups", getTagGroups)
 	api.GET("/protect-taggroup/:id", protectTagGroup)

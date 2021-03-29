@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/public/style-light.css">
+  
+  <script src="/public/jquery.min.js"></script>
+  <script src="/public/dayjs.min.js"></script>
+  <script src="/public/bootstrap.bundle.min.js"></script>
+  <script src="/public/util.js"></script>
+  <script src="/public/filelist.js"></script>
+  
+  <title>Tags - localtags</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
+  <script>
+
+const Alerts = CreateAlerts();
+
+const Navbar = {
+  view: () => m('nav').addClass('navbar navbar-light bg-light').append([
+    m('div').addClass('container-fluid').append([
+      m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
+        m('i').addClass('bi bi-house-door'),
+      ),
+      m('span').addClass('navbar-brand').text('Tags'),
+      m('div').addClass('btn-group').append([
+        m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-card-list')
+        ),
+        m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-file-earmark-plus')
+        ),
+        m('a').attr({title:'Recycle Bin',href:'/light/files?filter=deleted',type:'button'}).addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-trash'),
+        ),
+      ]),
+    ]),
+  ]),
+};
+
+const TagList = cc('div');
+TagList.prepend = (tag, index) => {
+  const item = createTagItem(tag, index);
+  $(TagList.id).prepend(m(item));
+};
+
+$('#root').append([
+  m(Navbar).addClass('mt-2 mb-5'),
+  m(Alerts),
+  m(TagList).addClass('TagList d-flex flex-wrap mt-3'),
+  m(Spacer),
+  m(BottomLine),
+]);
+  
+init()
+
+function init() {
+  ajax({method:'GET',url:'/api/tags-by-date',alerts:Alerts},
+  (tags) => {
+    if (!tags || tags.length == 0) {
+      Alerts.insert('info', '空');
+      return;
+    }
+    tags.forEach(TagList.prepend);
+  });
+}
+
+function createTagItem(tag, i) {
+  const btnColor = buttonColors(i);
+  const badgeColor = badgeColors(i);
+  const self = cc('a', 't'+tag.ID);
+
+  self.view = () => m('a').addClass(`btn btn-${btnColor} mx-1 my-1`)
+      .attr({role:'button',href:'/light/tag?id='+encodeURIComponent(tag.ID)}).append([
+        tag.ID, ' ',
+        m('span').text(tag.Count).addClass(`badge bg-light text-dark`),
+      ]);
+  
+  return self;
+}
+
+function buttonColors(i) {
+  const colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'];
+  return colors[i % colors.length];
+}
+
+function badgeColors(i) {
+  const colors = ['secondary', 'success', 'danger', 'dark', 'primary'];
+  return colors[i % colors.length];
+}
+
+  </script>
+</body>
+</html>

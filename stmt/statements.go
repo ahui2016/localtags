@@ -116,3 +116,11 @@ const GetFilesByTag = `SELECT file.id FROM tag
     INNER JOIN file_tag ON tag.id = file_tag.tag_id
     INNER JOIN file ON file_tag.file_id = file.id
     WHERE file.deleted=0 and tag.id=?;`
+
+const AllTagsByName = `SELECT tag.id, tag.ctime,
+    (SELECT count(*) FROM file_tag WHERE file_tag.tag_id = tag.id)
+    FROM tag ORDER BY tag.id;`
+
+const AllTagsByDate = `SELECT tag.id, tag.ctime,
+    (SELECT count(*) FROM file_tag WHERE file_tag.tag_id = tag.id)
+    FROM tag ORDER BY tag.ctime;`

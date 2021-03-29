@@ -294,6 +294,24 @@ func (db *DB) isFileDeleted(id string) (bool, error) {
 }
 */
 
+func getAllTags(tx TX, query string) (tags []Tag, err error) {
+	rows, err := tx.Query(query)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var tag Tag
+		err = rows.Scan(&tag.ID, &tag.CTime, &tag.Count)
+		if err != nil {
+			return
+		}
+		tags = append(tags, tag)
+	}
+	err = rows.Err()
+	return
+}
+
 func deleteTags(tx TX, toDelete []string, fileID string) error {
 	for _, tag := range toDelete {
 		if err := exec(tx, stmt.DeleteTag, fileID, tag); err != nil {

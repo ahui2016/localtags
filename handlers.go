@@ -280,3 +280,11 @@ func unprotectTagGroup(c echo.Context) error {
 func deleteTagGroup(c echo.Context) error {
 	return db.Exec(stmt.DeleteTagGroup, c.Param("id"))
 }
+
+func allTagsByDate(c echo.Context) error {
+	tags, err := db.AllTagsByDate()
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, tags)
+}

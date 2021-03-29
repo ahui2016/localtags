@@ -37,7 +37,7 @@ const Navbar = {
         m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
           m('i').addClass('bi bi-file-earmark-plus')
         ),
-        m('a').attr({href:'/light/files?filter=deleted',type:'button'}).addClass('btn btn-outline-dark').append(
+        m('a').attr({title:'Recycle Bin',href:'/light/files?filter=deleted',type:'button'}).addClass('btn btn-outline-dark').append(
           m('i').addClass('bi bi-trash'),
         ),
       ]),
