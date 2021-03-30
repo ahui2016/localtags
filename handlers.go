@@ -282,7 +282,15 @@ func deleteTagGroup(c echo.Context) error {
 }
 
 func allTagsByDate(c echo.Context) error {
-	tags, err := db.AllTagsByDate()
+	tags, err := db.GetAllTags(stmt.AllTagsByDate)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, tags)
+}
+
+func allTagsByName(c echo.Context) error {
+	tags, err := db.GetAllTags(stmt.AllTagsByName)
 	if err != nil {
 		return err
 	}

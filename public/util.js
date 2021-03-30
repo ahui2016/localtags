@@ -28,6 +28,18 @@ function cc(name, id, elements) {
   return {id: '#'+id, raw_id: id, view: () => vnode};
 }
 
+function hide(id) {
+  $(id).addClass('d-none');
+}
+
+function show(id) {
+  $(id).removeClass('d-none');
+}
+
+function toggle(id) {
+  $(id).toggleClass('d-none');
+}
+
 function disable(id) {
   const nodeName = $(id).prop('nodeName');
   if (nodeName == 'BUTTON' || nodeName == 'INPUT') {

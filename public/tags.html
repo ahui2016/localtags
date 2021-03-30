@@ -44,16 +44,41 @@ const Navbar = {
   ]),
 };
 
-const TagList = cc('div');
-TagList.prepend = (tag, index) => {
+const ByDate = cc('input');
+const ByName = cc('input');
+const SortBy = {
+  view: () => m('div').append([
+    m('span').text('Sort by').css('margin-right', '1rem'),
+    m('div').addClass('form-check form-check-inline').append([
+      m(ByDate).addClass('form-check-input').attr({type:'radio',name:'sort-by',value:'by-date'})
+          .prop('checked',true).click(),
+      m('label').text('date').addClass('form-check-label').attr({for:ByDate.raw_id}),
+    ]),
+    m('div').addClass('form-check form-check-inline').append([
+      m(ByName).addClass('form-check-input').attr({type:'radio',name:'sort-by',value:'by-name'}),
+      m('label').text('name').addClass('form-check-label').attr({for:ByName.raw_id}),
+    ]),
+  ]),
+};
+
+const SortByDate = cc('div');
+SortByDate.prepend = (tag, index) => {
   const item = createTagItem(tag, index);
-  $(TagList.id).prepend(m(item));
+  $(SortByDate.id).prepend(m(item));
+};
+
+const SortByName = cc('div');
+SortByName.append = (tag, index) => {
+  const item = createTagItem(tag, index);
+  $(SortByName.id).append(m(item));
 };
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
   m(Alerts),
-  m(TagList).addClass('TagList d-flex flex-wrap mt-3'),
+  m(SortBy),
+  m(SortByDate).addClass('TagList d-flex flex-wrap mt-3'),
+  m(SortByName).addClass('TagList d-flex flex-wrap mt-3'),
   m(Spacer),
   m(BottomLine),
 ]);
@@ -61,13 +86,26 @@ $('#root').append([
 init()
 
 function init() {
+  
+  hide(SortByName.id);
+
+  $('input[name="sort-by"]').change(() => {
+    toggle(SortByName.id);
+    toggle(SortByDate.id);
+  });
+
   ajax({method:'GET',url:'/api/tags-by-date',alerts:Alerts},
   (tags) => {
     if (!tags || tags.length == 0) {
       Alerts.insert('info', '空');
       return;
     }
-    tags.forEach(TagList.prepend);
+    tags.forEach(SortByDate.prepend);
+  });
+
+  ajax({method:'GET',url:'/api/tags-by-name',alerts:Alerts},
+  (tags) => {
+    if (tags) tags.forEach(SortByName.append);
   });
 }
 

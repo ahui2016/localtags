@@ -287,6 +287,20 @@ func (db *DB) AddTagGroup(group *TagGroup) error {
 	return addTagGroup(db.DB, group)
 }
 
-func (db *DB) AllTagsByDate() (tags []Tag, err error) {
-	return getAllTags(db.DB, stmt.AllTagsByDate)
+func (db *DB) GetAllTags(query string) (tags []Tag, err error) {
+	rows, err := db.DB.Query(query)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var tag Tag
+		err = rows.Scan(&tag.ID, &tag.CTime, &tag.Count)
+		if err != nil {
+			return
+		}
+		tags = append(tags, tag)
+	}
+	err = rows.Err()
+	return
 }
