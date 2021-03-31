@@ -1,6 +1,10 @@
 package stringset
 
-import "sort"
+import (
+	"sort"
+
+	"github.com/ahui2016/localtags/util"
+)
 
 // Set .
 type Set struct {
@@ -71,4 +75,10 @@ func Intersect(group []*Set) *Set {
 		result = result.Intersect(group[i])
 	}
 	return result
+}
+
+func UniqueSortString(arr []string) string {
+	sorted := UniqueSort(arr)
+	blob := util.MustMarshal(sorted)
+	return string(blob)
 }

@@ -118,9 +118,13 @@ const GetFilesByTag = `SELECT file.id FROM tag
     WHERE file.deleted=0 and tag.id=?;`
 
 const AllTagsByName = `SELECT tag.id, tag.ctime,
-    (SELECT count(*) FROM file_tag WHERE file_tag.tag_id = tag.id)
+    (SELECT count(file.id) FROM file
+     INNER JOIN file_tag ON file.id = file_tag.file_id
+     WHERE file.deleted=0 and file_tag.tag_id = tag.id)
     FROM tag ORDER BY tag.id;`
 
 const AllTagsByDate = `SELECT tag.id, tag.ctime,
-    (SELECT count(*) FROM file_tag WHERE file_tag.tag_id = tag.id)
+    (SELECT count(*) FROM file
+     INNER JOIN file_tag ON file.id = file_tag.file_id
+     WHERE file.deleted=0 and file_tag.tag_id = tag.id)
     FROM tag ORDER BY tag.ctime;`

@@ -296,3 +296,15 @@ func allTagsByName(c echo.Context) error {
 	}
 	return c.JSON(OK, tags)
 }
+
+func getGroupsByTag(c echo.Context) error {
+	name, err := getFormValue(c, "name")
+	if err != nil {
+		return err
+	}
+	groups, err := db.GetGroupsByTag(name)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, groups)
+}

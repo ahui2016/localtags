@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -302,5 +303,26 @@ func (db *DB) GetAllTags(query string) (tags []Tag, err error) {
 		tags = append(tags, tag)
 	}
 	err = rows.Err()
+	return
+}
+
+func (db *DB) GetGroupsByTag(name string) (groups [][]string, err error) {
+	files, err := db.SearchTags([]string{name})
+	if err != nil {
+		return nil, err
+	}
+	set := stringset.NewSet()
+	for _, file := range files {
+		set.Add(stringset.UniqueSortString(file.Tags))
+	}
+	for data, ok := range set.Map {
+		if ok {
+			var group []string
+			if err := json.Unmarshal([]byte(data), &group); err != nil {
+				return nil, err
+			}
+			groups = append(groups, group)
+		}
+	}
 	return
 }

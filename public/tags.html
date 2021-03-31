@@ -45,32 +45,39 @@ const Navbar = {
 };
 
 const ByDate = cc('input');
-const ByName = cc('input');
-const SortBy = {
-  view: () => m('div').append([
-    m('span').text('Sort by').css('margin-right', '1rem'),
-    m('div').addClass('form-check form-check-inline').append([
-      m(ByDate).addClass('form-check-input').attr({type:'radio',name:'sort-by',value:'by-date'})
-          .prop('checked',true).click(),
-      m('label').text('date').addClass('form-check-label').attr({for:ByDate.raw_id}),
-    ]),
-    m('div').addClass('form-check form-check-inline').append([
-      m(ByName).addClass('form-check-input').attr({type:'radio',name:'sort-by',value:'by-name'}),
-      m('label').text('name').addClass('form-check-label').attr({for:ByName.raw_id}),
-    ]),
-  ]),
-};
-
 const SortByDate = cc('div');
 SortByDate.prepend = (tag, index) => {
   const item = createTagItem(tag, index);
   $(SortByDate.id).prepend(m(item));
 };
 
+const ByName = cc('input');
 const SortByName = cc('div');
 SortByName.append = (tag, index) => {
   const item = createTagItem(tag, index);
   $(SortByName.id).append(m(item));
+};
+
+const SortBy = {
+  view: () => m('div').append([
+    m('span').text('Sort by').css('margin-right', '1rem'),
+    m('div').addClass('form-check form-check-inline').append([
+      m(ByDate).attr({type:'radio',name:'sort-by',value:'by-date'})
+          .addClass('form-check-input').prop('checked',true).click(() => {
+            show(SortByDate.id);
+            hide(SortByName.id);
+          }),
+      m('label').text('date').addClass('form-check-label').attr({for:ByDate.raw_id}),
+    ]),
+    m('div').addClass('form-check form-check-inline').append([
+      m(ByName).attr({type:'radio',name:'sort-by',value:'by-name'})
+          .addClass('form-check-input').click(() => {
+            show(SortByName.id);
+            hide(SortByDate.id);
+          }),
+      m('label').text('name').addClass('form-check-label').attr({for:ByName.raw_id}),
+    ]),
+  ]),
 };
 
 $('#root').append([
@@ -88,11 +95,6 @@ init()
 function init() {
   
   hide(SortByName.id);
-
-  $('input[name="sort-by"]').change(() => {
-    toggle(SortByName.id);
-    toggle(SortByDate.id);
-  });
 
   ajax({method:'GET',url:'/api/tags-by-date',alerts:Alerts},
   (tags) => {
@@ -115,7 +117,7 @@ function createTagItem(tag, i) {
   const self = cc('a', 't'+tag.ID);
 
   self.view = () => m('a').addClass(`btn btn-${btnColor} mx-1 my-1`)
-      .attr({role:'button',href:'/light/tag?id='+encodeURIComponent(tag.ID)}).append([
+      .attr({role:'button',href:'/light/tag?name='+encodeURIComponent(tag.ID)}).append([
         tag.ID, ' ',
         m('span').text(tag.Count).addClass(`badge bg-light text-dark`),
       ]);
