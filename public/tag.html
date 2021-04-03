@@ -20,6 +20,8 @@
   <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
   <script>
 
+const tag_name = getUrlParam('name');
+
 const Alerts = CreateAlerts();
 
 const Navbar = {
@@ -52,6 +54,13 @@ const Navbar = {
   ]),
 };
 
+const GroupList = cc('div');
+GroupList.prepend = (group) => {
+  const item = createTagGroup(group);
+  $(GroupList.id).prepend(m(item));
+  item.init();
+};
+
 const NameInput = cc('input');
 const CheckBtn = cc('button');
 const RenameBtn = cc('button');
@@ -60,7 +69,8 @@ Form.view = () => m('div').attr({id:Form.raw_id}).addClass('input-group').hide()
   m(NameInput).addClass('form-control').focus(Form.showCheckBtn),
   m(CheckBtn).text('check').attr({type:'button'})
     .addClass('btn btn-outline-secondary').click(Form.check),
-  m(RenameBtn).text('rename').attr({type:'button'}).addClass('btn btn-outline-primary').hide(),
+  m(RenameBtn).text('rename').attr({type:'button'})
+    .addClass('btn btn-outline-primary').hide().click(Form.rename),
 ]);
 
 Form.toggle = () => {
@@ -86,6 +96,22 @@ Form.check = () => {
   $(RenameBtn.id).show();
 };
 
+Form.rename = () => {
+  const new_name = getTag($(NameInput.id).val());
+  const body = new FormData();
+  body.append('old-name', tag_name);
+  body.append('new-name', new_name);
+  ajax({method:'POST',url:'/api/rename-tag',alerts:Alerts,buttonID:RenameBtn.id,body:body},
+      () => {
+        $(Form.id).hide();
+        $(GroupList.id).hide();
+        Alerts.clear();
+        Alerts.insert('info', '重命名成功时会自动刷新页面');
+        Alerts.insert('success', `正在重命名: ${tag_name} --> ${new_name}`);
+        window.setTimeout(() => {window.location = '/light/tag?name='+new_name}, 3000);
+      });
+}
+
 const Name = cc('span');
 const NameBtn = cc('i');
 const NameArea = {
@@ -94,13 +120,6 @@ const NameArea = {
     ' ',
     m(Name).addClass('h5'),
   ]),
-};
-
-const GroupList = cc('div');
-GroupList.prepend = (group) => {
-  const item = createTagGroup(group);
-  $(GroupList.id).prepend(m(item));
-  item.init();
 };
 
 $('#root').append([
@@ -116,10 +135,9 @@ $('#root').append([
 init()
 
 function init() {
-  const name = getUrlParam('name');
-  $(Name.id).text(name);
+  $(Name.id).text(tag_name);
   const body = new FormData();
-  body.append('name', name);
+  body.append('name', tag_name);
   
   ajax({method:'POST',url:'/api/get-groups-by-tag',alerts:Alerts,body:body},
   (groups) => {

@@ -296,7 +296,7 @@ func (db *DB) isFileDeleted(id string) (bool, error) {
 
 func deleteTags(tx TX, toDelete []string, fileID string) error {
 	for _, tag := range toDelete {
-		if err := exec(tx, stmt.DeleteTag, fileID, tag); err != nil {
+		if err := exec(tx, stmt.DeleteTags, fileID, tag); err != nil {
 			return err
 		}
 	}

@@ -36,7 +36,7 @@ CREATE INDEX IF NOT EXISTS idx_tag_ctime ON tag(ctime);
 CREATE TABLE IF NOT EXISTS file_tag
 (
   file_id   text    REFERENCES file(id) ON DELETE CASCADE,
-  tag_id    text    REFERENCES tag(id)  ON DELETE CASCADE,
+  tag_id    text    REFERENCES tag(id) ON UPDATE CASCADE ON DELETE CASCADE,
   UNIQUE (file_id, tag_id)
 );
 
@@ -94,7 +94,10 @@ const GetTag = `SELECT * FROM tag WHERE id=?;`
 const GetTagCTime = `SELECT ctime FROM tag WHERE id=?;`
 const InsertTag = `INSERT INTO tag (id, ctime) VALUES ( ?, ?);`
 const InsertFileTag = `INSERT INTO file_tag (file_id, tag_id) VALUES (?, ?);`
-const DeleteTag = `DELETE FROM file_tag WHERE file_id=? and tag_id=?;`
+const DeleteTag = `DELETE FROM tag WHERE id=?;`
+const DeleteTags = `DELETE FROM file_tag WHERE file_id=? and tag_id=?;`
+const RenameTag = `UPDATE tag SET id=? WHERE id=?; `
+const RenameTag_InFileTag = `UPDATE file_tag SET tag_id=? WHERE tag_id=?;`
 
 const AllTagGroups = `SELECT * FROM taggroup ORDER BY utime;`
 const GetTagGroupID = `SELECT id FROM taggroup WHERE tags=?;`
@@ -107,15 +110,14 @@ const LastTagGroup = `SELECT id FROM taggroup WHERE protected=0
 const DeleteTagGroup = `DELETE FROM taggroup WHERE id=?;`
 const SetTagGroupProtected = `UPDATE taggroup SET protected=? WHERE id=?;`
 
-const GetTagsByFile = `SELECT tag.id FROM file
-    INNER JOIN file_tag ON file.id = file_tag.file_id
-    INNER JOIN tag ON file_tag.tag_id = tag.id
-    WHERE file.id=?;`
+const GetTagsByFile = `SELECT tag_id FROM file_tag WHERE file_id=?;`
 
 const GetFilesByTag = `SELECT file.id FROM tag
     INNER JOIN file_tag ON tag.id = file_tag.tag_id
     INNER JOIN file ON file_tag.file_id = file.id
     WHERE file.deleted=0 and tag.id=?;`
+
+const AllFilesByTag = `SELECT file_id FROM file_tag WHERE tag_id=?;`
 
 const AllTagsByName = `SELECT tag.id, tag.ctime,
     (SELECT count(file.id) FROM file

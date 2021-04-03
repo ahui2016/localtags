@@ -308,3 +308,12 @@ func getGroupsByTag(c echo.Context) error {
 	}
 	return c.JSON(OK, groups)
 }
+
+func renameTag(c echo.Context) error {
+	oldName, e1 := getFormValue(c, "old-name")
+	newName, e2 := getFormValue(c, "new-name")
+	if err := util.WrapErrors(e1, e2); err != nil {
+		return err
+	}
+	return db.RenameTag(oldName, newName)
+}

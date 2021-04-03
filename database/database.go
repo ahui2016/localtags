@@ -326,3 +326,35 @@ func (db *DB) GetGroupsByTag(name string) (groups [][]string, err error) {
 	}
 	return
 }
+
+// RenameTag .
+func (db *DB) RenameTag(oldName, newName string) error {
+	ok, err := isTagExist(db.DB, newName)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		// 如果新标签名没有冲突，那么，直接改名即可。
+		return db.Exec(stmt.RenameTag, newName, oldName)
+	}
+	
+	// 如果新标签名已存在，则添加新标签，删除旧标签。
+	fileIDs, err := getFileIDs(db.DB, stmt.AllFilesByTag, oldName)
+	if err != nil {
+		return err
+	}
+	tx := db.mustBegin()
+	defer tx.Rollback()
+
+	for _, id := range fileIDs {
+		err = exec(tx, stmt.InsertFileTag, id, newName)
+		if err != nil && !util.ErrorContains(err, "UNIQUE") {
+			return err
+		}
+	}
+	if err := exec(tx, stmt.DeleteTag, oldName); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
