@@ -18,7 +18,7 @@
   <title>Tag Groups - localtags</title>
 </head>
 <body>
-  <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
   <script>
     
 const Alerts = CreateAlerts();
@@ -203,9 +203,9 @@ function createTagGroup(group) {
   self.init = () => {
     const tagsElem = $(self.id + ' .Tags');
     group.Tags.forEach(tag => {
-      const link = '/light/search?tags=' + encodeURIComponent(tag);
+      const link = '/light/tag?name=' + encodeURIComponent(tag);
       const item = m('span').text(tag).addClass('badge bg-primary').click(() => {
-        window.open(link, 'localtags-search');
+        window.open(link);
       });
       tagsElem.append(item);
     });

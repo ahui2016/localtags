@@ -17,7 +17,7 @@
   <title>Tag - localtags</title>
 </head>
 <body>
-  <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
   <script>
 
 const Alerts = CreateAlerts();
@@ -25,22 +25,74 @@ const Alerts = CreateAlerts();
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
-      m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
-        m('i').addClass('bi bi-house-door'),
-      ),
+      m('div').addClass('btn-group').append([
+        m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-house-door'),
+        ),
+        m('a').attr({title:'Tags',href:'/light/tags',type:'button'})
+          .addClass('btn btn-outline-dark').append(
+            m('i').addClass('bi bi-tag')
+        ),
+      ]),
       m('span').addClass('navbar-brand').text('Tag'),
       m('div').addClass('btn-group').append([
-        m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
-          m('i').addClass('bi bi-card-list')
+        m('a').attr({title:'Files',href:'/light/files',type:'button'})
+          .addClass('btn btn-outline-dark').append(
+            m('i').addClass('bi bi-card-list')
         ),
         m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
           m('i').addClass('bi bi-file-earmark-plus')
         ),
-        m('a').attr({title:'Recycle Bin',href:'/light/files?filter=deleted',type:'button'}).addClass('btn btn-outline-dark').append(
-          m('i').addClass('bi bi-trash'),
+        m('a').attr({title:'Tag Groups',href:'/light/tag-groups',type:'button'})
+          .addClass('btn btn-outline-dark').append(
+            m('i').addClass('bi bi-tags')
         ),
       ]),
     ]),
+  ]),
+};
+
+const NameInput = cc('input');
+const CheckBtn = cc('button');
+const RenameBtn = cc('button');
+const Form = cc('div');
+Form.view = () => m('div').attr({id:Form.raw_id}).addClass('input-group').hide().append([
+  m(NameInput).addClass('form-control').focus(Form.showCheckBtn),
+  m(CheckBtn).text('check').attr({type:'button'})
+    .addClass('btn btn-outline-secondary').click(Form.check),
+  m(RenameBtn).text('rename').attr({type:'button'}).addClass('btn btn-outline-primary').hide(),
+]);
+
+Form.toggle = () => {
+  const display = $(Form.id).css('display');
+  if (display == 'none') {
+    $(Form.id).show('fast', () => { $(NameInput.id).focus() });
+  } else {
+    $(Form.id).hide();
+  }
+};
+
+Form.showCheckBtn = () => {
+  $(CheckBtn.id).show();
+  $(RenameBtn.id).hide();
+}
+
+Form.check = () => {
+  const input = $(NameInput.id);
+  const name = getTag(input.val());
+  if (!name) { input.focus(); return; }
+  input.val('#'+name);
+  $(CheckBtn.id).hide();
+  $(RenameBtn.id).show();
+};
+
+const Name = cc('span');
+const NameBtn = cc('i');
+const NameArea = {
+  view: () => m('div').append([
+    m(NameBtn).addClass('bi bi-pencil-square').css('cursor', 'pointer').click(Form.toggle),
+    ' ',
+    m(Name).addClass('h5'),
   ]),
 };
 
@@ -53,6 +105,8 @@ GroupList.prepend = (group) => {
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
+  m(NameArea),
+  m(Form),
   m(Alerts),
   m(GroupList),
   m(Spacer),
@@ -63,6 +117,7 @@ init()
 
 function init() {
   const name = getUrlParam('name');
+  $(Name.id).text(name);
   const body = new FormData();
   body.append('name', name);
   
@@ -90,22 +145,32 @@ function createTagGroup(group) {
     const tagGroupStr = addPrefix(group);
     const tagsElem = $(self.id + ' .Tags');
     group.forEach(tag => {
-      const link = '/light/search?tags=' + encodeURIComponent(tag);
+      const link = '/light/tag?name=' + encodeURIComponent(tag);
       const item = m('span').text(tag).addClass('badge bg-primary').click(() => {
-        window.open(link, 'localtags-search');
+        window.open(link);
       });
       tagsElem.append(item);
     });
 
     const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroupStr);
-    const groupItem = m('span').text('group').attr({title:'search tag group'}).addClass('badge bg-info')
-      .click(() => {
+    const groupItem = m('span').text('group').attr({title:'search tag group'})
+      .addClass('badge bg-info').click(() => {
         window.open(groupLink, 'localtags-search');
       });
     tagsElem.append(groupItem);
   };
 
   return self;
+}
+
+// 提取出一个标签。
+function getTag(tagsString) {
+  let trimmed = tag_replace(tagsString);
+  if (trimmed.length == 0) {
+    return false;
+  }
+  let arr = trimmed.split(/ +/);
+  return arr[0];
 }
 
   </script>

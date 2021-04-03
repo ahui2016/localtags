@@ -1,3 +1,7 @@
+.NoEvent {
+    pointer-events: none;
+}
+
 .Tags .badge + .badge,
 .Tags .Tag + .Tag {
     margin-left: 0.5rem;

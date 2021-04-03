@@ -1,10 +1,10 @@
 function FileItem(file) {
   let thumbClass;
   if (file.Thumb) {
-    thumbClass = 'col-md-2 col-3';
+    thumbClass = 'col-md-2 col-2';
     file.Thumb = getThumbURL(file.ID);
   } else {
-    thumbClass = 'col-md-2 col-2';
+    thumbClass = 'col-md-2 col-1';
     file.Thumb = getThumbByFiletype(file.Type);
   }
 
@@ -84,7 +84,7 @@ function FileItem(file) {
   
     self.tags.forEach(name => {
       const tagItem = cc('a');
-      const tagLink = '/light/search?tags=' + encodeURIComponent(name);
+      const tagLink = '/light/tag?name=' + encodeURIComponent(name);
       tagsArea.append(
         m(tagItem).text('#'+name).attr({href:tagLink, target:'_blank'})
           .addClass('Tag link-secondary')
