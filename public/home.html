@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/public/style-light.css">
+  
+  <script src="/public/jquery.min.js"></script>
+  <script src="/public/dayjs.min.js"></script>
+  <script src="/public/bootstrap.bundle.min.js"></script>
+  <script src="/public/util.js"></script>
+  <script src="/public/filelist.js"></script>
+  
+  <title>Home - localtags</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+  <script>
+
+const Navbar = {
+  view: () => m('nav').addClass('navbar navbar-light bg-light').append([
+    m('div').addClass('container-fluid').append([
+      m('span').addClass('PageTitle navbar-brand').text('Home - localtags'),
+    ]),
+  ]),
+};
+
+$('#root').append([
+  m(Navbar),
+  m(Spacer),
+  create_item('Add Files', '/light/add', ' - 添加文件'),
+  create_item('Files', '/light/files', ' - 全部文件'),
+  create_item('Tag Groups', '/light/tag-groups', ' - 标签组'),
+  create_item('Tags', '/light/tags', ' - 全部标签'),
+  create_item('Search', '/light/search', ' - 搜索'),
+  create_item('Recycle Bin', '/light/files?filter=deleted', ' - 回收站'),
+  create_item('Information', '/light/info', ' - 数据库信息'),
+  create_item('Backup', '/light/backup', ' - 备份'),
+  m(Spacer),
+  m('p').addClass('small text-secondary').append([
+    'localtags version: 2021-05-05',
+    m('br'),
+    m('a').text('https://github.com/ahui2016/localtags').addClass('small text-secondary')
+      .attr({href:'https://github.com/ahui2016/localtags',target:'_blank'}),
+    ' ',
+    m('i').addClass('small bi bi-box-arrow-up-right'),
+  ]),
+  m(BottomLine),
+]);
+
+function create_item(text, link, description) {
+  return m('div').addClass('position-relative mb-2').append([
+    m('a').text(text).attr({href:link}).addClass('stretched-link text-decoration-none'),
+    description,
+  ]);
+}
+  
+  </script>
+</body>
+</html>

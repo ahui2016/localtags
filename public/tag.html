@@ -40,15 +40,12 @@ const Navbar = {
       m('div').addClass('btn-group').append([
         m('a').attr({title:'Files',href:'/light/files',type:'button'})
           .addClass('btn btn-outline-dark').append(
-            m('i').addClass('bi bi-card-list')
-        ),
+            m('i').addClass('bi bi-card-list')),
         m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
-          m('i').addClass('bi bi-file-earmark-plus')
-        ),
+          m('i').addClass('bi bi-file-earmark-plus')),
         m('a').attr({title:'Tag Groups',href:'/light/tag-groups',type:'button'})
           .addClass('btn btn-outline-dark').append(
-            m('i').addClass('bi bi-tags')
-        ),
+            m('i').addClass('bi bi-tags')),
       ]),
     ]),
   ]),
@@ -91,9 +88,16 @@ Form.check = () => {
   const input = $(NameInput.id);
   const name = getTag(input.val());
   if (!name) { input.focus(); return; }
-  input.val('#'+name);
-  $(CheckBtn.id).hide();
-  $(RenameBtn.id).show();
+
+  const body = new FormData();
+  body.append('new-name', name);
+  ajax({method:'POST',url:'/api/is-tag-exist',alerts:Alerts,buttonID:CheckBtn.id,body:body},
+      (tagIsExist) => {
+        input.val('#'+name);
+        $(CheckBtn.id).hide();
+        $(RenameBtn.id).show();
+        if (tagIsExist) Alerts.insert('info', `标签 #${name} 已存在，执行改名会合并标签。`);
+      });
 };
 
 Form.rename = () => {
@@ -114,13 +118,11 @@ Form.rename = () => {
 
 const Name = cc('span');
 const NameBtn = cc('i');
-const NameArea = {
-  view: () => m('div').append([
-    m(NameBtn).addClass('bi bi-pencil-square').css('cursor', 'pointer').click(Form.toggle),
-    ' ',
-    m(Name).addClass('h5'),
-  ]),
-};
+const NameArea = cc('div', null, [
+  m(NameBtn).addClass('bi bi-pencil-square').css('cursor', 'pointer').click(Form.toggle),
+  ' ',
+  m(Name).addClass('h5'),
+]);
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
@@ -140,14 +142,20 @@ function init() {
   body.append('name', tag_name);
   
   ajax({method:'POST',url:'/api/get-groups-by-tag',alerts:Alerts,body:body},
-  (groups) => {
-    if (!groups || groups.length == 0) {
-      Alerts.insert('info', '空');
-      return;
-    }
-    groups.forEach(GroupList.prepend);
-  });
-
+      (groups) => {
+        if (!groups || groups.length == 0) {
+          Alerts.insert('info', '空');
+          return;
+        }
+        groups.forEach(GroupList.prepend);
+        console.log('使用函数 deletetag(tag) 删除标签，注意一旦删除无法恢复。')
+      }, (that) => {
+        if (that.status == 404) {
+          $(NameArea.id).hide();
+        } else {
+          console.log('使用函数 deletetag(tag) 删除标签，注意一旦删除无法恢复。')
+        }
+      });
 }
 
 function createTagGroup(group) {
@@ -189,6 +197,15 @@ function getTag(tagsString) {
   }
   let arr = trimmed.split(/ +/);
   return arr[0];
+}
+
+function deletetag(name) {
+  const body = new FormData();
+  body.append('tag-name', name);
+  ajax({method:'POST',url:'/api/delete-tag',body:body},
+      () => {
+        console.log('已删除 #' + name);
+      });
 }
 
   </script>

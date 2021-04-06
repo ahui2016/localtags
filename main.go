@@ -15,7 +15,7 @@ func main() {
 	e.Static("/public", "public")
 	e.Static("/temp", tempFolder)
 	e.Static("/thumbs", thumbsFolder)
-	e.File("/", "public/hello.html")
+	e.File("/", "public/home.html")
 
 	light := e.Group("/light")
 	light.File("/waiting", "public/waiting.html")
@@ -26,6 +26,8 @@ func main() {
 	light.File("/tag-groups", "public/tag-groups.html")
 	light.File("/tags", "public/tags.html")
 	light.File("/tag", "public/tag.html")
+	light.File("/home", "public/home.html")
+	light.File("/add", "public/add.html")
 
 	// api 只使用 GET, POST, 不采用 RESTful.
 	api := e.Group("/api")
@@ -55,6 +57,8 @@ func main() {
 	api.GET("/tags-by-date", allTagsByDate)
 	api.GET("/tags-by-name", allTagsByName)
 	api.POST("/rename-tag", renameTag)
+	api.POST("/is-tag-exist", isTagExist)
+	api.POST("/delete-tag", deleteTag)
 	api.POST("/add-taggroup", addTagGroup)
 	api.GET("/tag-groups", getTagGroups)
 	api.GET("/protect-taggroup/:id", protectTagGroup)

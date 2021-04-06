@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/ahui2016/localtags/model"
@@ -302,6 +303,13 @@ func getGroupsByTag(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	ok, err := db.IsTagExist(name)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return c.String(404, fmt.Sprintf("#%s does not exist", name))
+	}
 	groups, err := db.GetGroupsByTag(name)
 	if err != nil {
 		return err
@@ -316,4 +324,31 @@ func renameTag(c echo.Context) error {
 		return err
 	}
 	return db.RenameTag(oldName, newName)
+}
+
+func isTagExist(c echo.Context) error {
+	newName, err := getFormValue(c, "new-name")
+	if err != nil {
+		return err
+	}
+	ok, err := db.IsTagExist(newName)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, ok)
+}
+
+func deleteTag(c echo.Context) error {
+	tagName, err := getFormValue(c, "tag-name")
+	if err != nil {
+		return err
+	}
+	ok, err := db.IsTagExist(tagName)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("系统中不存在该标签 #%s", tagName)
+	}
+	return db.Exec(stmt.DeleteTag, tagName)
 }

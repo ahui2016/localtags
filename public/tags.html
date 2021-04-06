@@ -31,14 +31,12 @@ const Navbar = {
       m('span').addClass('navbar-brand').text('Tags'),
       m('div').addClass('btn-group').append([
         m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
-          m('i').addClass('bi bi-card-list')
-        ),
+          m('i').addClass('bi bi-card-list')),
         m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
-          m('i').addClass('bi bi-file-earmark-plus')
-        ),
-        m('a').attr({title:'Recycle Bin',href:'/light/files?filter=deleted',type:'button'}).addClass('btn btn-outline-dark').append(
-          m('i').addClass('bi bi-trash'),
-        ),
+          m('i').addClass('bi bi-file-earmark-plus')),
+        m('a').attr({title:'Tag Groups',href:'/light/tag-groups',type:'button'})
+          .addClass('btn btn-outline-dark').append(
+            m('i').addClass('bi bi-tags')),
       ]),
     ]),
   ]),
@@ -97,18 +95,25 @@ function init() {
   hide(SortByName.id);
 
   ajax({method:'GET',url:'/api/tags-by-date',alerts:Alerts},
-  (tags) => {
-    if (!tags || tags.length == 0) {
-      Alerts.insert('info', '空');
-      return;
-    }
-    tags.forEach(SortByDate.prepend);
-  });
+      (tags) => {
+        if (!tags || tags.length == 0) {
+          Alerts.insert('info', '空');
+          return;
+        }
+        tags.forEach(SortByDate.prepend);
+      });
 
   ajax({method:'GET',url:'/api/tags-by-name',alerts:Alerts},
-  (tags) => {
-    if (tags) tags.forEach(SortByName.append);
-  });
+      (tags) => {
+        if (tags) {
+          console.log('Tags: ');
+          tags.forEach(tag => {
+            console.log(tag.ID);
+            SortByName.append(tag);
+          });
+          console.log('使用函数 deletetag(tag) 删除标签，注意一旦删除无法恢复。')
+        }
+      });
 }
 
 function createTagItem(tag, i) {
@@ -133,6 +138,15 @@ function buttonColors(i) {
 function badgeColors(i) {
   const colors = ['secondary', 'success', 'danger', 'dark', 'primary'];
   return colors[i % colors.length];
+}
+
+function deletetag(name) {
+  const body = new FormData();
+  body.append('tag-name', name);
+  ajax({method:'POST',url:'/api/delete-tag',body:body},
+      () => {
+        console.log('已删除 #' + name);
+      });
 }
 
   </script>
