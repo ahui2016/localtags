@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
+  <link rel="stylesheet" href="/public/bootstrap-icons-141.css">
   <link rel="stylesheet" href="/public/style-light.css">
   
   <script src="/public/jquery.min.js"></script>
@@ -13,46 +14,75 @@
   <script src="/public/clipboard.min.js"></script>
   <script src="/public/util.js"></script>
   
-  <title>Hello, world!</title>
+  <title>Add Files - localtags</title>
 </head>
 <body>
-  <div id="root" class="container"></div>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
 <script>
-  const Alerts = CreateAlerts();
 
-  const WaitingFolder = cc('a');
+const Alerts = CreateAlerts();
 
-  const CopyBtn = cc('button', 'copy');
+const Navbar = {
+  view: () => m('nav').addClass('navbar navbar-light bg-light').append([
+    m('div').addClass('container-fluid').append([
+      m('a').attr({title:'back to home',type:'button',href:'/light/home'})
+        .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-arrow-left')),
+      m('span').addClass('PageTitle navbar-brand').append([
+        ' Add Files',        
+      ]),
+      m('a').attr({title:'next',type:'button',href:'/light/waiting'})
+        .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-arrow-right')),
+    ]),
+  ]),
+};
 
-  $('#root').append([
-    m(Alerts),
-    m(WaitingFolder),
-    m(CopyBtn).text('copy'),
-    m(Spacer),
-    m('a').text('Next').attr({href: '/light/waiting'}),
-  ]);
+const WaitingFolder = cc('span');
+const CopyBtn = cc('i', 'copy');
+const Main = cc('div', null, [
+  m(WaitingFolder),
+  ' ',
+  m(CopyBtn).attr({title:'copy'}).addClass('bi bi-stickies').css({cursor:'pointer'}),
+  m('div').addClass('alert alert-primary my-4').attr({role:'alert'}).text(
+    '请复制需要上传的文件，粘贴到如上所示的文件夹中，再点击下面的 Next 链接。'
+  ),
+  m('p').addClass('text-center').append(
+    m('a').text('Next').attr({href: '/light/waiting'}).addClass('fs-5'),
+  ),
+]);
 
-  init()
+$('#root').append([
+  m(Navbar).addClass('mt-2 mb-5'),
+  m(Loading),
+  m(Alerts).addClass('mb-3'),
+  m(Main).hide(),
+]);
 
-  function init() {
-    ajax({method:'GET',url:'/api/waitingFolder',alert:Alerts},
+init()
+
+function init() {
+  ajax({method:'GET',url:'/api/waitingFolder',alert:Alerts},
     (resp) => {
+      // onSuccess
+      $(Main.id).show();
       const folderPath = resp.message;
       $(WaitingFolder.id).text(folderPath).attr({href:folderPath});
+    }, null, () => {
+      // onAlways
+      Loading.hide();
     });
-  }
+}
 
-  const clipboard = new ClipboardJS('#copy', {
-    text: () => { return $(WaitingFolder.id).text(); }
-  });
-  clipboard.on('success', () => {
-    Alerts.insert('success', '复制成功');
-  });
-  clipboard.on('error', e => {
-    console.error('Action:', e.action);
-    console.error('Trigger:', e.trigger);
-    Alerts.insert('danger', '复制失败，详细信息见控制台');
-  });
+const clipboard = new ClipboardJS('#copy', {
+  text: () => { return $(WaitingFolder.id).text(); }
+});
+clipboard.on('success', () => {
+  Alerts.insert('success', '复制成功, 浏览器无法直接打开文件夹');
+});
+clipboard.on('error', e => {
+  console.error('Action:', e.action);
+  console.error('Trigger:', e.trigger);
+  Alerts.insert('danger', '复制失败，详细信息见控制台');
+});
 
 </script>
 </body>

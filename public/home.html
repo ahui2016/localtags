@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   
   <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/public/bootstrap-icons-141.css">
   <link rel="stylesheet" href="/public/style-light.css">
   
   <script src="/public/jquery.min.js"></script>
@@ -31,22 +31,24 @@ const Navbar = {
 $('#root').append([
   m(Navbar),
   m(Spacer),
-  create_item('Add Files', '/light/add', ' - 添加文件'),
-  create_item('Files', '/light/files', ' - 全部文件'),
-  create_item('Tag Groups', '/light/tag-groups', ' - 标签组'),
-  create_item('Tags', '/light/tags', ' - 全部标签'),
-  create_item('Search', '/light/search', ' - 搜索'),
-  create_item('Recycle Bin', '/light/files?filter=deleted', ' - 回收站'),
-  create_item('Information', '/light/info', ' - 数据库信息'),
-  create_item('Backup', '/light/backup', ' - 备份'),
-  m(Spacer),
-  m('p').addClass('small text-secondary').append([
-    'localtags version: 2021-05-05',
-    m('br'),
-    m('a').text('https://github.com/ahui2016/localtags').addClass('small text-secondary')
-      .attr({href:'https://github.com/ahui2016/localtags',target:'_blank'}),
-    ' ',
-    m('i').addClass('small bi bi-box-arrow-up-right'),
+  m('div').css('margin-left', '1rem').append([
+    create_item('Add Files', '/light/add', ' - 添加文件'),
+    create_item('Files', '/light/files', ' - 全部文件'),
+    create_item('Tag Groups', '/light/tag-groups', ' - 标签组'),
+    create_item('Tags', '/light/tags', ' - 全部标签'),
+    create_item('Search', '/light/search', ' - 搜索'),
+    create_item('Recycle Bin', '/light/files?filter=deleted', ' - 回收站'),
+    create_item('Information', '/light/info', ' - 数据库信息'),
+    create_item('Backup', '/light/backup', ' - 备份'),
+    m(Spacer),
+    m('p').addClass('small text-secondary').append([
+      'localtags version: 2021-04-05',
+      m('br'),
+      m('a').text('https://github.com/ahui2016/localtags').addClass('small text-secondary')
+        .attr({href:'https://github.com/ahui2016/localtags',target:'_blank'}),
+      ' ',
+      m('i').addClass('small bi bi-box-arrow-up-right'),
+    ]),
   ]),
   m(BottomLine),
 ]);
