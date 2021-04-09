@@ -22,6 +22,18 @@
 
 const Alerts = CreateAlerts();
 
+const Navbar = {
+  view: () => m('nav').addClass('navbar navbar-light bg-light').append([
+    m('div').addClass('container-fluid').append([
+      m('a').attr({title:'main menu',href:'/light/home',type:'button'})
+        .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-house-door')),
+      m('span').addClass('navbar-brand').text('Backup'),
+      m('a').attr({title:'refresh',href:'#',type:'button'}).addClass('btn btn-outline-dark')
+        .append(m('i').addClass('bi bi-arrow-clockwise')).click(() => {window.location.reload()}),
+    ]),
+  ]),
+};
+
 const BucketList = cc('div');
 const BucketsInfo = cc('div');
 const SubmitBtnAera = cc('p');
@@ -168,8 +180,8 @@ SubmitBtnAera.init = (damaged_count) => {
 }
 
 $('#root').append([
-  m(Spacer),
-  m(AddBucketArea).hide(),
+  m(Navbar).addClass('mt-2 mb-5'),
+  m(AddBucketArea),
   m(Loading),
   m(Alerts),
   m(BucketList).addClass('my-5'),
@@ -210,12 +222,15 @@ function init() {
 
   ajax({method:'GET',url:'/api/get-bk-buckets',alerts:Alerts},
       (buckets) => {
-        if (!buckets) return;
+        if (!buckets || buckets.length == 0) {
+          Alerts.insert('primary', '请添加备份仓库，任何一个空文件夹都可以作为备份仓库，例如 D:\\localtags\\backup (注意，要先手动创建文件夹)');
+          window.setTimeout(() => {$(BucketInput.id).focus()}, 100);
+          return;
+        }
         buckets.forEach(BucketList.prepend);
       }, null,
       () => {
         Loading.hide();
-        $(AddBucketArea.id).show();
       });
 }
 

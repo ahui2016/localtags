@@ -26,7 +26,7 @@ const Alerts = CreateAlerts();
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
-      m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
+      m('a').attr({title:'main menu',href:'/light/home',type:'button'}).addClass('btn btn-outline-dark').append(
         m('i').addClass('bi bi-house-door'),
       ),
       m('span').addClass('navbar-brand').text('Tag Groups'),
@@ -34,7 +34,7 @@ const Navbar = {
         m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
           m('i').addClass('bi bi-card-list')
         ),
-        m('a').attr({type:'button'}).addClass('btn btn-outline-dark').append(
+        m('a').attr({title:'Add Files',href:'/light/add',type:'button'}).addClass('btn btn-outline-dark').append(
           m('i').addClass('bi bi-file-earmark-plus')
         ),
         m('a').attr({title:'Recycle Bin',href:'/light/files?filter=deleted',type:'button'}).addClass('btn btn-outline-dark').append(

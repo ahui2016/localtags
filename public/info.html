@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   
   <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
+  <link rel="stylesheet" href="/public/bootstrap-icons-141.css">
   <link rel="stylesheet" href="/public/style-light.css">
   
   <script src="/public/jquery.min.js"></script>
@@ -21,6 +22,20 @@
 
 const Alerts = CreateAlerts();
 
+const Navbar = {
+  view: () => m('nav').addClass('navbar navbar-light bg-light').append([
+    m('div').addClass('container-fluid').append([
+      m('a').attr({title:'back to home',href:'/light/home',type:'button'})
+        .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-arrow-left')),
+      m('span').addClass('PageTitle navbar-brand').append([
+        'Infomation',        
+      ]),
+      m('a').attr({title:'backup',type:'button',href:'/light/backup'})
+        .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-arrow-right')),
+    ]),
+  ]),
+};
+
 const BucketLocation = cc('span');
 const LastChecked = cc('span');
 const LastBackup = cc('span');
@@ -28,26 +43,27 @@ const AllFilesCount = cc('span');
 const DamagedFilesCount = cc('span');
 const ForceCheckBtn = cc('button');
 
-const InfoArea = {
-  view: () => m('div').append([
-    m('p').append(['仓库地址: ', m(BucketLocation)]),
-    m('p').append([
-      m('span').append(['上次校验时间: ', m(LastChecked)]),
-      ' ',
-      m(ForceCheckBtn).text('force check').attr({type:'button'})
-          .addClass('btn btn-sm btn-outline-secondary'),
-    ]),
-    m('p').append(['上次备份时间: ', m(LastBackup)]),
-    m('p').append(['全部文件（个）: ', m(AllFilesCount)]),
-    m('p').append(['其中损坏文件（个）: ', m(DamagedFilesCount)]),
-  ])
-}
+const InfoArea = cc('div', null, [
+  m('p').append(['仓库地址: ', m(BucketLocation)]),
+  m('p').append([
+    m('span').append(['上次校验时间: ', m(LastChecked), ' ']),
+    m(ForceCheckBtn).text('force check').attr({type:'button'})
+        .addClass('btn btn-sm btn-outline-secondary'),
+  ]),
+  m('p').append([
+    m('span').append(['上次备份时间: ', m(LastBackup), ' ']),
+    m('a').text('backup now').attr({type:'button',href:'/light/backup'})
+        .addClass('btn btn-sm btn-outline-secondary'),
+  ]),
+  m('p').append(['全部文件（个）: ', m(AllFilesCount)]),
+  m('p').append(['其中损坏文件（个）: ', m(DamagedFilesCount)]),
+]);
 
 $('#root').append([
-  m(Spacer),
+  m(Navbar).addClass('mt-2 mb-5'),
+  m(Loading),
   m(Alerts),
-  m(Spacer),
-  m(InfoArea),
+  m(InfoArea).hide(),
   m(BottomLine),
 ]);
 
@@ -65,6 +81,7 @@ function init() {
 
   ajax({method:'GET',url:'/api/get-db-info',alerts:Alerts},
       (info) => {
+        $(InfoArea.id).show();
         $(BucketLocation.id).text(info.BucketLocation);
         const lastChecked = info.LastChecked ? 
             dayjs.unix(info.LastChecked).format('MMMM D, YYYY') : 'not yet';
@@ -77,7 +94,7 @@ function init() {
         if (info.DamagedFilesCount > 0) {
           $(DamagedFilesCount.id).addClass('text-danger fw-bold');
         }
-      });
+      }, null, () => { Loading.hide() });
 }
 
 </script>

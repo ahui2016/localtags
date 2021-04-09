@@ -54,8 +54,8 @@ $('#root').append([
 ]);
 
 function create_item(text, link, description) {
-  return m('div').addClass('position-relative mb-2').append([
-    m('a').text(text).attr({href:link}).addClass('stretched-link text-decoration-none'),
+  return m('div').addClass('mb-2').append([
+    m('a').text(text).attr({href:link}).addClass('text-decoration-none'),
     description,
   ]);
 }
