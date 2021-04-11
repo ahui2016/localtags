@@ -100,7 +100,7 @@ func infoToFile(name string, meta map[string]*File) (
 	if err != nil {
 		return nil, err
 	}
-	file.Count = int64(len(ids))
+	file.Count = len(ids)
 
 	// 填充文件标签
 	if file.Count > 0 {

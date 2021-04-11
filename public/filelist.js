@@ -27,7 +27,11 @@ function FileItem(file) {
         m('div').addClass('col').append([
           m('div').addClass('card-body d-flex flex-column h-100').append([
             m('p').addClass('small card-subtitle text-muted').text(cardSubtitle),
-            m('p').addClass('Filename card-text text-break').text(file.Name),
+            m('p').addClass('Filename card-text text-break').append([
+              m('a').text(`[${file.Count}]`).addClass('FileCount link-secondary text-decoration-none')
+                .attr({title:'same name files',href:'/light/search?fileid=' + file.ID}),
+              file.Name,
+            ]),
             m('div').addClass('NameInputGroup input-group').hide().append([
               m('input').addClass('NameInput form-control'),
               m('button').text('ok').addClass('NameOK btn btn-outline-secondary').attr({type:'button'}),
@@ -125,6 +129,8 @@ function FileItem(file) {
       $(restore_btn_id).show();
       $(really_del_btn_id).show();
     }
+
+    if (file.Count < 2) $(self.id + ' .FileCount').hide();
     
     self.resetTags(file.Tags);
     

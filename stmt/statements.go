@@ -112,6 +112,8 @@ const SetTagGroupProtected = `UPDATE taggroup SET protected=? WHERE id=?;`
 
 const GetTagsByFile = `SELECT tag_id FROM file_tag WHERE file_id=?;`
 
+const SearchFileName = `SELECT * FROM file WHERE deleted=0 and name LIKE ?`
+
 const GetFilesByTag = `SELECT file.id FROM tag
     INNER JOIN file_tag ON tag.id = file_tag.tag_id
     INNER JOIN file ON file_tag.file_id = file.id

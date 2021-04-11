@@ -66,7 +66,8 @@ func main() {
 	api.GET("/delete-taggroup/:id", deleteTagGroup)
 
 	api.POST("/search-tags", searchTags)
-	// api.POST("/search-title", searchTitle)
+	api.POST("/search-title", searchTitle)
+	api.POST("/search-by-id", searchByID)
 
 	log.Print("localtags database path: ", dbPath)
 	e.Logger.Fatal(e.Start(":80"))

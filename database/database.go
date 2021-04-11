@@ -107,12 +107,11 @@ func (db *DB) InsertFiles(files []*File) error {
 		if err != nil {
 			return err
 		}
-		count := int64(len(ids))
-		file.Count = count + 1
+		file.Count = len(ids) + 1
 
 		// 如果系统中有同名文件，要先统一全部同名文件的标签。
 		// 必须在插入新文件之前更新同名文件的标签。
-		if count > 0 {
+		if file.Count > 0 {
 			if err := exec(tx, stmt.SetFilesCount, file.Count, file.Name); err != nil {
 				return err
 			}
@@ -200,6 +199,33 @@ func (db *DB) GetFileByID(id string) (file File, err error) {
 
 func (db *DB) SearchTags(tags []string) ([]*File, error) {
 	fileIDs, err := db.getFileIDsByTags(tags)
+	if err != nil {
+		return nil, err
+	}
+	return db.getFilesByIDs(fileIDs)
+}
+
+func (db *DB) SearchFileName(pattern string) (files []*File, err error) {
+	rows, err := db.DB.Query(stmt.SearchFileName, "%"+pattern+"%")
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		file, err := scanFile(rows)
+		if err != nil {
+			return nil, err
+		}
+		if err := fillTag(db.DB, &file); err != nil {
+			return nil, err
+		}
+		files = append(files, &file)
+	}
+	return files, rows.Err()
+}
+
+func (db *DB) SearchSameNameFiles(id string) ([]*File, error) {
+	fileIDs, err := getSameNameFiles(db.DB, id)
 	if err != nil {
 		return nil, err
 	}

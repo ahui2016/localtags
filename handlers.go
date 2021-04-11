@@ -134,6 +134,30 @@ func searchTags(c echo.Context) error {
 	return c.JSON(OK, files)
 }
 
+func searchTitle(c echo.Context) error {
+	pattern, err := getFormValue(c, "pattern")
+	if err != nil {
+		return err
+	}
+	files, err := db.SearchFileName(pattern)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, files)
+}
+
+func searchByID(c echo.Context) error {
+	id, err := getFormValue(c, "id")
+	if err != nil {
+		return err
+	}
+	files, err := db.SearchSameNameFiles(id)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, files)
+}
+
 func deleteFile(c echo.Context) error {
 	id, err := getFormValue(c, "id")
 	if err != nil {

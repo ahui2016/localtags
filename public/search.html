@@ -57,7 +57,7 @@ const SearchForm = {
     ]),
     m('div').addClass('form-check form-check-inline').append([
       m(ByTitle).addClass('form-check-input').attr({type:'radio',name:'search-by',value:'title'}),
-      m('label').addClass('form-check-label').text('Title').attr({for:ByTitle.raw_id}),
+      m('label').addClass('form-check-label').text('File Name').attr({for:ByTitle.raw_id}),
     ]),
     m(SearchInput).addClass('form-control').attr({rows:2}).prop({autofocus:true,required:true}),
     m('p').addClass('text-end mt-2').append([
@@ -78,6 +78,7 @@ const SearchForm = {
   },
   searchTags: () => {
     const tagSet = tagsStringToSet($(SearchInput.id).val());
+    Alerts.clear();
     Alerts.insert('info', 'searching tags: ' + addPrefix(tagSet, '#'));
     const tags = Array.from(tagSet);
     const body = new FormData()
@@ -86,11 +87,20 @@ const SearchForm = {
     SearchForm.search(options);
   },
   searchTitle: () => {
-    const title = $(SearchInput.id).val().trim();
-    Alerts.insert('info', 'searching title: ' + title);
+    const pattern = $(SearchInput.id).val().trim();
+    Alerts.clear();
+    Alerts.insert('info', 'searching title: ' + pattern);
     const body = new FormData();
-    body.append('title', title);
+    body.append('pattern', pattern);
     const options = {method:'POST',url:'/api/search-title',alerts:Alerts,buttonID:SubmitBtn.id,body:body};
+    SearchForm.search(options);
+  },
+  searchByID: (fileid) => {
+    Alerts.clear();
+    Alerts.insert('info', `查找与文件 [id:${fileid}] 重名的文件...`);
+    const body = new FormData();
+    body.append('id', fileid);
+    const options = {method:'POST',url:'/api/search-by-id',alerts:Alerts,buttonID:SubmitBtn.id,body:body};
     SearchForm.search(options);
   },
   search: (options) => {
@@ -124,10 +134,16 @@ init()
 
 function init() {
   const tags = getUrlParam('tags');
-    if (tags) {
-      $(SearchInput.id).val(tags);
-      $(SubmitBtn.id).click();
-    }
+  if (tags) {
+    $(SearchInput.id).val(tags);
+    $(SubmitBtn.id).click();
+    return;
+  }
+  const fileid = getUrlParam('fileid');
+  if (fileid) {
+    $(ByTitle.id).click();
+    SearchForm.searchByID(fileid);
+  }
 }
 
   </script>
