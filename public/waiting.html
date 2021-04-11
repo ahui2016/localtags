@@ -122,12 +122,17 @@ function init() {
       }
       $(TagsArea.id).show();
       $(SubmitBtnAera.id).show();
+      let hasSameName = false;
       files.forEach(file => {
         idHash[file.ID] = file.Hash;
         const item = FileItem(file);
         $(FileList.id).prepend(m(item));
         item.init();
+        if (file.Tags.length > 0) hasSameName = true;
       });
+      if (hasSameName) {
+        Alerts.insert('primary', '发现重名文件，已为重名文件自动设置标签，如果更改标签，数据库中的同名文件也会随之同时更改标签。');
+      }
       window.setTimeout(() => { $(Tags.id).focus(); }, 200);
     }, null, () => {
       // onAlways
@@ -150,10 +155,10 @@ function checkTags() {
 function FileItem(file) {
   let thumbClass;
   if (file.Thumb) {
-    thumbClass = 'col-md-2 col-3';
+    thumbClass = 'col-md-2 col-2';
     file.Thumb = getTempThumb(file.ID);
   } else {
-    thumbClass = 'col-md-2 col-2';
+    thumbClass = 'col-md-2 col-1';
     file.Thumb = getThumbByFiletype(file.Type);
   }
 
