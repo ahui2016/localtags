@@ -72,10 +72,10 @@ init()
 function init() {
   $(ForceCheckBtn.id).click(() => {
     Alerts.insert('info', '强制校验文件完整性......');
-    Alerts.insert('info', '校验完成时会自动刷新页面，请耐心等待。');
     ajax({method:'GET',url:'/api/force-check-files',alerts:Alerts,buttonID:ForceCheckBtn.id},
         () => {
-          window.location.reload();
+          Alerts.insert('info', '校验完成时会自动刷新页面，请耐心等待。');
+          window.setTimeout(() => {window.location.reload()}, 5000);
         });
   });
 

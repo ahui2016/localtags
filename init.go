@@ -21,8 +21,8 @@ const (
 	backupDBFileName = "localtags.bak.db"
 	mainBucketName   = "mainbucket"    // 主仓库文件夹名
 	bakBucketName    = "backup_bucket" // 备份仓库文件夹名
+	tempFolderName   = "temp"          // 临时文件夹
 	thumbsFolderName = "thumbs"        // 仓库里的缩略图的文件夹名
-	tempFolderName   = "temp"          // 临时文件夹名称
 	thumbSuffix      = ".small.jpg"    // 缩略图的后缀名
 	tempMetadataName = "metadata.json" // 临时文件数据
 )
@@ -34,7 +34,7 @@ var (
 var (
 	cfg          config.Config
 	dbPath       string // 数据库文件完整路径
-	mainBucket   string // 主仓库文件夹完整路径
+	mainBucket   string // 主仓库
 	thumbsFolder string // 主仓库缩略图文件夹的完整路径
 	tempFolder   string // 临时文件夹的完整路径
 	tempMetadata string // 临时文件数据完整路径
@@ -75,11 +75,12 @@ func setConfig() {
 func setPaths() {
 	dbPath = filepath.Join(cfg.DataFolder, dbFileName)
 	mainBucket = filepath.Join(cfg.DataFolder, mainBucketName)
-	thumbsFolder = filepath.Join(mainBucket, thumbsFolderName)
 	tempFolder = filepath.Join(cfg.DataFolder, tempFolderName)
+	thumbsFolder = filepath.Join(mainBucket, thumbsFolderName)
 	tempMetadata = filepath.Join(tempFolder, tempMetadataName)
 	util.MustMkdir(cfg.DataFolder)
 	util.MustMkdir(cfg.WaitingFolder)
+	util.MustMkdir(cfg.DownloadFolder)
 	util.MustMkdir(tempFolder)
 	util.MustMkdir(mainBucket)
 	util.MustMkdir(thumbsFolder)

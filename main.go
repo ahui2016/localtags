@@ -16,6 +16,7 @@ func main() {
 	e.Static("/temp", tempFolder)
 	e.Static("/thumbs", thumbsFolder)
 	e.Static("/mainbucket", mainBucket)
+	e.Static("/download", cfg.DownloadFolder)
 	e.File("/", "public/home.html")
 
 	light := e.Group("/light")
@@ -46,6 +47,7 @@ func main() {
 	api.GET("/waiting-files", waitingFiles)
 	api.GET("/all-files", allFiles) // file.Deleted == false
 	api.GET("/deleted-files", deletedFiles)
+	api.GET("/download/:id", downloadFile)
 	api.POST("/add-files", addFiles, autoCheck)
 	api.POST("/delete-file", deleteFile)
 	api.POST("/undelete-file", undeleteFile)

@@ -181,7 +181,7 @@ func (db *DB) DeletedFiles() (files []*File, err error) {
 }
 
 func (db *DB) IsFileExist(id string) bool {
-	_, err := getText1(db.DB, stmt.GetFileName, id)
+	_, err := db.GetFileName(id)
 	return err == nil
 }
 
@@ -249,10 +249,14 @@ func (db *DB) UpdateTags(fileID string, tags []string) error {
 	return tx.Commit()
 }
 
+func (db *DB) GetFileName(id string) (string, error) {
+	return getText1(db.DB, stmt.GetFileName, id)
+}
+
 // RenameFiles 统一修改全部同名文件的文件名。
 func (db *DB) RenameFiles(id, name string) error {
 	// 1.如果新文件等于旧文件名，不需要改名，直接返回。
-	oldName, err := getText1(db.DB, stmt.GetFileName, id)
+	oldName, err := db.GetFileName(id)
 	if err != nil {
 		return err
 	}

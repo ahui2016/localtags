@@ -158,6 +158,22 @@ func searchByID(c echo.Context) error {
 	return c.JSON(OK, files)
 }
 
+func downloadFile(c echo.Context) error {
+	id := c.Param("id")
+	name, err := db.GetFileName(id)
+	if err != nil {
+		return err
+	}
+	filename := downloadFilePath(name)
+	if util.PathIsExist(filename) {
+		return fmt.Errorf("文件已存在: %s", filename)
+	}
+	if err := util.CopyFile(filename, mainBucketFile(id)); err != nil {
+		return err
+	}
+	return c.JSON(OK, Text{fmt.Sprintf("下载成功: %s", filename)})
+}
+
 func deleteFile(c echo.Context) error {
 	id, err := getFormValue(c, "id")
 	if err != nil {

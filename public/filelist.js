@@ -33,10 +33,10 @@ function FileItem(file) {
               cardSubtitle, ' ',
               m('span').text('DAMAGED').addClass('Damaged text-light bg-danger px-1').hide(),
             ]),
-            m('p').addClass('Filename card-text text-break').append([
+            m('p').addClass('FilenameArea card-text text-break').append([
               m('a').text(`[${file.Count}]`).addClass('FileCount link-secondary text-decoration-none')
                 .attr({title:'same name files',href:'/light/search?fileid=' + file.ID}).hide(),
-              file.Name,
+              m('span').addClass('Filename').text(file.Name),
             ]),
             m('div').addClass('NameInputGroup input-group').hide().append([
               m('input').addClass('NameInput form-control'),
@@ -52,7 +52,7 @@ function FileItem(file) {
               m('i').addClass('bi bi-trash').attr({title:'delete'}),
               m('i').addClass('bi bi-bootstrap-reboot').attr({title:'restore'}).hide(),
               m('i').addClass('bi bi-trash-fill').attr({title:'permanently delete'}).hide(),
-              m('i').addClass('bi bi-download').attr({title:'download'}),
+              m('i').addClass('bi bi-download').attr({title:'download'}).click(self.download),
             ]),
             m('div').text('RESTORED').addClass('Restored mt-auto ms-auto').hide(),
             m('div').text('DELETED').addClass('Deleted mt-auto ms-auto').hide(),
@@ -66,7 +66,7 @@ function FileItem(file) {
   const no_link_img_id = self.id + ' .NoLinkImg';
   const link_img_id = self.id + ' .LinkImg';
   const filename_id = self.id + ' .Filename';
-  const filename = $(filename_id);
+  const filename_area_id = self.id + ' .FilenameArea';
   const name_input_id = self.id + ' .NameInputGroup';
   const tags_id = self.id + ' .Tag';
   const buttons_id = self.id + ' .IconButtons';
@@ -76,6 +76,13 @@ function FileItem(file) {
   const restore_btn_id = self.id + ' .bi-bootstrap-reboot';
   const really_del_btn_id = self.id + ' .bi-trash-fill';
   const dl_btn_id = self.id + ' .bi-download';
+
+  self.download = () => {
+    ajax({method:'GET',url:'/api/download/'+file.ID,alerts:ItemAlerts,buttonID:dl_btn_id},
+        (resp) => {
+          ItemAlerts.insert('success', resp.message);
+        });
+  };
 
   self.tags = new Set();
 
@@ -109,14 +116,15 @@ function FileItem(file) {
   }
 
   self.toggleFilename = () => {
-    $(filename_id).toggle();
+    $(filename_area_id).toggle();
     $(name_input_id).toggle();
   }
 
   self.afterDeleted = () => {
     $(self.id + ' .card-img').css('filter', 'opacity(0.5) grayscale(1)');
     $(name_input_id).hide();
-    $(filename_id).show().addClass('text-secondary')
+    $(filename_area_id).show();
+    $(filename_id).addClass('text-secondary');
     disable(link_img_id);
     disable(filename_id);
     disable(tags_id);
@@ -128,6 +136,7 @@ function FileItem(file) {
   self.init = () => {
     const tagsInput = $(self.id + ' .TagsInput');
     const nameInput = $(self.id + ' .NameInput');
+    const filename = $(filename_id);
 
     if (isImage(file.Type)) {
       $(no_link_img_id).hide();
