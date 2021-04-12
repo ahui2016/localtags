@@ -1,13 +1,14 @@
 package util
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"strings"
+
+	"golang.org/x/crypto/blake2b"
 )
 
 // WrapErrors 把多个错误合并为一个错误.
@@ -78,12 +79,14 @@ func MustMkdir(dirName string) {
 }
 
 // Sha256Hex 返回 sha256 的 hex 字符串。
+// 虽然函数名是 Sha256, 但实际上采用 BLAKE2b 算法。
 func Sha256Hex(data []byte) string {
-	sum := sha256.Sum256(data)
+	sum := blake2b.Sum256(data)
 	return hex.EncodeToString(sum[:])
 }
 
 // FileSha256Hex 返回文件 name 的 hex 字符串。
+// 虽然函数名是 Sha256, 但实际上采用 BLAKE2b 算法。
 func FileSha256Hex(name string) (string, error) {
 	fileBytes, err := os.ReadFile(name)
 	if err != nil {

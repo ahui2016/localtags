@@ -70,5 +70,5 @@ func main() {
 	api.POST("/search-by-id", searchByID)
 
 	log.Print("localtags database path: ", dbPath)
-	e.Logger.Fatal(e.Start(":80"))
+	e.Logger.Fatal(e.Start(cfg.Address))
 }

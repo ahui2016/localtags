@@ -17,6 +17,9 @@ var Public = Default()
 // Config 用来设置一些全局变量
 type Config struct {
 
+	// 本地 IP 和端口
+	Address string
+
 	// 数据文件夹的完整路径
 	DataFolder string
 
@@ -35,6 +38,7 @@ type Config struct {
 func Default() Config {
 	dataDir := filepath.Join(util.UserHomeDir(), dataFolderName)
 	return Config{
+		Address:       "127.0.0.1:80",
 		DataFolder:    dataDir,
 		WaitingFolder: filepath.Join(dataDir, waitingDirName),
 		TagGroupLimit: 100,

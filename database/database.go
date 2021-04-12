@@ -107,11 +107,12 @@ func (db *DB) InsertFiles(files []*File) error {
 		if err != nil {
 			return err
 		}
-		file.Count = len(ids) + 1
+		count := len(ids)
+		file.Count = count + 1
 
 		// 如果系统中有同名文件，要先统一全部同名文件的标签。
 		// 必须在插入新文件之前更新同名文件的标签。
-		if file.Count > 0 {
+		if count > 0 {
 			if err := exec(tx, stmt.SetFilesCount, file.Count, file.Name); err != nil {
 				return err
 			}
