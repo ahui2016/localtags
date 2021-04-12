@@ -15,6 +15,7 @@ func main() {
 	e.Static("/public", "public")
 	e.Static("/temp", tempFolder)
 	e.Static("/thumbs", thumbsFolder)
+	e.Static("/mainbucket", mainBucket)
 	e.File("/", "public/home.html")
 
 	light := e.Group("/light")

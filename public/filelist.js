@@ -22,14 +22,20 @@ function FileItem(file) {
     m('div').addClass('card').append([
       m('div').addClass('row g-0').append([
         m('div').addClass(thumbClass).append([
-          m('img').addClass('card-img').attr({src: file.Thumb}),
+          m('img').addClass('NoLinkImg card-img').attr({src: file.Thumb}),
+          m('a').attr({href:getPhotoURL(file.ID),target:'_blank'}).hide().addClass('LinkImg').append(
+            m('img').addClass('card-img').attr({src: file.Thumb}),
+          ),
         ]),
         m('div').addClass('col').append([
           m('div').addClass('card-body d-flex flex-column h-100').append([
-            m('p').addClass('small card-subtitle text-muted').text(cardSubtitle),
+            m('p').addClass('small text-muted mb-0').append([
+              cardSubtitle, ' ',
+              m('span').text('DAMAGED').addClass('Damaged text-light bg-danger px-1').hide(),
+            ]),
             m('p').addClass('Filename card-text text-break').append([
               m('a').text(`[${file.Count}]`).addClass('FileCount link-secondary text-decoration-none')
-                .attr({title:'same name files',href:'/light/search?fileid=' + file.ID}),
+                .attr({title:'same name files',href:'/light/search?fileid=' + file.ID}).hide(),
               file.Name,
             ]),
             m('div').addClass('NameInputGroup input-group').hide().append([
@@ -57,8 +63,8 @@ function FileItem(file) {
     m(ItemAlerts),
   ]);
 
-
-  const thumb_id = self.id + ' .card-img';
+  const no_link_img_id = self.id + ' .NoLinkImg';
+  const link_img_id = self.id + ' .LinkImg';
   const filename_id = self.id + ' .Filename';
   const filename = $(filename_id);
   const name_input_id = self.id + ' .NameInputGroup';
@@ -108,9 +114,10 @@ function FileItem(file) {
   }
 
   self.afterDeleted = () => {
-    $(thumb_id).css('filter', 'opacity(0.5) grayscale(1)');
+    $(self.id + ' .card-img').css('filter', 'opacity(0.5) grayscale(1)');
     $(name_input_id).hide();
     $(filename_id).show().addClass('text-secondary')
+    disable(link_img_id);
     disable(filename_id);
     disable(tags_id);
     $(buttons_id).hide();
@@ -122,6 +129,11 @@ function FileItem(file) {
     const tagsInput = $(self.id + ' .TagsInput');
     const nameInput = $(self.id + ' .NameInput');
 
+    if (isImage(file.Type)) {
+      $(no_link_img_id).hide();
+      $(link_img_id).show();
+    }
+
     if (file.Deleted) {
       disable(filename_id);
       $(tags_btn_id).hide();
@@ -130,8 +142,9 @@ function FileItem(file) {
       $(really_del_btn_id).show();
     }
 
-    if (file.Count < 2) $(self.id + ' .FileCount').hide();
-    
+    if (file.Damaged)   $(self.id + ' .Damaged').show();
+    if (file.Count > 1) $(self.id + ' .FileCount').show();
+
     self.resetTags(file.Tags);
     
     $(tags_btn_id).click(() => {

@@ -3,6 +3,7 @@
 const tempFolder = "/temp/"
 const thumbSuffix  = ".small.jpg"
 const thumbsFolder = "/thumbs/"
+const mainBucket = "/mainbucket/"
 
 function getTempThumb(id) {
   return tempFolder + id + thumbSuffix;
@@ -10,6 +11,10 @@ function getTempThumb(id) {
 
 function getThumbURL(id) {
   return thumbsFolder + id;
+}
+
+function getPhotoURL(id) {
+  return mainBucket + id;
 }
 
 // make a new vnode by name, or return its view.
@@ -146,6 +151,11 @@ function eqSets(a, b) {
     if (!b.has(item)) return false;
   }
   return true;
+}
+
+function isImage(filetype) {
+  const prefix = filetype.split('/').shift();
+  return prefix == 'image';
 }
 
 function getThumbByFiletype(filetype) {
