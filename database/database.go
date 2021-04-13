@@ -185,8 +185,8 @@ func (db *DB) IsFileExist(id string) bool {
 	return err == nil
 }
 
-func (db *DB) FileUTime(id string) (int64, error) {
-	return getInt1(db.DB, stmt.GetFileUTime, id)
+func (db *DB) FileCTime(id string) (int64, error) {
+	return getInt1(db.DB, stmt.GetFileCTime, id)
 }
 
 func (db *DB) GetFileByID(id string) (file File, err error) {

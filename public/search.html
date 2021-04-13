@@ -46,6 +46,7 @@ const Navbar = {
 
 const ByTags = cc('input');
 const ByTitle = cc('input');
+const ByID = cc('input');
 const SearchInput = cc('textarea');
 const SubmitBtn = cc('button');
 const SearchForm = {
@@ -58,6 +59,10 @@ const SearchForm = {
     m('div').addClass('form-check form-check-inline').append([
       m(ByTitle).addClass('form-check-input').attr({type:'radio',name:'search-by',value:'title'}),
       m('label').addClass('form-check-label').text('File Name').attr({for:ByTitle.raw_id}),
+    ]),
+    m('div').addClass('form-check form-check-inline').append([
+      m(ByID).addClass('form-check-input').attr({type:'radio',name:'search-by',value:'id'}),
+      m('label').addClass('form-check-label').text('ID').attr({for:ByID.raw_id}),
     ]),
     m(SearchInput).addClass('form-control').attr({rows:2}).prop({autofocus:true,required:true}),
     m('p').addClass('text-end mt-2').append([
@@ -75,6 +80,7 @@ const SearchForm = {
     const searchBy = $('input[name="search-by"]:checked').val();
     if (searchBy == 'tags') SearchForm.searchTags();
     if (searchBy == 'title') SearchForm.searchTitle();
+    if (searchBy == 'id') SearchForm.searchByID();
   },
   searchTags: () => {
     const tagSet = tagsStringToSet($(SearchInput.id).val());
@@ -95,9 +101,10 @@ const SearchForm = {
     const options = {method:'POST',url:'/api/search-title',alerts:Alerts,buttonID:SubmitBtn.id,body:body};
     SearchForm.search(options);
   },
-  searchByID: (fileid) => {
+  searchByID: () => {
+    const fileid = $(SearchInput.id).val().trim();
     Alerts.clear();
-    Alerts.insert('info', `查找与文件 [id:${fileid}] 重名的文件...`);
+    Alerts.insert('info', `查找文件 [id:${fileid}] 及与其重名的文件...`);
     const body = new FormData();
     body.append('id', fileid);
     const options = {method:'POST',url:'/api/search-by-id',alerts:Alerts,buttonID:SubmitBtn.id,body:body};
@@ -141,8 +148,9 @@ function init() {
   }
   const fileid = getUrlParam('fileid');
   if (fileid) {
-    $(ByTitle.id).click();
-    SearchForm.searchByID(fileid);
+    $(SearchInput.id).val(fileid);
+    $(ByID.id).click();
+    SearchForm.searchByID();
   }
 }
 

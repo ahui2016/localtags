@@ -367,10 +367,10 @@ func syncMainToBackup(bkFolder string) error {
 	}
 
 	// 如果一个文件存在于主仓库中，但不存在于备份仓库中，则直接拷贝。
-	// 如果一个文件存在于两个仓库中，则进一步对比其更新日期，按需拷贝覆盖。
+	// 如果一个文件存在于两个仓库中，则进一步对比其日期，按需拷贝覆盖。
 	for _, file := range dbFiles {
-		bkUTime, err := bk.FileUTime(file.ID)
-		if err != nil || file.UTime > bkUTime {
+		bkCTime, err := bk.FileCTime(file.ID)
+		if err != nil || file.CTime > bkCTime {
 			bkFile := filepath.Join(bakBucket, file.ID)
 			if err := util.CopyFile(bkFile, mainBucketFile(file.ID)); err != nil {
 				return err

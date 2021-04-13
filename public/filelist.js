@@ -14,6 +14,8 @@ function FileItem(file) {
   } else {
     cardSubtitle = `id:${file.ID} (size: ${fileSizeToString(file.Size)})`;
   }
+
+  const ctime = dayjs.unix(file.CTime).format('MMMM D, YYYY HH:mm:ss');
   
   const ItemAlerts = CreateAlerts();
   const self = cc('div', 'f'+file.ID);
@@ -30,7 +32,7 @@ function FileItem(file) {
         m('div').addClass('col').append([
           m('div').addClass('card-body d-flex flex-column h-100').append([
             m('p').addClass('small text-muted mb-0').append([
-              cardSubtitle, ' ',
+              m('span').text(cardSubtitle).attr({title:ctime}).css('cursor','crosshair'), ' ',
               m('span').text('DAMAGED').addClass('Damaged text-light bg-danger px-1').hide(),
             ]),
             m('p').addClass('FilenameArea card-text text-break').append([
@@ -68,6 +70,7 @@ function FileItem(file) {
   const filename_id = self.id + ' .Filename';
   const filename_area_id = self.id + ' .FilenameArea';
   const name_input_id = self.id + ' .NameInputGroup';
+  const file_count_id = self.id + ' .FileCount';
   const tags_id = self.id + ' .Tag';
   const buttons_id = self.id + ' .IconButtons';
 
@@ -126,6 +129,7 @@ function FileItem(file) {
     $(filename_area_id).show();
     $(filename_id).addClass('text-secondary');
     disable(link_img_id);
+    disable(file_count_id);
     disable(filename_id);
     disable(tags_id);
     $(buttons_id).hide();
@@ -143,16 +147,8 @@ function FileItem(file) {
       $(link_img_id).show();
     }
 
-    if (file.Deleted) {
-      disable(filename_id);
-      $(tags_btn_id).hide();
-      $(del_btn_id).hide();
-      $(restore_btn_id).show();
-      $(really_del_btn_id).show();
-    }
-
     if (file.Damaged)   $(self.id + ' .Damaged').show();
-    if (file.Count > 1) $(self.id + ' .FileCount').show();
+    if (file.Count > 1) $(file_count_id).show();
 
     self.resetTags(file.Tags);
     
@@ -214,10 +210,18 @@ function FileItem(file) {
       }, 1000);
     });
 
-    filename.dblclick(() => {
-      self.toggleFilename();
-      nameInput.val(filename.text()).focus();
-    });
+    if (file.Deleted) {
+      $(tags_btn_id).hide();
+      $(del_btn_id).hide();
+      $(restore_btn_id).show();
+      $(really_del_btn_id).show();
+    } else {
+      filename.css('cursor','crosshair').attr({title:'double click to edit'}).dblclick(() => {
+        self.toggleFilename();
+        nameInput.val(filename.text()).focus();
+      });  
+    }
+
     const name_ok_id = self.id+' .NameOK';
     $(name_ok_id).click(() => {
       const oldName = filename.text();
