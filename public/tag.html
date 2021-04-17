@@ -11,6 +11,7 @@
   <script src="/public/jquery.min.js"></script>
   <script src="/public/dayjs.min.js"></script>
   <script src="/public/bootstrap.bundle.min.js"></script>
+  <script src="/public/clipboard.min.js"></script>
   <script src="/public/util.js"></script>
   <script src="/public/filelist.js"></script>
   
@@ -24,6 +25,11 @@ const tag_name = getUrlParam('name');
 
 const Alerts = CreateAlerts();
 
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
+  '点击标签可找出与该便签有关的标签组。点击 group 按钮可搜索与该标签组关联的文件。',
+  '点击 copy 按钮可复制标签组。点击标签名前的铅笔图标可显示/隐藏改名表单。',
+]);
+
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
@@ -36,7 +42,9 @@ const Navbar = {
             m('i').addClass('bi bi-tag')
         ),
       ]),
-      m('span').addClass('navbar-brand').text('Tag'),
+      m('span').addClass('navbar-brand').append([
+        'Tag', ' ', m(InfoBtn),
+      ]),
       m('div').addClass('btn-group').append([
         m('a').attr({title:'Files',href:'/light/files',type:'button'})
           .addClass('btn btn-outline-dark').append(
@@ -87,7 +95,7 @@ Form.showCheckBtn = () => {
 Form.check = () => {
   const input = $(NameInput.id);
   const name = getTag(input.val());
-  if (!name) { input.focus(); return; }
+  if (!name || name == tag_name) { input.focus(); return; }
 
   const body = new FormData();
   body.append('new-name', name);
@@ -119,13 +127,14 @@ Form.rename = () => {
 const Name = cc('span');
 const NameBtn = cc('i');
 const NameArea = cc('div', null, [
-  m(NameBtn).addClass('bi bi-pencil-square').css('cursor', 'pointer').click(Form.toggle),
+  m(NameBtn).attr({title:'rename'}).addClass('bi bi-pencil-square').css('cursor', 'pointer').click(Form.toggle),
   ' ',
   m(Name).addClass('h5'),
 ]);
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
+  m(InfoMsg).hide(),
   m(NameArea),
   m(Form),
   m(Alerts),
@@ -171,11 +180,16 @@ function createTagGroup(group) {
     const tagGroupStr = addPrefix(group);
     const tagsElem = $(self.id + ' .Tags');
     group.forEach(tag => {
-      const link = '/light/tag?name=' + encodeURIComponent(tag);
-      const item = m('span').text(tag).addClass('badge bg-primary').click(() => {
-        window.open(link);
-      });
-      tagsElem.append(item);
+      if (tag == tag_name) {
+        const item = m('span').text(tag).addClass('badge bg-primary').css({cursor:'default'});
+        tagsElem.append(item);
+      } else {
+        const link = '/light/tag?name=' + encodeURIComponent(tag);
+        const item = m('span').text(tag).addClass('badge bg-primary').click(() => {
+          window.open(link)
+        });
+        tagsElem.append(item);
+      }
     });
 
     const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroupStr);
@@ -184,6 +198,12 @@ function createTagGroup(group) {
         window.open(groupLink, 'localtags-search');
       });
     tagsElem.append(groupItem);
+
+    const copyBtn = m('span').text('copy').addClass('CopyBtn badge bg-info');
+    tagsElem.append(copyBtn);
+    const clipboard = new ClipboardJS(self.id+' .CopyBtn', {
+      text: () => { return tagGroupStr; }
+    });
   };
 
   return self;

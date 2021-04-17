@@ -22,12 +22,20 @@
 
 const Alerts = CreateAlerts();
 
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
+  '双击文件名可修改文件名，点击标签图标可修改标签。',
+  '修改文件名或标签时，如果内容不变或清空文本框后按 OK 按钮，相当于取消。',
+  '删除文件相当于扔进回收站，可以去回收站找回文件，也可以去回收站彻底删除文件。',
+]);
+
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
       m('a').attr({title:'main menu',href:'/light/home',type:'button'})
         .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-house-door')),
-      m('span').addClass('PageTitle navbar-brand').text('Files'),
+      m('span').addClass('navbar-brand').append([
+        m('span').addClass('PageTitle').text('Files'), ' ', m(InfoBtn),
+      ]),
       m('div').addClass('btn-group').append([
         m('a').attr({title:'Tag Groups',href:'/light/tag-groups',type:'button'}).addClass('btn btn-outline-dark').append(
           m('i').addClass('bi bi-tags')
@@ -48,8 +56,9 @@ const Navbar = {
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
-  m(Alerts),
+  m(InfoMsg).hide(),
   m(Loading),
+  m(Alerts),
   m(FileList).addClass('mt-3'),
   m(BottomLine),
 ]);
@@ -65,7 +74,9 @@ function init() {
     notFoundMsg = '数据库中没有标记为 "已删除" 的文件';
     $('.PageTitle').text('Recycle Bin');
     $('title').text('Recycle Bin - localtags');
-    // infoMsg.setMsg('这里是回收站，在这里删除文件是彻底删除，不可恢复。');
+    InfoMsg.setMsg([
+      '这里是回收站，在这里删除文件是彻底删除，不可恢复。'
+    ]);
     $('.RecycleBtn').hide();
     $('.AllFilesBtn').show();
   }

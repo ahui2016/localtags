@@ -209,19 +209,23 @@ const Loading = {
   show: () => { $('#loading').show(); },
 };
 
-function CreateInfoPair(name, msg) {
-  const infoMsg = {
-    id: `#about-${name}-msg`,
-    view: () => $(`<div id="about-${name}-msg" class="InfoMessage" style="display:none">${msg}</div>`),
-    toggle: () => { $(infoMsg.id).toggle(); },
-    setMsg: (msg) => { $(infoMsg.id).text(msg); },
+function CreateInfoPair(name, messages) {
+  
+  const infoMsg = cc('div', 'abount'+name+'msg');
+  infoMsg.view = () => m('div').attr({id:InfoMsg.raw_id}).addClass('card text-dark bg-light my-3').append([
+    m('div').text(name).addClass('card-header'),
+    m('div').addClass('card-body text-secondary').append(
+      m('div').addClass('card-text').append(messages),
+    ),
+  ]);
+  infoMsg.setMsg = (messages) => {
+    $(infoMsg.id + ' .card-text').html('').append(messages);
   };
-  const infoIcon = {
-    id: `#about-${name}-icon`,
-    view: () => $(`<img id= "about-${name}-icon" src="/public/info-circle.svg" class="IconButton" alt="info" title="显示/隐藏说明">`)
-    .click(infoMsg.toggle),
-  };
-  return [infoIcon, infoMsg];
+  const infoBtn = {
+    view: () => m('i').addClass('bi bi-info-circle').css({cursor:'pointer'})
+    .attr({title:'显示/隐藏'+name}).click(() => { $(infoMsg.id).toggle() }),
+  }
+  return [infoBtn, infoMsg];
 }
 
 function CreateAlerts() {
@@ -234,7 +238,7 @@ function CreateAlerts() {
   alerts.insert = (msgType, msg) => {
     const time = dayjs().format('HH:mm:ss');
     const elem = m('div')
-      .addClass(`alert alert-${msgType} alert-dismissible fade show my-1`)
+      .addClass(`alert alert-${msgType} alert-dismissible fade show mt-1 mb-0`)
       .attr({role:'alert'})
       .append([
         m('span').text(`${time} ${msg}`),

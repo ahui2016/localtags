@@ -23,13 +23,22 @@
     
 const Alerts = CreateAlerts();
 
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
+  m('li').text('点击标签可找出与该便签有关的标签组。点击 group 按钮可搜索与该标签组关联的文件。'),
+  m('li').text('当标签组总数量超过上限 (该上限在后端配置文件中设置) 时，会自动删除最旧的标签组，也可点击垃圾桶图标删除标签组。'),
+  m('li').text('点击挂锁图标可保护标签组，受保护的标签组不会被自动删除 (仍可手动删除)。'),
+  m('li').text('所谓删除标签组 (不管自动还是手动), 只是不在本页面显示该标签组而已，不会删除标签，也不会解除标签与文件的关联。'),
+]));
+
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
       m('a').attr({title:'main menu',href:'/light/home',type:'button'}).addClass('btn btn-outline-dark').append(
         m('i').addClass('bi bi-house-door'),
       ),
-      m('span').addClass('navbar-brand').text('Tag Groups'),
+      m('span').addClass('navbar-brand').append([
+        'Tag Groups', ' ', m(InfoBtn),
+      ]),
       m('div').addClass('btn-group').append([
         m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
           m('i').addClass('bi bi-card-list')
@@ -100,6 +109,7 @@ const Form = {
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
+  m(InfoMsg).hide(),
   m(Form),
   m(Loading),
   m(Alerts).addClass('my-3'),

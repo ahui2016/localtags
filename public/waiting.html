@@ -32,19 +32,11 @@ let waitingFolder;
 
 const Alerts = CreateAlerts();
 
-const InfoMsg = cc('div');
-InfoMsg.view = () => m('div').attr({id:InfoMsg.raw_id}).addClass('card border-secondary my-3').append([
-  m('div').text('使用说明').addClass('card-header'),
-  m('div').addClass('card-body text-secondary').append(
-    m('p').addClass('card-text').append([
-      '可以随时在 waiting 文件夹中添加、删除文件或更改文件名。',
-      '注意：每当在 waiting 文件夹中添加、删除文件或更改文件名后，请刷新本页面以反映最新情况。',
-      '按 F12 进入控制台输入命令 where() 可查看 waiting 文件夹的完整路径。',
-    ]),
-  ),
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
+  '可随时在 waiting 文件夹中添加、删除文件或更改文件名。',
+  '注意：每当在 waiting 文件夹中添加、删除文件或更改文件名后，请刷新本页面以反映最新情况。',
+  '按 F12 进入控制台输入命令 where() 可查看 waiting 文件夹的完整路径。',
 ]);
-const infoBtn = m('i').addClass('bi bi-info-circle').css({cursor:'pointer'})
-  .attr({title:'显示/隐藏使用说明'}).click(() => { $(InfoMsg.id).toggle() });
 
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
@@ -52,7 +44,7 @@ const Navbar = {
       m('a').attr({title:'go back',type:'button',href:'/light/add'})
         .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-arrow-left')),
       m('span').addClass('navbar-brand').append([
-        'Waiting', ' ', infoBtn,
+        'Waiting', ' ', m(InfoBtn),
       ]),
       m('a').attr({title:'refresh',href:'#',type:'button'}).addClass('btn btn-outline-dark')
         .append(m('i').addClass('bi bi-arrow-clockwise')).click(() => {window.location.reload()}),
@@ -82,8 +74,8 @@ const Files = cc('p');
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
-  m(Loading),
   m(InfoMsg).hide(),
+  m(Loading),
   m(TagsArea).hide(),
   m(Spacer),
   m(Alerts),
