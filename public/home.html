@@ -14,7 +14,7 @@
   <script src="/public/util.js"></script>
   <script src="/public/filelist.js"></script>
   
-  <title>Home - localtags</title>
+  <title>Homelocaltags</title>
 </head>
 <body>
   <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
@@ -31,32 +31,34 @@ const Navbar = {
 $('#root').append([
   m(Navbar),
   m(Spacer),
-  m('div').css('margin-left', '1rem').append([
-    create_item('Add Files', '/light/add', ' - 添加文件'),
-    create_item('Files', '/light/files', ' - 全部文件'),
-    create_item('Tag Groups', '/light/tag-groups', ' - 标签组'),
-    create_item('Tags', '/light/tags', ' - 全部标签'),
-    create_item('Search', '/light/search', ' - 搜索'),
-    create_item('Recycle Bin', '/light/files?filter=deleted', ' - 回收站'),
-    create_item('Information', '/light/info', ' - 数据库信息'),
-    create_item('Backup', '/light/backup', ' - 备份'),
+  m('div').append([
+    create_item('Add Files', '/light/add', '添加文件'),
+    create_item('Files', '/light/files', '全部文件'),
+    create_item('Tag Groups', '/light/tag-groups', '标签组'),
+    create_item('Tags', '/light/tags', '全部标签'),
+    create_item('Search', '/light/search', '搜索'),
+    create_item('Recycle Bin', '/light/files?filter=deleted', '回收站'),
+    create_item('Information', '/light/info', '数据库信息'),
+    create_item('Backup', '/light/backup', '备份'),
     m(Spacer),
-    m('p').addClass('small text-secondary').append([
+    m('p').addClass('small text-secondary text-end').append([
       'localtags version: 2021-04-05',
       m('br'),
+      m('i').addClass('small bi bi-box-arrow-up-right'),
+      ' ',
       m('a').text('https://github.com/ahui2016/localtags').addClass('small text-secondary')
         .attr({href:'https://github.com/ahui2016/localtags',target:'_blank'}),
-      ' ',
-      m('i').addClass('small bi bi-box-arrow-up-right'),
     ]),
   ]),
   m(BottomLine),
 ]);
 
 function create_item(text, link, description) {
-  return m('div').addClass('mb-2').append([
-    m('a').text(text).attr({href:link}).addClass('text-decoration-none'),
-    description,
+  return m('div').addClass('row mb-2 g-1').append([
+    m('div').addClass('col text-end').append(
+      m('a').text(text).attr({href:link}).addClass('text-decoration-none'),
+    ),
+    m('div').addClass('col').text(description),
   ]);
 }
   

@@ -80,7 +80,6 @@ func setPaths() {
 	tempMetadata = filepath.Join(tempFolder, tempMetadataName)
 	util.MustMkdir(cfg.DataFolder)
 	util.MustMkdir(cfg.WaitingFolder)
-	util.MustMkdir(cfg.DownloadFolder)
 	util.MustMkdir(tempFolder)
 	util.MustMkdir(mainBucket)
 	util.MustMkdir(thumbsFolder)

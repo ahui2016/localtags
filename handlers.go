@@ -164,7 +164,7 @@ func downloadFile(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	filename := downloadFilePath(name)
+	filename := waitingFile(name)
 	if util.PathIsExist(filename) {
 		return fmt.Errorf("文件已存在: %s", filename)
 	}

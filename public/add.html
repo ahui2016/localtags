@@ -22,13 +22,27 @@
 
 const Alerts = CreateAlerts();
 
+const InfoMsg = cc('div');
+InfoMsg.view = () => m('div').attr({id:InfoMsg.raw_id}).addClass('card border-secondary my-3').append([
+  m('div').text('使用说明').addClass('card-header'),
+  m('div').addClass('card-body text-secondary').append(
+    m('p').addClass('card-text').append([
+      '由于浏览器无法直接打开文件夹，请手动打开 waiting 文件夹。',
+      '注意：当 waiting 文件夹内的文件被成功添加到数据库之后，waiting 文件夹会被清空。',
+      '因此建议复制黏贴（而不是剪切移动）文件到 waiting 文件夹内。',
+    ]),
+  ),
+]);
+const infoBtn = m('i').addClass('bi bi-info-circle').css({cursor:'pointer'})
+  .attr({title:'显示/隐藏使用说明'}).click(() => { $(InfoMsg.id).toggle() });
+
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
       m('a').attr({title:'back to home',href:'/light/home',type:'button'})
         .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-arrow-left')),
       m('span').addClass('PageTitle navbar-brand').append([
-        ' Add Files',        
+        'Add Files', ' ', infoBtn,
       ]),
       m('a').attr({title:'next',type:'button',href:'/light/waiting'})
         .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-arrow-right')),
@@ -53,6 +67,7 @@ const Main = cc('div', null, [
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
   m(Loading),
+  m(InfoMsg).hide(),
   m(Alerts).addClass('mb-3'),
   m(Main).hide(),
 ]);

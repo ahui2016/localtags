@@ -7,10 +7,9 @@ import (
 )
 
 const (
-	dataFolderName     = "localtags_data_folder"
-	downloadFolderName = "download"
-	waitingFolderName  = "waiting"
-	timeUnit           = 1000 * 60 * 60 * 24 // 1天(24小时)
+	dataFolderName    = "localtags_data_folder"
+	waitingFolderName = "waiting"
+	timeUnit          = 1000 * 60 * 60 * 24 // 1天(24小时)
 )
 
 var Public = Default()
@@ -23,9 +22,6 @@ type Config struct {
 
 	// 数据文件夹的完整路径
 	DataFolder string
-
-	// 下载文件夹
-	DownloadFolder string
 
 	// 待上传文件的文件夹
 	WaitingFolder string
@@ -42,11 +38,10 @@ type Config struct {
 func Default() Config {
 	dataDir := filepath.Join(util.UserHomeDir(), dataFolderName)
 	return Config{
-		Address:        "127.0.0.1:80",
-		DataFolder:     dataDir,
-		DownloadFolder: filepath.Join(dataDir, downloadFolderName),
-		WaitingFolder:  filepath.Join(dataDir, waitingFolderName),
-		TagGroupLimit:  100,
-		CheckInterval:  timeUnit * 30, // 30天
+		Address:       "127.0.0.1:80",
+		DataFolder:    dataDir,
+		WaitingFolder: filepath.Join(dataDir, waitingFolderName),
+		TagGroupLimit: 100,
+		CheckInterval: timeUnit * 30, // 30天
 	}
 }

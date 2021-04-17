@@ -39,9 +39,6 @@ func waitingFile(name string) string {
 func mainBucketFile(id string) string {
 	return filepath.Join(mainBucket, id)
 }
-func downloadFilePath(name string) string {
-	return filepath.Join(cfg.DownloadFolder, name)
-}
 func mainBucketThumb(id string) string {
 	return filepath.Join(thumbsFolder, id)
 }
