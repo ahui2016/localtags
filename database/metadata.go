@@ -86,7 +86,6 @@ func (db *DB) CheckFilesHash(bucket string) error {
 	if !need {
 		return nil
 	}
-
 	tx := db.mustBegin()
 	defer tx.Rollback()
 

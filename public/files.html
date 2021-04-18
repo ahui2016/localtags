@@ -69,6 +69,7 @@ function init() {
   const filter = getUrlParam('filter');
   let url = '/api/all-files';
   let notFoundMsg = '没有文件，一个也没有。';
+
   if (filter == 'deleted') {
     url = '/api/deleted-files';
     notFoundMsg = '数据库中没有标记为 "已删除" 的文件';
@@ -80,6 +81,8 @@ function init() {
     $('.RecycleBtn').hide();
     $('.AllFilesBtn').show();
   }
+
+  console.log('高级功能：使用命令 "DANGER_delete(id)" 可强制删除文件，没有二次确认，彻底删除不可恢复。');
 
   ajax({method:'GET',url:url,alerts:Alerts},
     (files) => {

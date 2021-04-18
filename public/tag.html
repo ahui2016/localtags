@@ -26,8 +26,8 @@ const tag_name = getUrlParam('name');
 const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
-  '点击标签可找出与该便签有关的标签组。点击 group 按钮可搜索与该标签组关联的文件。',
-  '点击 copy 按钮可复制标签组。点击标签名前的铅笔图标可显示/隐藏改名表单。',
+  '点击 copy 按钮可复制标签组。点击标签名前的铅笔图标可显示/隐藏修改标签名的表单。',
+  '按 F12 进入控制台输入 deletetag("标签名") 可删除标签。注意：一旦删除无法恢复。',
 ]);
 
 const Navbar = {
@@ -157,12 +157,9 @@ function init() {
           return;
         }
         groups.forEach(GroupList.prepend);
-        console.log('使用函数 deletetag(tag) 删除标签，注意一旦删除无法恢复。')
       }, (that) => {
         if (that.status == 404) {
           $(NameArea.id).hide();
-        } else {
-          console.log('使用函数 deletetag(tag) 删除标签，注意一旦删除无法恢复。')
         }
       });
 }
@@ -184,9 +181,8 @@ function createTagGroup(group) {
         const item = m('span').text(tag).addClass('badge bg-primary').css({cursor:'default'});
         tagsElem.append(item);
       } else {
-        const link = '/light/tag?name=' + encodeURIComponent(tag);
         const item = m('span').text(tag).addClass('badge bg-primary').click(() => {
-          window.open(link)
+          window.location = '/light/tag?name=' + encodeURIComponent(tag);
         });
         tagsElem.append(item);
       }

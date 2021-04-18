@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/stmt"
@@ -151,7 +152,7 @@ func searchByID(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	files, err := db.SearchSameNameFiles(id)
+	files, err := db.SearchSameNameFiles(strings.ToUpper(id))
 	if err != nil {
 		return err
 	}

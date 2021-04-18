@@ -22,13 +22,20 @@
     
 const Alerts = CreateAlerts();
 
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
+  '搜索标签是精确搜索，区分大小写。搜索文件名不分大小写。',
+  '搜索标签和文件名都不会列出回收站里的文件，搜索 ID 则包括回收站里的文件。',
+]);
+
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
       m('a').attr({title:'main menu',href:'/light/home',type:'button'}).addClass('btn btn-outline-dark').append(
         m('i').addClass('bi bi-house-door'),
       ),
-      m('span').addClass('navbar-brand').text('Search'),
+      m('span').addClass('navbar-brand').append([
+        'Search', ' ', m(InfoBtn),
+      ]),
       m('div').addClass('btn-group').append([
         m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
           m('i').addClass('bi bi-card-list')
@@ -130,6 +137,7 @@ const SearchForm = {
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
+  m(InfoMsg).hide(),
   m(SearchForm),
   m(Alerts),
   m(FileList).addClass('mt-3'),

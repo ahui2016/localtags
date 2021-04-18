@@ -22,13 +22,20 @@
 
 const Alerts = CreateAlerts();
 
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
+  '标签颜色是随机的，没有特殊含义。标签旁的数字表示与该标签关联的文件数。点击标签可找出与该便签有关的标签组。',
+  '按 F12 进入控制台输入 deletetag("标签名") 可删除标签。注意：一旦删除无法恢复。',
+]);
+
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
       m('a').attr({title:'main menu',href:'/light/home',type:'button'}).addClass('btn btn-outline-dark').append(
         m('i').addClass('bi bi-house-door'),
       ),
-      m('span').addClass('navbar-brand').text('Tags'),
+      m('span').addClass('navbar-brand').append([
+        'Tags', ' ', m(InfoBtn),
+      ]),
       m('div').addClass('btn-group').append([
         m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
           m('i').addClass('bi bi-card-list')),
@@ -78,6 +85,7 @@ const SortBy = cc('div', null, [
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
+  m(InfoMsg).hide(),
   m(Alerts),
   m(Loading),
   m(SortBy).hide(),
@@ -109,11 +117,10 @@ function init() {
       (tags) => {
         if (tags) {
           console.log('Tags: ');
-          tags.forEach(tag => {
+          tags.forEach((tag, i) => {
             console.log(tag.ID);
-            SortByName.append(tag);
+            SortByName.append(tag, i);
           });
-          console.log('使用函数 deletetag(tag) 删除标签，注意一旦删除无法恢复。')
         }
       });
 }

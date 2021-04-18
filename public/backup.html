@@ -22,12 +22,19 @@
 
 const Alerts = CreateAlerts();
 
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
+  '可添加多个备份仓库，每个备份仓库都是一个独立、完整的备份。任何一个空文件夹都可以作为备份仓库，例如 ',
+  'D:\\localtags\\backup (注意，该文件夹必须是存在的，本软件不自动新建文件夹)',
+]);
+
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
       m('a').attr({title:'main menu',href:'/light/home',type:'button'})
         .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-house-door')),
-      m('span').addClass('navbar-brand').text('Backup'),
+      m('span').addClass('navbar-brand').append([
+        'Backup', ' ', m(InfoBtn),    
+      ]),
       m('a').attr({title:'refresh',href:'#',type:'button'}).addClass('btn btn-outline-dark')
         .append(m('i').addClass('bi bi-arrow-clockwise')).click(() => {window.location.reload()}),
     ]),
@@ -181,6 +188,7 @@ SubmitBtnAera.init = (damaged_count) => {
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
+  m(InfoMsg).hide(),
   m(AddBucketArea),
   m(Loading),
   m(Alerts),
