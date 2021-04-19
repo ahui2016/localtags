@@ -62,3 +62,5 @@ golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGm
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+tcw.im/go-disk-usage v0.1.1 h1:YRYJPIPA5rrWVoIRlZaLUhCEqWWpp7YXDhxPteFf31M=
+tcw.im/go-disk-usage v0.1.1/go.mod h1:f5eAEDC4HBmFpjcgjqKqlbLLUAGq/WZTaV+iY0wb9TM=

@@ -211,3 +211,12 @@ func (db *DB) DeleteBackupBucket(i int) error {
 	buckets = append(buckets[:i], buckets[i+1:]...)
 	return saveBackupBuckets(db.DB, buckets)
 }
+
+// TotalSize 返回数据库的总体积，单位是 KB.
+func (db *DB) TotalSize() (int64, error) {
+	total, err := getInt1(db.DB, stmt.TotalSize)
+	if err != nil {
+		return 0, err
+	}
+	return total / 1024, nil
+}

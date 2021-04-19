@@ -16,6 +16,7 @@ import (
 	"github.com/ahui2016/localtags/thumb"
 	"github.com/ahui2016/localtags/util"
 	"github.com/labstack/echo/v4"
+	"tcw.im/go-disk-usage/du"
 )
 
 /*
@@ -320,6 +321,21 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 	return info, nil
 }
 
+func checkDiskUsage(bkFolder string, bkDB *database.DB) error {
+	diskInfo := du.DiskInfo(bkFolder)
+	totalOfBackup, e1 := bkDB.TotalSize()
+	totalOfMain, e2 := db.TotalSize()
+	total := totalOfMain - totalOfBackup // 备份后将会增加的体积
+	if err := util.WrapErrors(e1, e2); err != nil {
+		return err
+	}
+	var margin uint64 = 1024 * 512 // 500 MB 余量
+	if uint64(total)+margin > diskInfo.Available {
+		return fmt.Errorf("备份仓库空间不足")
+	}
+	return nil
+}
+
 // syncMainToBackup 同步主仓库与备份仓库，以主仓库为准单向同步，
 // 最终效果相当于清空备份仓库后把主仓库的全部文件复制到备份仓库。
 func syncMainToBackup(bkFolder string) error {
@@ -332,6 +348,11 @@ func syncMainToBackup(bkFolder string) error {
 		return err
 	}
 	defer bk.Close()
+
+	// 检查备份仓库的可用空间
+	if err := checkDiskUsage(bkFolder, bk); err != nil {
+		return err
+	}
 
 	// 如果有损坏文件则拒绝备份
 	n, err := damagedIn2Buckets(bk, db)

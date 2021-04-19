@@ -90,6 +90,8 @@ const CountDamagedFiles = `SELECT count(*) FROM file WHERE damaged>0;`
 const GetDamagedFiles = `SELECT * FROM file WHERE damaged>0;`
 const DeleteFile = `DELETE FROM file WHERE id=?;`
 
+const TotalSize = `SELECT sum(size) as totalsize FROM file;`
+
 const GetTag = `SELECT * FROM tag WHERE id=?;`
 const GetTagCTime = `SELECT ctime FROM tag WHERE id=?;`
 const InsertTag = `INSERT INTO tag (id, ctime) VALUES ( ?, ?);`

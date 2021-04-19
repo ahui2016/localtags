@@ -110,16 +110,21 @@ function getUrlParam(param) {
   return loc.searchParams.get(param);
 }
 
-// 把文件大小换算为 KB 或 MB
+// 把文件大小转换为方便人类阅读的格式。
 function fileSizeToString(fileSize, fixed) {
   if (fixed == null) {
     fixed = 2
   }
-  const sizeMB = fileSize / 1024 / 1024;
-  if (sizeMB < 1) {
-    return `${(sizeMB * 1024).toFixed(fixed)} KB`;
+  const sizeGB = fileSize / 1024 / 1024 / 1024;
+  if (sizeGB < 1) {
+    const sizeMB = sizeGB * 1024;
+    if (sizeMB < 1) {
+      const sizeKB = sizeMB * 1024;
+      return `${sizeKB.toFixed(fixed)} KB`;
+    }
+    return `${sizeMB.toFixed(fixed)} MB`;
   }
-  return `${sizeMB.toFixed(fixed)} MB`;
+  return `${sizeGB.toFixed(fixed)} GB`;
 }
 
 function addPrefix(setOrArr, prefix) {
