@@ -49,8 +49,6 @@ const Navbar = {
         m('a').attr({title:'Files',href:'/light/files',type:'button'})
           .addClass('btn btn-outline-dark').append(
             m('i').addClass('bi bi-card-list')),
-        m('a').attr({title:'Add Files',href:'/light/add',type:'button'}).addClass('btn btn-outline-dark').append(
-          m('i').addClass('bi bi-file-earmark-plus')),
         m('a').attr({title:'Tag Groups',href:'/light/tag-groups',type:'button'})
           .addClass('btn btn-outline-dark').append(
             m('i').addClass('bi bi-tags')),
@@ -135,7 +133,8 @@ const NameArea = cc('div', null, [
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
   m(InfoMsg).hide(),
-  m(NameArea),
+  m(Loading),
+  m(NameArea).hide(),
   m(Form),
   m(Alerts),
   m(GroupList),
@@ -152,15 +151,14 @@ function init() {
   
   ajax({method:'POST',url:'/api/get-groups-by-tag',alerts:Alerts,body:body},
       (groups) => {
+        $(NameArea.id).show();
         if (!groups || groups.length == 0) {
           Alerts.insert('info', '空');
           return;
         }
         groups.forEach(GroupList.prepend);
-      }, (that) => {
-        if (that.status == 404) {
-          $(NameArea.id).hide();
-        }
+      }, null, () => {
+        Loading.hide();
       });
 }
 

@@ -51,10 +51,9 @@ function FileItem(file) {
             ]),
             m('div').addClass('IconButtons mt-auto ms-auto').append([
               m('i').addClass('bi bi-tag').attr({title:'edit tags'}),
-              m('i').addClass('bi bi-trash').attr({title:'delete'}),
               m('i').addClass('bi bi-bootstrap-reboot').attr({title:'restore'}).hide(),
-              m('i').addClass('bi bi-trash-fill').attr({title:'permanently delete'}).hide(),
-              m('i').text('DeleteWithoutConfirm').addClass('DeleteWithoutConfirm bi bi-trash').hide(),
+              m('i').addClass('DeleteBtn bi bi-trash').attr({title:'delete'}),
+              m('i').text('DeleteRecycle').addClass('DeleteRecycle bi bi-trash').hide(),
               m('i').addClass('bi bi-download').attr({title:'download'}).click(self.download),
             ]),
             m('div').text('RESTORED').addClass('Restored mt-auto ms-auto').hide(),
@@ -76,10 +75,9 @@ function FileItem(file) {
   const buttons_id = self.id + ' .IconButtons';
 
   const tags_btn_id = self.id + ' .bi-tag';
-  const del_btn_id = self.id + ' .bi-trash';
+  const del_btn_id = self.id + ' .DeleteBtn';
   const restore_btn_id = self.id + ' .bi-bootstrap-reboot';
-  const really_del_btn_id = self.id + ' .bi-trash-fill';
-  const del_wo_confirm_id = self.id + ' .DeleteWithoutConfirm';
+  const del_recycle_id = self.id + ' .DeleteRecycle';
   const dl_btn_id = self.id + ' .bi-download';
 
   self.download = () => {
@@ -192,19 +190,21 @@ function FileItem(file) {
           });
     });
 
-    $(del_btn_id).click(() => {
+    $(del_recycle_id).click(() => {
       ajax({method:'POST',url:'/api/delete-file',alerts:ItemAlerts,buttonID:del_btn_id,body:body},
           () => {
+            console.log(`文件 [id:${file.ID}] 已扔进回收站，可去回收站找回文件。`);
             self.afterDeleted();
           });
     });
 
-    $(really_del_btn_id).click(() => {
-      ItemAlerts.insert('info', '再点击一次删除按钮彻底删除该文件，不可恢复。');
-      $(really_del_btn_id).off();
+    $(del_btn_id).click(() => {
+      disable(del_btn_id);
+      ItemAlerts.insert('info', '当删除按钮变红时，再点击一次删除按钮彻底删除该文件，不可恢复。');
       window.setTimeout(() => {
-        $(really_del_btn_id).click(() => {
-          ajax({method:'POST',url:'/api/really-delete-file',alerts:ItemAlerts,buttonID:really_del_btn_id,body:body},
+        enable(del_btn_id);
+        $(del_btn_id).addClass('text-danger').off().click(() => {
+          ajax({method:'POST',url:'/api/really-delete-file',alerts:ItemAlerts,buttonID:del_btn_id,body:body},
           () => {
             self.afterDeleted();
           });
@@ -212,20 +212,9 @@ function FileItem(file) {
       }, 1000);
     });
 
-    // 不经二次确认，直接删除文件。
-    $(del_wo_confirm_id).click(() => {
-      ajax({method:'POST',url:'/api/really-delete-file',alerts:ItemAlerts,buttonID:really_del_btn_id,body:body},
-      () => {
-        console.log(`文件 [id:${file.ID}] 已彻底删除`);
-        self.afterDeleted();
-      });
-    });
-
     if (file.Deleted) {
       $(tags_btn_id).hide();
-      $(del_btn_id).hide();
       $(restore_btn_id).show();
-      $(really_del_btn_id).show();
     } else {
       filename.css('cursor','crosshair').attr({title:'double click to edit'}).dblclick(() => {
         self.toggleFilename();
@@ -274,7 +263,7 @@ FileList.clear = () => {
   $(FileList.id).html('');
 };
 
-function DANGER_delete(id) {
-  const del_btn_id = '#f' + id + ' .DeleteWithoutConfirm';
-  $(del_btn_id).click();
+function delete_file(id) {
+  const del_recycle_id = '#f' + id + ' .DeleteRecycle';
+  $(del_recycle_id).click();
 }
