@@ -47,6 +47,7 @@ const LastBackup = cc('span');
 const AllFilesCount = cc('span');
 const DamagedFilesCount = cc('span');
 const ForceCheckBtn = cc('button');
+const SearchBtn = cc('a');
 
 const InfoArea = cc('div', null, [
   create_item('仓库地址', m(BucketLocation)),
@@ -61,7 +62,12 @@ const InfoArea = cc('div', null, [
         .addClass('btn btn-sm btn-outline-secondary'),
   ]),
   create_item('全部文件', [m(AllFilesCount), ' (个)']),
-  create_item('其中损坏文件', [m(DamagedFilesCount), ' (个)']),
+  create_item('其中损坏文件', [
+    m(DamagedFilesCount),
+    ' (个) ',
+    m(SearchBtn).text('search').attr({type:'button',href:'/light/search?filter=damaged'})
+        .addClass('btn btn-sm btn-outline-secondary').hide(),
+  ]),
 ]);
 
 $('#root').append([
@@ -99,6 +105,7 @@ function init() {
         $(DamagedFilesCount.id).text(info.DamagedFilesCount);
         if (info.DamagedFilesCount > 0) {
           $(DamagedFilesCount.id).addClass('text-danger fw-bold');
+          $(SearchBtn.id).show();
         }
       }, null, () => { Loading.hide() });
 }

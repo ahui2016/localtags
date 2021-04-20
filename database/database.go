@@ -162,6 +162,15 @@ func (db *DB) DamagedFiles() ([]*File, error) {
 	return getFiles(db.DB, stmt.GetDamagedFiles)
 }
 
+func (db *DB) SearchDamagedFiles() ([]*File, error) {
+	files, err := getFiles(db.DB, stmt.GetDamagedFiles)
+	if err != nil {
+		return nil, err
+	}
+	err = fillTags(db.DB, files)
+	return files, err
+}
+
 func (db *DB) AllFiles() (files []*File, err error) {
 	files, err = getFiles(db.DB, stmt.GetFiles)
 	if err != nil {

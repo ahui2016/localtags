@@ -117,6 +117,12 @@ const SearchForm = {
     const options = {method:'POST',url:'/api/search-by-id',alerts:Alerts,buttonID:SubmitBtn.id,body:body};
     SearchForm.search(options);
   },
+  searchDamaged: () => {
+    Alerts.clear();
+    Alerts.insert('primary', '高级功能：查找数据库中的全部损坏文件...');
+    const options = {method:'GET',url:'/api/search-damaged',alerts:Alerts,buttonID:SubmitBtn.id};
+    SearchForm.search(options);
+  },
   search: (options) => {
     ajax(options, SearchForm.onSuccess, SearchForm.onFail);
   },
@@ -158,7 +164,11 @@ function init() {
   if (fileid) {
     $(SearchInput.id).val(fileid);
     $(ByID.id).click();
-    SearchForm.searchByID();
+    return;
+  }
+  const filter = getUrlParam('filter');
+  if (filter == 'damaged') {
+    SearchForm.searchDamaged();
   }
 }
 

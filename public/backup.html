@@ -20,6 +20,9 @@
   <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
   <script>
 
+const Backup_Bucket = 'Backup Bucket';
+const Main_Bucket = 'Main Bucket';
+
 const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
@@ -123,7 +126,7 @@ BucketList.prepend = (bucket, index) => {
           // onSuccess
           Alerts.insert('success', '成功获取备份仓库的状态信息');
 
-          const backup = create_bucket_info('Backup Bucket', info['backup-bucket']);
+          const backup = create_bucket_info(Backup_Bucket, info['backup-bucket']);
           $(BucketsInfo.id).prepend(m(backup));
           backup.init();
 
@@ -131,7 +134,7 @@ BucketList.prepend = (bucket, index) => {
             m('i').addClass('bi bi-arrow-down').css('font-size', '2rem')
           ));
 
-          const main = create_bucket_info('Main Bucket', info['main-bucket']);
+          const main = create_bucket_info(Main_Bucket, info['main-bucket']);
           $(BucketsInfo.id).prepend(m(main));
           main.init();
 
@@ -250,6 +253,7 @@ function create_bucket_info(name, info) {
 
   const Damaged = cc('span');
   const BucketInfo = cc('div');
+
   BucketInfo.view = () => m('div').attr({id:BucketInfo.raw_id}).addClass('card').append([
     m('div').addClass('card-header').append([
       m('span').text(name),
@@ -260,7 +264,19 @@ function create_bucket_info(name, info) {
       m('p').text('上次备份时间: ' + lastBackup),
       m('p').text('上次校验时间: ' + lastChecked),
       m('p').text('全部文件（个）: ' + info.AllFilesCount),
-      m('p').append(['其中损坏文件（个）: ', m(Damaged).text(info.DamagedFilesCount)]),
+      m('p').append([
+        '其中损坏文件（个）: ',
+        m(Damaged).text(info.DamagedFilesCount), ' ',
+        m('a').text('search').addClass('btn btn-sm btn-outline-secondary')
+          .attr({type:'button',href:'/light/search?filter=damaged',target:'_blank'})
+          .css('display', name == Main_Bucket && info.DamagedFilesCount > 0 ? 'inline' : 'none'),
+        m('button').text('delete').attr({type:'button'}).addClass('btn btn-sm btn-outline-secondary')
+          .css('display', name == Backup_Bucket && info.DamagedFilesCount > 0 ? 'inline' : 'none')
+          .click(() => {
+            SubmitAlerts.insert('primary',
+              '按 F12 进入控制台输入命令 DANGER_delete_backup_damaged() 可删除备份仓库中的全部损坏文件。注意：请先尝试修复损坏文件，实在无法修复才考虑使用该命令，如果备份仓库频繁出现损坏文件请考虑更换硬盘。');
+          }),
+      ]),
     ]),
   ]);
 
@@ -272,6 +288,15 @@ function create_bucket_info(name, info) {
   }
 
   return BucketInfo;
+}
+
+function DANGER_delete_backup_damaged() {
+  console.log('正在删除备份仓库中的全部损坏文件......');
+  ajax({method:'GET',url:'/api/delete-backup-damaged',alerts:SubmitAlerts},
+      () => {
+        console.log('删除成功后会自动刷新页面。');
+        window.setTimeout(() => { window.location.reload(); }, 3000);
+      });
 }
 
 </script>

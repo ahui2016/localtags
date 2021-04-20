@@ -159,6 +159,14 @@ func searchByID(c echo.Context) error {
 	return c.JSON(OK, files)
 }
 
+func searchDamaged(c echo.Context) error {
+	files, err := db.SearchDamagedFiles()
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, files)
+}
+
 func downloadFile(c echo.Context) error {
 	id := c.Param("id")
 	name, err := db.GetFileName(id)
@@ -288,6 +296,10 @@ func repairFiles(c echo.Context) error {
 		return err
 	}
 	return repairDamagedFiles(bkFolder)
+}
+
+func deleteBackupDamagedFiles(c echo.Context) error {
+	return nil
 }
 
 func addTagGroup(c echo.Context) error {
