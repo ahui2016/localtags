@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/stmt"
@@ -199,8 +200,8 @@ func getFiles(tx TX, query string, args ...interface{}) (files []*File, err erro
 	return
 }
 
-func getFileIDs(tx TX, query string, arg string) (fileIDs []string, err error) {
-	rows, err := tx.Query(query, arg)
+func getFileIDs(tx TX, query string, args ...interface{}) (fileIDs []string, err error) {
+	rows, err := tx.Query(query, args...)
 	if err != nil {
 		return
 	}
@@ -217,7 +218,11 @@ func getFileIDs(tx TX, query string, arg string) (fileIDs []string, err error) {
 		return
 	}
 	if len(fileIDs) == 0 {
-		err = errors.New("no files related to " + arg)
+		if args == nil {
+			err = fmt.Errorf("no files related to %s", query)
+		} else {
+			err = fmt.Errorf("no files related to %v", args)
+		}
 	}
 	return
 }

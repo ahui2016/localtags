@@ -164,6 +164,7 @@ function init() {
   if (fileid) {
     $(SearchInput.id).val(fileid);
     $(ByID.id).click();
+    $(SubmitBtn.id).click();
     return;
   }
   const filter = getUrlParam('filter');

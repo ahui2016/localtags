@@ -41,7 +41,7 @@ func main() {
 	api.POST("/get-buckets-info", bucketsInfo)
 	api.POST("/sync-backup", syncBackup)
 	api.POST("/repair-files", repairFiles)
-	api.GET("/delete-backup-damaged", deleteBackupDamagedFiles)
+	api.POST("/delete-backup-damaged", deleteBackupDamagedFiles)
 
 	api.GET("/waitingFolder", waitingFolder)
 	api.GET("/waiting-files", waitingFiles)

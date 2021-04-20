@@ -87,7 +87,8 @@ const RenameFilesNow = `UPDATE file SET name=?, type=?, utime=? WHERE name=?;`
 const UpdateNow = `UPDATE file SET utime=? WHERE id=?;`
 const CountAllFiles = `SELECT count(*) FROM file;`
 const CountDamagedFiles = `SELECT count(*) FROM file WHERE damaged>0;`
-const GetDamagedFiles = `SELECT * FROM file WHERE damaged>0;`
+const DamagedFiles = `SELECT * FROM file WHERE damaged>0;`
+const DamagedFileIDs = `SELECT id FROM file WHERE damaged>0;`
 const DeleteFile = `DELETE FROM file WHERE id=?;`
 
 const TotalSize = `SELECT sum(size) as totalsize FROM file;`

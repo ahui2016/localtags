@@ -336,6 +336,33 @@ func checkDiskUsage(bkFolder string, bkDB *database.DB) error {
 	return nil
 }
 
+func deleteDamagedFiles(bkFolder string) error {
+	bkPath := filepath.Join(bkFolder, backupDBFileName)
+	bakBucket := filepath.Join(bkFolder, bakBucketName)
+	util.MustMkdir(bakBucket)
+
+	bk := new(database.DB)
+	if err := bk.OpenBackup(bkPath); err != nil {
+		return err
+	}
+	defer bk.Close()
+
+	fileIDs, err := bk.DamagedFileIDs()
+	if err != nil {
+		return err
+	}
+
+	for _, id := range fileIDs {
+		if err := os.Remove(filepath.Join(bakBucket, id)); err != nil {
+			return err
+		}
+		if err := bk.Exec(stmt.DeleteFile, id); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // syncMainToBackup 同步主仓库与备份仓库，以主仓库为准单向同步，
 // 最终效果相当于清空备份仓库后把主仓库的全部文件复制到备份仓库。
 func syncMainToBackup(bkFolder string) error {

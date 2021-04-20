@@ -299,7 +299,11 @@ func repairFiles(c echo.Context) error {
 }
 
 func deleteBackupDamagedFiles(c echo.Context) error {
-	return nil
+	bkFolder, err := getFormValue(c, "bucket")
+	if err != nil {
+		return err
+	}
+	return deleteDamagedFiles(bkFolder)
 }
 
 func addTagGroup(c echo.Context) error {

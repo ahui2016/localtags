@@ -159,11 +159,15 @@ func (db *DB) AllFilesWithoutTags() ([]*File, error) {
 }
 
 func (db *DB) DamagedFiles() ([]*File, error) {
-	return getFiles(db.DB, stmt.GetDamagedFiles)
+	return getFiles(db.DB, stmt.DamagedFiles)
+}
+
+func (db *DB) DamagedFileIDs() ([]string, error) {
+	return getFileIDs(db.DB, stmt.DamagedFileIDs)
 }
 
 func (db *DB) SearchDamagedFiles() ([]*File, error) {
-	files, err := getFiles(db.DB, stmt.GetDamagedFiles)
+	files, err := getFiles(db.DB, stmt.DamagedFiles)
 	if err != nil {
 		return nil, err
 	}
