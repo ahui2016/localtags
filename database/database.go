@@ -33,6 +33,7 @@ type Info struct {
 	LastBackup        int64
 	AllFilesCount     int64
 	DamagedFilesCount int64
+	TotalSize         int64
 }
 
 type TX interface {
@@ -96,6 +97,23 @@ func (db *DB) GetFileIDsByName(name string) ([]string, error) {
 
 func (db *DB) GetTagsByFile(id string) ([]string, error) {
 	return getTagsByFile(db.DB, id)
+}
+
+func (db *DB) DeleteFile(id string) error {
+	tx := db.mustBegin()
+	defer tx.Rollback()
+
+	file, err := getFileByID(tx, id)
+	if err != nil {
+		return err
+	}
+	// 本来最好应该判断一下 file.Count 是否大于1, 但懒得判断了，反正问题不大。
+	e1 := exec(tx, stmt.SetFilesCount, file.Count-1, file.Name)
+	e2 := exec(tx, stmt.DeleteFile, id)
+	if err := util.WrapErrors(e1, e2); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (db *DB) InsertFiles(files []*File) error {
@@ -202,15 +220,6 @@ func (db *DB) FileCTime(id string) (int64, error) {
 	return getInt1(db.DB, stmt.GetFileCTime, id)
 }
 
-func (db *DB) GetFileByID(id string) (file File, err error) {
-	row := db.DB.QueryRow(stmt.GetFile, id)
-	if file, err = scanFile(row); err != nil {
-		return
-	}
-	err = fillTag(db.DB, &file)
-	return
-}
-
 func (db *DB) SearchTags(tags []string) ([]*File, error) {
 	fileIDs, err := db.getFileIDsByTags(tags)
 	if err != nil {
@@ -299,13 +308,15 @@ func (db *DB) GetInfo() (Info, error) {
 	lastBackup, e2 := getIntValue(last_backup_key, db.DB)
 	allFiles, e3 := getInt1(db.DB, stmt.CountAllFiles)
 	damagedFiles, e4 := getInt1(db.DB, stmt.CountDamagedFiles)
-	err := util.WrapErrors(e1, e2, e3, e4)
+	totalSize, e5 := getInt1(db.DB, stmt.TotalSize)
+	err := util.WrapErrors(e1, e2, e3, e4, e5)
 	info := Info{
 		BucketLocation:    db.Folder,
 		LastChecked:       lastChecked,
 		LastBackup:        lastBackup,
 		AllFilesCount:     allFiles,
 		DamagedFilesCount: damagedFiles,
+		TotalSize:         totalSize,
 	}
 	return info, err
 }

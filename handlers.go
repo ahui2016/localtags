@@ -207,7 +207,7 @@ func reallyDeleteFile(c echo.Context) error {
 	if err := os.Remove(mainBucketFile(id)); err != nil {
 		return err
 	}
-	return db.Exec(stmt.DeleteFile, id)
+	return db.DeleteFile(id)
 }
 
 func updateTags(c echo.Context) error {

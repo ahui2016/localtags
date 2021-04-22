@@ -280,7 +280,7 @@ func (db *DB) getFileIDsByTags(tags []string) ([]string, error) {
 
 func (db *DB) getFilesByIDs(fileIDs []string) (files []*File, err error) {
 	for _, id := range fileIDs {
-		file, err := db.GetFileByID(id)
+		file, err := getFileByID(db.DB, id)
 		if err != nil {
 			return nil, err
 		}
@@ -289,15 +289,14 @@ func (db *DB) getFilesByIDs(fileIDs []string) (files []*File, err error) {
 	return
 }
 
-/*
-func (db *DB) isFileDeleted(id string) (bool, error) {
-	file, err := db.GetFileByID(id)
-	if err != nil {
-		return false, err
+func getFileByID(tx TX, id string) (file File, err error) {
+	row := tx.QueryRow(stmt.GetFile, id)
+	if file, err = scanFile(row); err != nil {
+		return
 	}
-	return file.Deleted, nil
+	err = fillTag(tx, &file)
+	return
 }
-*/
 
 func deleteTags(tx TX, toDelete []string, fileID string) error {
 	for _, tag := range toDelete {
