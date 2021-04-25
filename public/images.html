@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/public/style-light.css">
+  
+  <script src="/public/jquery.min.js"></script>
+  <script src="/public/dayjs.min.js"></script>
+  <script src="/public/bootstrap.bundle.min.js"></script>
+  <script src="/public/util.js"></script>
+  <script src="/public/searchform.js"></script>
+  
+  <title>Images - localtags</title>
+</head>
+<body>
+  <div id="root" class="container"></div>
+  <script>
+
+const Alerts = CreateAlerts();
+
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
+  '刷新页面显示全部文件。',
+]);
+
+const Navbar = {
+  view: () => m('nav').addClass('navbar navbar-light bg-light').append([
+    m('div').addClass('container-fluid').append([
+      m('a').attr({title:'main menu',href:'/light/home',type:'button'})
+        .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-house-door')),
+      m('span').addClass('navbar-brand').append([
+        m('span').addClass('PageTitle').text('Images'), ' ', m(InfoBtn),
+      ]),
+      m('button').attr({title:'Search',type:'button'}).addClass('AllFilesBtn btn btn-outline-dark').append(
+        m('i').addClass('bi bi-search'),
+      ),
+    ]),
+  ]),
+};
+
+const ImageList = cc('div');
+
+ImageList.prepend = (files) => {
+  files.forEach(file => {
+    const item = CreateImageItem(file);
+    $(ImageList.id).prepend(m(item));
+    item.init();
+  });  
+};
+
+ImageList.clear = () => {
+  $(ImageList.id).html('');
+};
+
+$('#root').append([
+  m(Navbar).addClass('my-2'),
+  m(InfoMsg).hide(),
+  m(SearchForm).addClass('my-2'),,
+  m(Loading),
+  m(Alerts),
+  m(ImageList).addClass('ImageList mt-3 d-flex justify-content-around flex-wrap'),
+  m(BottomLine),
+]);
+  
+init()
+
+function init() {
+  ajax({method:'GET',url:'/api/all-images',alerts:Alerts},
+    (files) => {
+      if (!files || files.length == 0) {
+        Alerts.insert('info', '没有文件，一个也没有。');
+        return;
+      }
+      ImageList.prepend(files);
+    }, null, () => {
+      Loading.hide();
+      console.log('高级功能：使用命令 "delete_file(id)" 把文件扔进回收站，以后可去回收站找回文件。');
+    });
+}
+
+function CreateImageItem(file) {
+  if (file.Thumb) {
+    file.Thumb = getThumbURL(file.ID);
+  } else {
+    file.Thumb = getThumbByFiletype(file.Type);
+  }
+
+  let self = cc('div', file.ID);
+
+  self.view = () => m('div').attr({id:self.raw_id}).addClass('card m-1')
+    .css('width','8rem').append([
+      m('img').attr({title:file.Name,src: file.Thumb}).addClass('card-img-top'),
+      m('div').addClass('ImageTags card-body p-1 small')
+    ]);
+
+  self.init = () => {
+    const tagsElem = $(self.id + ' .ImageTags');
+    file.Tags.forEach(tag => {
+      const item = m('span').text(tag).addClass('badge bg-light text-dark');
+      tagsElem.append(item);
+    });
+  };
+
+  return self;
+}
+
+  </script>
+</body>
+</html>

@@ -26,8 +26,8 @@ const Main_Bucket = 'Main Bucket';
 const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
-  '可添加多个备份仓库，每个备份仓库都是一个独立、完整的备份。任何一个空文件夹都可以作为备份仓库，例如 ',
-  'D:\\localtags\\backup (注意，该文件夹必须是存在的，本软件不自动新建文件夹)',
+  '可添加多个备份仓库，每个备份仓库都是一个独立、完整的备份。任何一个空文件夹都可以作为备份仓库，例如 D:\\localtags\\backup ',
+  '(强烈建议把备份仓库与主仓库分别放在不同的物理硬盘或U盘里，鸡蛋不放在同一个篮子里)',
 ]);
 
 const Navbar = {
@@ -156,7 +156,7 @@ const RepairBtn = cc('button');
 SubmitBtnAera.view = () => m('p').attr({id:SubmitBtnAera.raw_id}).append([
   m(BackupBtn).text('Backup').addClass('btn btn-primary').attr({type:'button'}).click(() => {
     $(Alerts.id).hide();
-    SubmitAlerts.insert('info', '正在备份......');
+    SubmitAlerts.insert('info', '正在备份，请耐心等待......');
     ajax({method:'POST',url:'/api/sync-backup',alerts:SubmitAlerts,buttonID:BackupBtn.id,body:BucketList.formBody},
         () => {
           // onSuccess

@@ -18,7 +18,7 @@ function FileItem(file) {
   const ctime = dayjs.unix(file.CTime).format('MMMM D, YYYY HH:mm:ss');
   
   const ItemAlerts = CreateAlerts();
-  const self = cc('div', 'f'+file.ID);
+  const self = cc('div', file.ID);
 
   self.view = () => m('div').attr({id: self.raw_id}).addClass('FileItem mb-3').append([
     m('div').addClass('card').append([
@@ -264,6 +264,6 @@ FileList.clear = () => {
 };
 
 function delete_file(id) {
-  const del_recycle_id = '#f' + id + ' .DeleteRecycle';
+  const del_recycle_id = '#' + id + ' .DeleteRecycle';
   $(del_recycle_id).click();
 }

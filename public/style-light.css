@@ -2,6 +2,10 @@
     pointer-events: none;
 }
 
+.ImageTags .badge + .badge {
+    margin-left: 0.25rem;
+}
+
 .Tags .badge + .badge,
 .Tags .Tag + .Tag {
     margin-left: 0.5rem;

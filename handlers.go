@@ -41,6 +41,14 @@ func allFiles(c echo.Context) error {
 	return c.JSON(OK, files)
 }
 
+func allImages(c echo.Context) error {
+	files, err := db.AllImages()
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, files)
+}
+
 func deletedFiles(c echo.Context) error {
 	files, err := db.DeletedFiles()
 	if err != nil {
@@ -128,7 +136,8 @@ func searchTags(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	files, err := db.SearchTags(tags)
+	fileType := getFileType(c)
+	files, err := db.SearchTags(tags, fileType)
 	if err != nil {
 		return err
 	}
@@ -140,7 +149,8 @@ func searchTitle(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	files, err := db.SearchFileName(pattern)
+	fileType := getFileType(c)
+	files, err := db.SearchFileName(pattern, fileType)
 	if err != nil {
 		return err
 	}

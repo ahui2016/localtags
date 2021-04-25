@@ -75,6 +75,7 @@ const GetFileIDsByName = `SELECT id FROM file WHERE name=? ORDER BY ctime;`
 const CountFilesByName = `SELECT count(*) FROM file WHERE name=?;`
 const SetFilesCount = `UPDATE file SET count=? WHERE name=?;`
 const GetFiles = `SELECT * FROM file WHERE deleted=0 ORDER BY ctime;`
+const GetImages = `SELECT * FROM file WHERE deleted=0 and type like "image/%" ORDER BY ctime;`
 const GetDeletedFiles = `SELECT * FROM file WHERE deleted>0 ORDER BY utime;`
 const GetAllFiles = `SELECT * FROM file;`
 const GetFilesNeedCheck = `SELECT * FROM file WHERE checked<?;`
@@ -91,7 +92,7 @@ const DamagedFiles = `SELECT * FROM file WHERE damaged>0;`
 const DamagedFileIDs = `SELECT id FROM file WHERE damaged>0;`
 const DeleteFile = `DELETE FROM file WHERE id=?;`
 
-const TotalSize = `SELECT sum(size) as totalsize FROM file;`
+const TotalSize = `SELECT COALESCE(sum(size),0) as totalsize FROM file;`
 
 const GetTag = `SELECT * FROM tag WHERE id=?;`
 const GetTagCTime = `SELECT ctime FROM tag WHERE id=?;`
@@ -116,11 +117,17 @@ const SetTagGroupProtected = `UPDATE taggroup SET protected=? WHERE id=?;`
 const GetTagsByFile = `SELECT tag_id FROM file_tag WHERE file_id=?;`
 
 const SearchFileName = `SELECT * FROM file WHERE deleted=0 and name LIKE ?;`
+const SearchImageName = `SELECT * FROM file WHERE deleted=0 and type like "image/%" and name LIKE ?;`
 
 const GetFilesByTag = `SELECT file.id FROM tag
     INNER JOIN file_tag ON tag.id = file_tag.tag_id
     INNER JOIN file ON file_tag.file_id = file.id
     WHERE file.deleted=0 and tag.id=?;`
+
+const GetImagesByTag = `SELECT file.id FROM tag
+    INNER JOIN file_tag ON tag.id = file_tag.tag_id
+    INNER JOIN file ON file_tag.file_id = file.id
+    WHERE file.deleted=0 and type like "image/%" and tag.id=?;`
 
 const AllFilesByTag = `SELECT file_id FROM file_tag WHERE tag_id=?;`
 

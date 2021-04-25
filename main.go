@@ -29,6 +29,7 @@ func main() {
 	light.File("/tag", "public/tag.html")
 	light.File("/home", "public/home.html")
 	light.File("/add", "public/add.html")
+	light.File("/images", "public/images.html")
 
 	// api 只使用 GET, POST, 不采用 RESTful.
 	api := e.Group("/api")
@@ -46,6 +47,7 @@ func main() {
 	api.GET("/waitingFolder", waitingFolder)
 	api.GET("/waiting-files", waitingFiles)
 	api.GET("/all-files", allFiles) // file.Deleted == false
+	api.GET("/all-images", allImages)
 	api.GET("/deleted-files", deletedFiles)
 	api.GET("/download/:id", downloadFile)
 	api.POST("/add-files", addFiles, autoCheck)

@@ -266,10 +266,14 @@ func scanTags(rows *sql.Rows) (tags []string, err error) {
 	return
 }
 
-func (db *DB) getFileIDsByTags(tags []string) ([]string, error) {
+func (db *DB) getFileIDsByTags(tags []string, fileType string) ([]string, error) {
+	query := stmt.GetFilesByTag
+	if fileType == "image" {
+		query = stmt.GetImagesByTag
+	}
 	var idSets []*Set
 	for _, tag := range tags {
-		fileIDs, err := getFileIDs(db.DB, stmt.GetFilesByTag, tag)
+		fileIDs, err := getFileIDs(db.DB, query, tag)
 		if err != nil {
 			return nil, err
 		}

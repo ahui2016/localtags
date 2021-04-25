@@ -131,7 +131,7 @@ func infoToFile(name string, meta map[string]*File) (
 	}
 
 	// 填充文件 ID
-	file.ID = model.RandomID()
+	file.ID = "f" + model.RandomID()
 	thumbPath := tempThumb(file.ID)
 
 	// 填充文件缩略图
@@ -227,6 +227,14 @@ func tryFileName(name string) error {
 		return err
 	}
 	return os.Remove(fullpath)
+}
+
+func getFileType(c echo.Context) string {
+	value := c.FormValue("file-type")
+	if value == "" {
+		return "all"
+	}
+	return value
 }
 
 // https://stackoverflow.com/questions/30697324/how-to-check-if-directory-on-path-is-empty

@@ -202,6 +202,15 @@ func (db *DB) AllFiles() (files []*File, err error) {
 	return
 }
 
+func (db *DB) AllImages() (files []*File, err error) {
+	files, err = getFiles(db.DB, stmt.GetImages)
+	if err != nil {
+		return
+	}
+	err = fillTags(db.DB, files)
+	return
+}
+
 func (db *DB) DeletedFiles() (files []*File, err error) {
 	files, err = getFiles(db.DB, stmt.GetDeletedFiles)
 	if err != nil {
@@ -220,16 +229,21 @@ func (db *DB) FileCTime(id string) (int64, error) {
 	return getInt1(db.DB, stmt.GetFileCTime, id)
 }
 
-func (db *DB) SearchTags(tags []string) ([]*File, error) {
-	fileIDs, err := db.getFileIDsByTags(tags)
+func (db *DB) SearchTags(tags []string, fileType string) ([]*File, error) {
+	fileIDs, err := db.getFileIDsByTags(tags, fileType)
 	if err != nil {
 		return nil, err
 	}
 	return db.getFilesByIDs(fileIDs)
 }
 
-func (db *DB) SearchFileName(pattern string) (files []*File, err error) {
-	rows, err := db.DB.Query(stmt.SearchFileName, "%"+pattern+"%")
+func (db *DB) SearchFileName(pattern string, fileType string) (files []*File, err error) {
+	query := stmt.SearchFileName
+	if fileType == "image" {
+		query = stmt.SearchImageName
+	}
+
+	rows, err := db.DB.Query(query, "%"+pattern+"%")
 	if err != nil {
 		return
 	}
@@ -362,7 +376,7 @@ func (db *DB) GetAllTags(query string) (tags []Tag, err error) {
 }
 
 func (db *DB) GetGroupsByTag(name string) (groups [][]string, err error) {
-	files, err := db.SearchTags([]string{name})
+	files, err := db.SearchTags([]string{name}, "all")
 	if err != nil {
 		return nil, err
 	}
