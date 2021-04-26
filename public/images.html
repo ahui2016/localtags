@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   
   <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/public/bootstrap-icons-141.css">
   <link rel="stylesheet" href="/public/style-light.css">
   
   <script src="/public/jquery.min.js"></script>
@@ -15,6 +15,12 @@
   <script src="/public/searchform.js"></script>
   
   <title>Images - localtags</title>
+  <style>
+    .ImageButtons > * {
+      color: lightgray;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <div id="root" class="container"></div>
@@ -23,7 +29,8 @@
 const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
-  '刷新页面显示全部文件。',
+  '搜索后，刷新页面显示全部文件。',
+  '点击图片的 ID 可选择/取消选择图片，然后可批量操作（改成多选框？）',
 ]);
 
 const Navbar = {
@@ -93,20 +100,32 @@ function CreateImageItem(file) {
   self.view = () => m('div').attr({id:self.raw_id}).addClass('card m-1')
     .css('width','8rem').append([
       m('img').attr({title:file.Name,src: file.Thumb}).addClass('card-img-top'),
-      m('div').addClass('ImageTags card-body p-1 small')
+      m('div').addClass('ImageButtons card-body p-2 small d-flex justify-content-between').append([
+        m('span').text(file.ID).attr({title:'click to select'}),
+        m('i').addClass('bi bi-tag ml-1'),
+        m('i').addClass('DeleteBtn bi bi-trash ml-1'),
+        m('i').addClass('bi bi-download ml-1'),
+      ]),
     ]);
 
+    self.init = () => {};
+/*
   self.init = () => {
     const tagsElem = $(self.id + ' .ImageTags');
+    const widthLimit = tagsElem.width() - 20;
+
     file.Tags.forEach(tag => {
       const item = m('span').text(tag).addClass('badge bg-light text-dark');
       tagsElem.append(item);
+      if (item.width() > widthLimit) {
+        item.css('width','7rem').addClass('text-truncate');
+      }
     });
   };
+*/
 
   return self;
 }
-
   </script>
 </body>
 </html>

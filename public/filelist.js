@@ -23,7 +23,7 @@ function FileItem(file) {
   self.view = () => m('div').attr({id: self.raw_id}).addClass('FileItem mb-3').append([
     m('div').addClass('card').append([
       m('div').addClass('row g-0').append([
-        m('div').addClass(thumbClass).append([
+        m('div').addClass(thumbClass).attr({title:file.Name}).append([
           m('img').addClass('NoLinkImg card-img').attr({src: file.Thumb}),
           m('a').attr({href:getPhotoURL(file.ID),target:'_blank'}).hide().addClass('LinkImg').append(
             m('img').addClass('card-img').attr({src: file.Thumb}),
@@ -35,7 +35,7 @@ function FileItem(file) {
               m('span').text(cardSubtitle).attr({title:ctime}).css('cursor','crosshair'), ' ',
               m('span').text('DAMAGED').addClass('Damaged text-light bg-danger px-1').hide(),
             ]),
-            m('p').addClass('FilenameArea card-text text-break').append([
+            m('p').addClass('FilenameArea card-text text-break mb-2').append([
               m('a').text(`[${file.Count}]`).addClass('FileCount link-secondary text-decoration-none')
                 .attr({title:'same name files',href:'/light/search?fileid=' + file.ID}).hide(),
               m('span').addClass('Filename').text(file.Name),
@@ -44,7 +44,7 @@ function FileItem(file) {
               m('input').addClass('NameInput form-control'),
               m('button').text('ok').addClass('NameOK btn btn-outline-secondary').attr({type:'button'}),
             ]),
-            m('div').addClass('Tags small'),
+            m('div').addClass('Tags small text-break'),
             m('div').addClass('TagsInputGroup input-group').hide().append([
               m('input').addClass('TagsInput form-control'),
               m('button').text('ok').addClass('TagsOK btn btn-outline-secondary').attr({type:'button'}),
