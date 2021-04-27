@@ -3,7 +3,7 @@ const FilterSelect = cc('select');
 const SearchInput = cc('input');
 const SubmitBtn = cc('button');
 const SearchForm = {
-  view: () => m('form').addClass('row g-1').append([
+  view: () => m('form').addClass('SearchForm row g-1').append([
     m('div').addClass('col-auto').append(
       m(FilterSelect).addClass('form-select').append([
         m('option').text('tags').attr({value:'tags'}).prop('selected',true),

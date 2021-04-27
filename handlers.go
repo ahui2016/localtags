@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/stmt"
@@ -158,11 +157,11 @@ func searchTitle(c echo.Context) error {
 }
 
 func searchByID(c echo.Context) error {
-	id, err := getFormValue(c, "id")
+	id, err := getID(c)
 	if err != nil {
 		return err
 	}
-	files, err := db.SearchSameNameFiles(strings.ToUpper(id))
+	files, err := db.SearchSameNameFiles(id)
 	if err != nil {
 		return err
 	}
@@ -194,24 +193,33 @@ func downloadFile(c echo.Context) error {
 }
 
 func deleteFile(c echo.Context) error {
-	id, err := getFormValue(c, "id")
+	id, err := getID(c)
 	if err != nil {
+		return err
+	}
+	if err = checkFileExist(id); err != nil {
 		return err
 	}
 	return db.Exec(stmt.SetFileDeletedNow, true, model.TimeNow(), id)
 }
 
 func undeleteFile(c echo.Context) error {
-	id, err := getFormValue(c, "id")
+	id, err := getID(c)
 	if err != nil {
+		return err
+	}
+	if err = checkFileExist(id); err != nil {
 		return err
 	}
 	return db.Exec(stmt.SetFileDeletedNow, false, model.TimeNow(), id)
 }
 
 func reallyDeleteFile(c echo.Context) error {
-	id, err := getFormValue(c, "id")
+	id, err := getID(c)
 	if err != nil {
+		return err
+	}
+	if err = checkFileExist(id); err != nil {
 		return err
 	}
 	if err := os.Remove(mainBucketFile(id)); err != nil {
@@ -221,18 +229,18 @@ func reallyDeleteFile(c echo.Context) error {
 }
 
 func updateTags(c echo.Context) error {
-	id, err1 := getFormValue(c, "id")
-	tags, err2 := getTags(c)
-	if err := util.WrapErrors(err1, err2); err != nil {
+	id, e1 := getID(c)
+	tags, e2 := getTags(c)
+	if err := util.WrapErrors(e1, e2); err != nil {
 		return err
 	}
 	return db.UpdateTags(id, tags)
 }
 
 func renameFile(c echo.Context) error {
-	id, err1 := getFormValue(c, "id")
-	name, err2 := getFormValue(c, "name")
-	if err := util.WrapErrors(err1, err2); err != nil {
+	id, e1 := getID(c)
+	name, e2 := getFormValue(c, "name")
+	if err := util.WrapErrors(e1, e2); err != nil {
 		return err
 	}
 	if err := tryFileName(name); err != nil {

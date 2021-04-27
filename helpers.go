@@ -202,6 +202,14 @@ func getFormValue(c echo.Context, key string) (string, error) {
 	return value, nil
 }
 
+func getID(c echo.Context) (string, error) {
+	id, err := getFormValue(c, "id")
+	if err != nil {
+		return "", err
+	}
+	return strings.ToUpper(id), nil
+}
+
 func getNumber(c echo.Context, key string) (int, error) {
 	s, err := getFormValue(c, key)
 	if err != nil {
@@ -505,4 +513,11 @@ func repair(badDB, goodDB *database.DB, badFolder, goodFolder string) error {
 		}
 	}
 	return nil
+}
+
+func checkFileExist(id string) (err error) {
+	if !db.IsFileExist(id) {
+		err = fmt.Errorf("not found: file id [%s]", id)
+	}
+	return
 }

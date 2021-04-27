@@ -205,9 +205,9 @@ function FileItem(file) {
         enable(del_btn_id);
         $(del_btn_id).addClass('text-danger').off().click(() => {
           ajax({method:'POST',url:'/api/really-delete-file',alerts:ItemAlerts,buttonID:del_btn_id,body:body},
-          () => {
-            self.afterDeleted();
-          });
+              () => {
+                self.afterDeleted();
+              });
         });
       }, 1000);
     });
@@ -264,6 +264,10 @@ FileList.clear = () => {
 };
 
 function delete_file(id) {
-  const del_recycle_id = '#' + id + ' .DeleteRecycle';
+  const del_recycle_id = '#' + id.toUpperCase() + ' .DeleteRecycle';
+  if ($(del_recycle_id).length < 1) {
+    console.log(`在本页中找不到 id: ${id}`);
+    return;
+  }
   $(del_recycle_id).click();
 }

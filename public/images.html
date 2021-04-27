@@ -18,6 +18,11 @@
   <style>
     .ImageButtons > * {
       color: lightgray;
+    }
+    .bi-tag {
+      cursor: crosshair;
+    }
+    .DeleteBtn {
       cursor: pointer;
     }
   </style>
@@ -28,10 +33,12 @@
 
 const Alerts = CreateAlerts();
 
-const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
-  '搜索后，刷新页面显示全部文件。',
-  '点击图片的 ID 可选择/取消选择图片，然后可批量操作（改成多选框？）',
-]);
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
+  m('li').text('删除方法1：点击删除按钮，等删除按钮变红后，再点击一次删除按钮彻底删除该图片，不可恢复。'),
+  m('li').text('删除方法2：按 F12 进入控制台输入命令 "delete_file(id)" 把文件扔进回收站，以后可去回收站找回文件。'),
+  m('li').text('点击缩略图可预览大图，点击下载按钮可下载图片。'),
+  m('li').text('如需修改文件名或修改标签，请点击图片的 ID。'),
+]));
 
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
@@ -43,7 +50,10 @@ const Navbar = {
       ]),
       m('button').attr({title:'Search',type:'button'}).addClass('AllFilesBtn btn btn-outline-dark').append(
         m('i').addClass('bi bi-search'),
-      ),
+      ).click(() => {
+        $('.SearchForm').toggle();
+        $(SearchInput.id).focus();
+      }),
     ]),
   ]),
 };
@@ -65,8 +75,8 @@ ImageList.clear = () => {
 $('#root').append([
   m(Navbar).addClass('my-2'),
   m(InfoMsg).hide(),
-  m(SearchForm).addClass('my-2'),,
-  m(Loading),
+  m(SearchForm).addClass('my-2').hide(),
+  m(Loading).addClass('my-5'),
   m(Alerts),
   m(ImageList).addClass('ImageList mt-3 d-flex justify-content-around flex-wrap'),
   m(BottomLine),
@@ -99,16 +109,59 @@ function CreateImageItem(file) {
 
   self.view = () => m('div').attr({id:self.raw_id}).addClass('card m-1')
     .css('width','8rem').append([
-      m('img').attr({title:file.Name,src: file.Thumb}).addClass('card-img-top'),
+      m('a').addClass('LinkImage').attr({href:getPhotoURL(file.ID),target:'_blank'}).append(
+          m('img').attr({title:file.Name,src: file.Thumb}).addClass('card-img-top'),
+        ),
       m('div').addClass('ImageButtons card-body p-2 small d-flex justify-content-between').append([
-        m('span').text(file.ID).attr({title:'click to select'}),
-        m('i').addClass('bi bi-tag ml-1'),
-        m('i').addClass('DeleteBtn bi bi-trash ml-1'),
-        m('i').addClass('bi bi-download ml-1'),
+        m('a').text(file.ID).addClass('text-decoration-none')
+          .attr({title:'more...',href:'/light/search?fileid='+file.ID, target:'_blank'}),
+        m('i').addClass('bi bi-tag ml-1').attr({title:addPrefix(file.Tags, '#')}),
+        m('i').addClass('DeleteBtn bi bi-trash ml-1').attr({title:'delete'}),
+        m('i').addClass('DeleteRecycle bi bi-trash-fill').hide(),
+        m('a').attr({title:'download',download:file.Name, href:'/light/search?fileid='+file.ID}).append(
+          m('i').addClass('bi bi-download ml-1')
+        ),
+        m('span').text('DELETED').addClass('DELETED badge bg-secondary text-white').hide(),
       ]),
     ]);
 
-    self.init = () => {};
+    self.afterDeleted = () => {
+      $(self.id + ' .card-img-top').css('filter', 'opacity(0.5) grayscale(1)');
+      disable(self.id + ' .LinkImage');
+      $(self.id+' .ImageButtons a').hide();
+      $(self.id+' .ImageButtons i').hide();
+      $(self.id+' .DELETED').show();
+      $(self.id+' .ImageButtons').removeClass('d-flex justify-content-between')
+        .addClass('text-center');
+    };
+
+    self.init = () => {
+      const del_btn_id = self.id+' .DeleteBtn';
+
+      const body = new FormData();
+      body.append('id', file.ID);
+
+      $(del_btn_id).click(() => {
+        disable(del_btn_id);
+        window.setTimeout(() => {
+          enable(del_btn_id);
+          $(del_btn_id).addClass('text-danger').off().click(() => {
+            ajax({method:'POST',url:'/api/really-delete-file',alerts:Alerts,buttonID:del_btn_id,body:body},
+                () => {
+                  self.afterDeleted();
+                });
+          });
+        }, 1000);
+      });
+      
+      $(self.id+' .DeleteRecycle').click(() => {
+        ajax({method:'POST',url:'/api/delete-file',alerts:Alerts,buttonID:del_btn_id,body:body},
+            () => {
+              console.log(`文件 [id:${file.ID}] 已扔进回收站，可去回收站找回文件。`);
+              self.afterDeleted();
+            });
+      });
+    };
 /*
   self.init = () => {
     const tagsElem = $(self.id + ' .ImageTags');
@@ -123,9 +176,29 @@ function CreateImageItem(file) {
     });
   };
 */
-
   return self;
 }
-  </script>
-</body>
+
+function delete_file(id) {
+  const del_recycle_id = '#' + id.toUpperCase() + ' .DeleteRecycle';
+  if ($(del_recycle_id).length < 1) {
+    console.log(`在本页中找不到 id: ${id}`);
+    return;
+  }
+  $(del_recycle_id).click();
+}
+
+/*
+function try_delete(id) {
+  const body = new FormData();
+  body.append('id', id);
+
+  ajax({method:'POST',url:'/api/delete-file',body:body},
+    () => {
+      console.log(`文件 [id:${id}] 已扔进回收站，可去回收站找回文件。`);
+    });
+}
+*/
+    </script>
+  </body>
 </html>
