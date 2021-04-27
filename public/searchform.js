@@ -76,7 +76,7 @@ const SearchForm = {
     }
     Alerts.insert('success', `找到 ${files.length} 个文件`);
     ImageList.clear();
-    ImageList.prepend(files);
+    ImageList.append(files);
   },
   onFail: () => {
     ImageList.clear();

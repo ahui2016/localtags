@@ -67,15 +67,17 @@ const GetTextValue = `SELECT text_value FROM metadata WHERE name=?;`
 const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 
 const GetFile = `SELECT * FROM file WHERE id=?;`
-const GetFileName = `SELECT name FROM file WHERE id=?;`
+const GetFileName = `SELECT name FROM file WHERE id=?`
 const GetFileCTime = `SELECT ctime FROM file WHERE id=?;`
 const GetFileDamaged = `SELECT damaged FROM file WHERE id=?;`
 const GetFileID = `SELECT id FROM file WHERE hash=?;`
-const GetFileIDsByName = `SELECT id FROM file WHERE name=? ORDER BY ctime;`
+const GetFileIDsByName = `SELECT id FROM file WHERE name=? ORDER BY ctime DESC;`
 const CountFilesByName = `SELECT count(*) FROM file WHERE name=?;`
 const SetFilesCount = `UPDATE file SET count=? WHERE name=?;`
-const GetFiles = `SELECT * FROM file WHERE deleted=0 ORDER BY ctime;`
-const GetImages = `SELECT * FROM file WHERE deleted=0 and type like "image/%" ORDER BY ctime;`
+const GetFiles = `SELECT * FROM file WHERE deleted=0 ORDER BY ctime DESC LIMIT ?;`
+const GetImages = `
+  SELECT * FROM file WHERE deleted=0 and type like "image/%"
+  ORDER BY ctime DESC LIMIT ?;`
 const GetDeletedFiles = `SELECT * FROM file WHERE deleted>0 ORDER BY utime;`
 const GetAllFiles = `SELECT * FROM file;`
 const GetFilesNeedCheck = `SELECT * FROM file WHERE checked<?;`
@@ -116,8 +118,11 @@ const SetTagGroupProtected = `UPDATE taggroup SET protected=? WHERE id=?;`
 
 const GetTagsByFile = `SELECT tag_id FROM file_tag WHERE file_id=?;`
 
-const SearchFileName = `SELECT * FROM file WHERE deleted=0 and name LIKE ?;`
-const SearchImageName = `SELECT * FROM file WHERE deleted=0 and type like "image/%" and name LIKE ?;`
+const SearchFileName = `
+  SELECT * FROM file WHERE deleted=0 and name LIKE ? ORDER BY ctime DESC;`
+const SearchImageName = `
+  SELECT * FROM file WHERE deleted=0 and type like "image/%" and name LIKE ?
+  ORDER BY ctime DESC;`
 
 const GetFilesByTag = `SELECT file.id FROM tag
     INNER JOIN file_tag ON tag.id = file_tag.tag_id

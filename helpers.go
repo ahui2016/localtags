@@ -303,7 +303,7 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 	bkPath := filepath.Join(bkFolder, backupDBFileName)
 	if util.PathIsNotExist(bkPath) {
 		bk := new(database.DB)
-		if err := bk.Open(bkPath); err != nil {
+		if err := bk.Open(bkPath, cfg); err != nil {
 			return nil, err
 		}
 		bk.Close()

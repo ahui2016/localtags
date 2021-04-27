@@ -197,10 +197,10 @@ function FileItem(file) {
       m('div').addClass('col').append([
         m('div').addClass('card-body d-flex flex-column h-100').append([
           m('p').addClass('small card-subtitle text-muted').text(cardSubtitle),
-          m('p').addClass('card-text').text(file.Name),
+          m('p').addClass('card-text text-break mb-2').text(file.Name),
           m('div').addClass('TagsArea mt-auto').append([
             m('i').addClass('bi bi-tag').attr({title:'edit tags'}),
-            m('span').addClass('Tags small text-muted').text(addPrefix(file.Tags, '#')),
+            m('span').addClass('Tags small text-muted text-break').text(addPrefix(file.Tags, '#')),
           ]),
           m('div').addClass('input-group mt-auto').hide().append([
             m('input').addClass('TagsInput form-control'),

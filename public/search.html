@@ -130,7 +130,7 @@ const SearchForm = {
     }
     Alerts.insert('success', `找到 ${files.length} 个文件`);
     FileList.clear();
-    FileList.prepend(files);
+    FileList.append(files);
   },
   onFail: () => {
     FileList.clear();

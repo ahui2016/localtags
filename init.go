@@ -56,7 +56,7 @@ func init() {
 	hasFFmpeg = thumb.CheckFFmpeg()
 
 	// open the db here, close the db in main().
-	util.Panic(db.Open(dbPath))
+	util.Panic(db.Open(dbPath, cfg))
 }
 
 func setConfig() {

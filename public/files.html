@@ -83,7 +83,7 @@ function init() {
         Alerts.insert('info', notFoundMsg);
         return;
       }
-      FileList.prepend(files);
+      FileList.append(files);
     }, null, () => {
       Loading.hide();
     });

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"sort"
 
 	"github.com/ahui2016/localtags/config"
 	"github.com/ahui2016/localtags/model"
@@ -14,8 +15,6 @@ import (
 	"github.com/ahui2016/localtags/util"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-var cfg = config.Public
 
 type (
 	Stmt     = sql.Stmt
@@ -51,9 +50,10 @@ type Row interface {
 type DB struct {
 	Folder string
 	DB     *sql.DB
+	Config config.Config
 }
 
-func (db *DB) Open(dbPath string) (err error) {
+func (db *DB) Open(dbPath string, cfg config.Config) (err error) {
 	if db.DB, err = sql.Open("sqlite3", dbPath+"?_fk=1"); err != nil {
 		return
 	}
@@ -61,6 +61,7 @@ func (db *DB) Open(dbPath string) (err error) {
 	if err = db.Exec(stmt.CreateTables); err != nil {
 		return
 	}
+	db.Config = cfg
 	return db.initMetadata()
 }
 
@@ -134,7 +135,7 @@ func (db *DB) InsertFiles(files []*File) error {
 			if err := exec(tx, stmt.SetFilesCount, file.Count, file.Name); err != nil {
 				return err
 			}
-			if err := updateTags(tx, ids[0], file.Tags); err != nil {
+			if err := updateTags(tx, ids[0], file.Tags, db.Config.TagGroupLimit); err != nil {
 				return err
 			}
 		}
@@ -146,7 +147,7 @@ func (db *DB) InsertFiles(files []*File) error {
 		// add the tag group
 		group := model.NewTagGroup()
 		group.Tags = file.Tags
-		if err = addTagGroup(tx, group); err != nil {
+		if err = addTagGroup(tx, group, db.Config.TagGroupLimit); err != nil {
 			return err
 		}
 
@@ -194,7 +195,7 @@ func (db *DB) SearchDamagedFiles() ([]*File, error) {
 }
 
 func (db *DB) AllFiles() (files []*File, err error) {
-	files, err = getFiles(db.DB, stmt.GetFiles)
+	files, err = getFiles(db.DB, stmt.GetFiles, db.Config.FileListLimit)
 	if err != nil {
 		return
 	}
@@ -203,7 +204,7 @@ func (db *DB) AllFiles() (files []*File, err error) {
 }
 
 func (db *DB) AllImages() (files []*File, err error) {
-	files, err = getFiles(db.DB, stmt.GetImages)
+	files, err = getFiles(db.DB, stmt.GetImages, db.Config.FileListLimit)
 	if err != nil {
 		return
 	}
@@ -234,7 +235,14 @@ func (db *DB) SearchTags(tags []string, fileType string) ([]*File, error) {
 	if err != nil {
 		return nil, err
 	}
-	return db.getFilesByIDs(fileIDs)
+	files, err := db.getFilesByIDs(fileIDs)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].CTime > files[j].CTime
+	})
+	return files, nil
 }
 
 func (db *DB) SearchFileName(pattern string, fileType string) (files []*File, err error) {
@@ -278,7 +286,7 @@ func (db *DB) UpdateTags(fileID string, tags []string) error {
 	tx := db.mustBegin()
 	defer tx.Rollback()
 
-	if err := updateTags(tx, fileID, newTags); err != nil {
+	if err := updateTags(tx, fileID, newTags, db.Config.TagGroupLimit); err != nil {
 		return err
 	}
 
@@ -354,7 +362,7 @@ func (db *DB) TagGroups() (groups []TagGroup, err error) {
 }
 
 func (db *DB) AddTagGroup(group *TagGroup) error {
-	return addTagGroup(db.DB, group)
+	return addTagGroup(db.DB, group, db.Config.TagGroupLimit)
 }
 
 func (db *DB) GetAllTags(query string) (tags []Tag, err error) {

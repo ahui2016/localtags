@@ -66,12 +66,12 @@ func initTextValue(key string, value string, tx TX) error {
 	return err
 }
 
-func needToCheck(tx TX) (need bool, err error) {
+func needToCheck(tx TX, interval int64) (need bool, err error) {
 	lastCheckTime, err := getIntValue(last_check_key, tx)
 	if err != nil {
 		return
 	}
-	if model.TimeNow()-lastCheckTime > cfg.CheckInterval {
+	if model.TimeNow()-lastCheckTime > interval {
 		need = true
 	}
 	return
@@ -79,7 +79,7 @@ func needToCheck(tx TX) (need bool, err error) {
 
 // CheckFilesHash 只校验长时间未校验的文件，忽略短期内曾校验过的文件。
 func (db *DB) CheckFilesHash(bucket string) error {
-	need, err := needToCheck(db.DB)
+	need, err := needToCheck(db.DB, db.Config.CheckInterval)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func (db *DB) CheckFilesHash(bucket string) error {
 	defer tx.Rollback()
 
 	// 如果一个文件的上次校验日期小于(早于) needCheckDate, 那么这个文件就需要再次校验。
-	needCheckDate := model.TimeNow() - cfg.CheckInterval
+	needCheckDate := model.TimeNow() - db.Config.CheckInterval
 	files, err := getFiles(tx, stmt.GetFilesNeedCheck, needCheckDate)
 	if err != nil {
 		return err

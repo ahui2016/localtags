@@ -60,10 +60,10 @@ const Navbar = {
 
 const ImageList = cc('div');
 
-ImageList.prepend = (files) => {
+ImageList.append = (files) => {
   files.forEach(file => {
     const item = CreateImageItem(file);
-    $(ImageList.id).prepend(m(item));
+    $(ImageList.id).append(m(item));
     item.init();
   });  
 };
@@ -91,7 +91,7 @@ function init() {
         Alerts.insert('info', '没有文件，一个也没有。');
         return;
       }
-      ImageList.prepend(files);
+      ImageList.append(files);
     }, null, () => {
       Loading.hide();
       console.log('高级功能：使用命令 "delete_file(id)" 把文件扔进回收站，以后可去回收站找回文件。');

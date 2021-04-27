@@ -96,7 +96,7 @@ func isTagExist(tx TX, tagID string) (bool, error) {
 	return true, nil
 }
 
-func addTagGroup(tx TX, group *TagGroup) error {
+func addTagGroup(tx TX, group *TagGroup, limit int64) error {
 	if len(group.Tags) < 2 {
 		return errors.New("a tag group needs at least two tags")
 	}
@@ -119,15 +119,15 @@ func addTagGroup(tx TX, group *TagGroup) error {
 	if err != nil {
 		return err
 	}
-	return deleteOldTagGroup(tx)
+	return deleteOldTagGroup(tx, limit)
 }
 
-func deleteOldTagGroup(tx TX) error {
+func deleteOldTagGroup(tx TX, limit int64) error {
 	count, err := getInt1(tx, stmt.TagGroupCount)
 	if err != nil {
 		return err
 	}
-	if count < cfg.TagGroupLimit {
+	if count < limit {
 		return nil
 	}
 	groupID, err := getText1(tx, stmt.LastTagGroup)
@@ -334,7 +334,7 @@ func updateTagsNow(tx TX, fileID string, toAdd, toDelete []string) error {
 	return util.WrapErrors(e1, e2, e3)
 }
 
-func updateTags(tx TX, fileID string, newTags []string) error {
+func updateTags(tx TX, fileID string, newTags []string, limit int64) error {
 	oldTags, err := getTagsByFile(tx, fileID)
 	if err != nil {
 		return err
@@ -346,7 +346,7 @@ func updateTags(tx TX, fileID string, newTags []string) error {
 
 	group := model.NewTagGroup()
 	group.Tags = newTags
-	if err := addTagGroup(tx, group); err != nil {
+	if err := addTagGroup(tx, group, limit); err != nil {
 		return err
 	}
 

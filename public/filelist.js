@@ -251,10 +251,10 @@ function FileItem(file) {
 
 const FileList = cc('div');
 
-FileList.prepend = (files) => {
+FileList.append = (files) => {
   files.forEach(file => {
     const item = FileItem(file);
-    $(FileList.id).prepend(m(item));
+    $(FileList.id).append(m(item));
     item.init();
   });  
 };
