@@ -206,14 +206,14 @@ function createTagGroup(group) {
     const tagsElem = $(self.id + ' .Tags');
     group.Tags.forEach(tag => {
       const link = '/light/tag?name=' + encodeURIComponent(tag);
-      const item = m('span').text(tag).addClass('badge bg-primary').click(() => {
+      const item = m('span').text(tag).addClass('badge bg-light text-dark').click(() => {
         window.open(link);
       });
       tagsElem.append(item);
     });
 
     const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroupStr);
-    const groupItem = m('span').text('group').attr({title:'search tag group'}).addClass('badge bg-info')
+    const groupItem = m('span').text('group').attr({title:'search tag group'}).addClass('badge bg-secondary')
       .click(() => {
         window.open(groupLink, 'localtags-search');
       });

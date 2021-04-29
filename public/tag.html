@@ -176,10 +176,10 @@ function createTagGroup(group) {
     const tagsElem = $(self.id + ' .Tags');
     group.forEach(tag => {
       if (tag == tag_name) {
-        const item = m('span').text(tag).addClass('badge bg-primary').css({cursor:'default'});
+        const item = m('span').text(tag).addClass('badge bg-light text-dark').css({cursor:'default'});
         tagsElem.append(item);
       } else {
-        const item = m('span').text(tag).addClass('badge bg-primary').click(() => {
+        const item = m('span').text(tag).addClass('badge bg-success').click(() => {
           window.location = '/light/tag?name=' + encodeURIComponent(tag);
         });
         tagsElem.append(item);
@@ -188,16 +188,20 @@ function createTagGroup(group) {
 
     const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroupStr);
     const groupItem = m('span').text('group').attr({title:'search tag group'})
-      .addClass('badge bg-info').click(() => {
+      .addClass('badge bg-primary').click(() => {
         window.open(groupLink, 'localtags-search');
       });
     tagsElem.append(groupItem);
 
-    const copyBtn = m('span').text('copy').addClass('CopyBtn badge bg-info');
+    const copyBtn = m('span').text('copy').addClass('CopyBtn badge bg-primary');
     tagsElem.append(copyBtn);
     const clipboard = new ClipboardJS(self.id+' .CopyBtn', {
       text: () => { return tagGroupStr; }
     });
+    clipboard.on('success', () => {
+      $(self.id+' .CopyBtn').text('copied').removeClass('bg-primary').addClass('bg-secondary');
+    });
+
   };
 
   return self;

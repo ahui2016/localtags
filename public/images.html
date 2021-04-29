@@ -88,7 +88,7 @@ function init() {
   ajax({method:'GET',url:'/api/all-images',alerts:Alerts},
     (files) => {
       if (!files || files.length == 0) {
-        Alerts.insert('info', '没有文件，一个也没有。');
+        Alerts.insert('info', '数据库中没有未删除的图片。');
         return;
       }
       ImageList.append(files);
