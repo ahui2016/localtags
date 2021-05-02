@@ -30,7 +30,7 @@ type Config struct {
 	// 当超过上限时，不受保护的标签组会被覆盖。可通过点击 "protect" 按钮保护标签。
 	TagGroupLimit int64
 
-	// FileListLimit 限制文件列表（及图片列表）的上限，但不限制搜索结果的上限。
+	// FileListLimit 限制近期文件（及近期图片）的上限，但不限制搜索结果的上限。
 	// 因此，在 “全部文件” 和 “全部图片” 的列表中不会列出超过上限的文件，只能通过搜索来找出被隐藏的文件。
 	FileListLimit int64
 

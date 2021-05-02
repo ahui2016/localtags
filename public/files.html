@@ -22,11 +22,12 @@
 
 const Alerts = CreateAlerts();
 
-const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
-  '双击文件名可修改文件名，点击标签图标可修改标签。',
-  '修改文件名或标签时，如果内容不变或清空文本框后按 OK 按钮，相当于取消。',
-  '按 F12 进入控制台输入命令 "delete_file(id)" 把文件扔进回收站，以后可去回收站找回文件。',
-]);
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
+  m('li').text('这里只列出近期文件（具体数量在 config.json 文件中设置），如需查找旧文件请使用搜索功能。'),
+  m('li').text('双击文件名可修改文件名，点击标签图标可修改标签。'),
+  m('li').text('修改文件名或标签时，如果内容不变或清空文本框后按 OK 按钮，相当于取消。'),
+  m('li').text('按 F12 进入控制台输入命令 "delete_file(id)" 把文件扔进回收站，以后可去回收站找回文件。'),
+]));
 
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([

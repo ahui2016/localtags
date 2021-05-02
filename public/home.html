@@ -23,7 +23,7 @@
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
-      m('span').addClass('PageTitle navbar-brand').text('Home - localtags'),
+      m('span').addClass('PageTitle navbar-brand').text('localtags - Home'),
     ]),
   ]),
 };
@@ -33,8 +33,8 @@ $('#root').append([
   m(Spacer),
   m('div').append([
     create_item('Add Files', '/light/add', '添加文件'),
-    create_item('Files', '/light/files', '全部文件'),
-    create_item('Images', '/light/images', '图片'),
+    create_item('Files', '/light/files', '近期文件'),
+    create_item('Images', '/light/images', '近期图片'),
     create_item('Tag Groups', '/light/tag-groups', '标签组'),
     create_item('Tags', '/light/tags', '全部标签'),
     create_item('Search', '/light/search', '搜索'),
@@ -43,7 +43,7 @@ $('#root').append([
     create_item('Backup', '/light/backup', '备份'),
     m(Spacer),
     m('p').addClass('small text-secondary text-end').append([
-      'localtags version: 2021-04-05',
+      'localtags version: 2021-05-05',
       m('br'),
       m('i').addClass('small bi bi-box-arrow-up-right'),
       ' ',

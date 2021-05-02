@@ -34,9 +34,9 @@
 const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
+  m('li').text('本页默认列出近期图片（有数量限制，可在 config.json 文件中修改），使用搜索功能可列出更多图片。'),
   m('li').text('删除方法1：点击删除按钮，等删除按钮变红后，再点击一次删除按钮彻底删除该图片，不可恢复。'),
   m('li').text('删除方法2：按 F12 进入控制台输入命令 "delete_file(id)" 把文件扔进回收站，以后可去回收站找回文件。'),
-  m('li').text('点击缩略图可预览大图，点击下载按钮可下载图片。'),
   m('li').text('如需修改文件名或修改标签，请点击图片的 ID。'),
 ]));
 
