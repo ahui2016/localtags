@@ -23,10 +23,10 @@ function FileItem(file) {
   self.view = () => m('div').attr({id: self.raw_id}).addClass('FileItem mb-3').append([
     m('div').addClass('card').append([
       m('div').addClass('row g-0').append([
-        m('div').addClass(thumbClass).attr({title:file.Name}).append([
-          m('img').addClass('NoLinkImg card-img').attr({src: file.Thumb}),
+        m('div').addClass(thumbClass).append([
+          m('img').addClass('NoLinkImg card-img').attr({src:file.Thumb,title:ctime}),
           m('a').attr({href:getPhotoURL(file.ID),target:'_blank'}).hide().addClass('LinkImg').append(
-            m('img').addClass('card-img').attr({src: file.Thumb}),
+            m('img').addClass('card-img').attr({src:file.Thumb,title:'点击预览'}),
           ),
         ]),
         m('div').addClass('col').append([
@@ -142,7 +142,7 @@ function FileItem(file) {
     const nameInput = $(self.id + ' .NameInput');
     const filename = $(filename_id);
 
-    if (isImage(file.Type)) {
+    if (isPreviewable(file)) {
       $(no_link_img_id).hide();
       $(link_img_id).show();
     }

@@ -158,9 +158,18 @@ function eqSets(a, b) {
   return true;
 }
 
-function isImage(filetype) {
-  const prefix = filetype.split('/').shift();
-  return prefix == 'image';
+function isPreviewable(file) {
+  const prefix = file.Type.split('/').shift();
+  const suffix = file.Name.split('.').pop();
+  if (prefix == 'image') return true;
+  switch (suffix) {
+    case 'mp3':
+    case 'mp4':
+    case 'pdf':
+      return true;
+    default:
+      return false;
+  }
 }
 
 function getThumbByFiletype(filetype) {
