@@ -7,6 +7,11 @@
 3. 标签管理
 4. 文件历史版本
 
+
+## 截图
+
+本软件的界面截图请看 screenshots 文件夹。
+
 ## 安装运行
 
 - 要求先正确安装 git 和 [Go 语言](https://golang.google.cn/)、ffmpeg。
