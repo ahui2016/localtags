@@ -420,7 +420,7 @@ func (db *DB) RenameTag(oldName, newName string) error {
 
 	// 如果新标签名已存在，则添加新标签，删除旧标签。
 	fileIDs, err := getFileIDs(db.DB, stmt.AllFilesByTag, oldName)
-	if err != nil {
+	if err != nil && !util.ErrorContains(err, "no files") {
 		return err
 	}
 	tx := db.mustBegin()
