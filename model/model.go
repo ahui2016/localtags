@@ -87,7 +87,7 @@ func typeByFilename(filename string) (filetype string) {
 	switch ext {
 	case "zip", "rar", "7z", "gz", "tar", "bz", "bz2", "xz":
 		filetype = "compressed/" + ext
-	case "md", "xml", "html", "xhtml", "htm":
+	case "md", "xml", "html", "xhtml", "htm", "yaml", "js", "ts", "go", "py", "cs", "dart", "rb", "c", "h", "cpp", "rs":
 		filetype = "text/" + ext
 	case "doc", "docx", "ppt", "pptx", "rtf", "xls", "xlsx":
 		filetype = "office/" + ext

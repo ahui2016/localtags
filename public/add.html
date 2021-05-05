@@ -24,8 +24,6 @@ const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
   '由于浏览器无法直接打开文件夹，请手动打开 waiting 文件夹。',
-  '注意：当 waiting 文件夹内的文件被成功添加到数据库之后，waiting 文件夹会被清空。',
-  '因此建议复制黏贴（而不是剪切移动）文件到 waiting 文件夹内。',
 ]);
 
 const Navbar = {
@@ -49,7 +47,7 @@ const Main = cc('div', null, [
   ' ',
   m(CopyBtn).attr({title:'copy'}).addClass('bi bi-stickies').css({cursor:'pointer'}),
   m('div').addClass('alert alert-primary my-4').attr({role:'alert'}).text(
-    '请复制需要上传的文件，粘贴到如上所示的文件夹中，再点击下面的 Next 链接。'
+    '请把需要上传的文件，放进如上所示的文件夹中，再点击下面的 Next 链接。'
   ),
   m('p').addClass('text-center').append(
     m('a').text('Next').attr({href: '/light/waiting'}).addClass('fs-5'),

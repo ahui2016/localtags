@@ -162,13 +162,19 @@ function isPreviewable(file) {
   const prefix = file.Type.split('/').shift();
   const suffix = file.Name.split('.').pop();
   if (prefix == 'image') return true;
-  switch (suffix) {
-    case 'mp3':
-    case 'mp4':
-    case 'pdf':
+  switch (prefix) {
+    case 'image':
+    case 'text':
       return true;
     default:
-      return false;
+      switch (suffix) {
+        case 'mp3':
+        case 'mp4':
+        case 'pdf':
+          return true;
+        default:
+          return false;
+      }
   }
 }
 
@@ -202,7 +208,7 @@ function getThumbByFiletype(filetype) {
           return '/public/icons/file-earmark-music.jpg';
         default:
           return '/public/icons/file-earmark-binary.jpg';
-      }    
+      }
   }
 }
 

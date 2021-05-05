@@ -157,7 +157,10 @@ function init() {
           return;
         }
         groups.forEach(GroupList.prepend);
-      }, null, () => {
+      }, (that) => {
+        // onError
+        if (that.responseText.indexOf('no files') >= 0) $(NameArea.id).show();
+      }, () => {
         Loading.hide();
       });
 }
@@ -186,15 +189,16 @@ function createTagGroup(group) {
       }
     });
 
+    const copyBtn = m('span').text('copy').addClass('CopyBtn badge bg-primary');
+    tagsElem.append(copyBtn);
+
     const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroupStr);
-    const groupItem = m('span').text('group').attr({title:'search tag group'})
+    const groupItem = m('span').text('search').attr({title:'search tag group'})
       .addClass('badge bg-primary').click(() => {
         window.open(groupLink, 'localtags-search');
       });
     tagsElem.append(groupItem);
 
-    const copyBtn = m('span').text('copy').addClass('CopyBtn badge bg-primary');
-    tagsElem.append(copyBtn);
     const clipboard = new ClipboardJS(self.id+' .CopyBtn', {
       text: () => { return tagGroupStr; }
     });
