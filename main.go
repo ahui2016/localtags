@@ -33,7 +33,7 @@ func main() {
 
 	// api 只使用 GET, POST, 不采用 RESTful.
 	api := e.Group("/api")
-	api.Use(sleep)
+	// api.Use(sleep)
 	api.GET("/get-db-info", databaseInfo)
 	api.GET("/force-check-files", forceCheckFiles)
 	api.GET("/get-bk-buckets", getBackupBuckets)
