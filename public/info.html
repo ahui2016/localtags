@@ -24,6 +24,7 @@ const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
   '每隔一段时间（默认 30 天，可自由设置）会自动校验一次，因此一般不需要点击 force check 按钮。',
+  '但只有上传文件时才会触发自动校验，如果长期（比如半年）没有上传新文件，则需要点击 force check 按钮强行校验。',
   '如果出现损坏文件，是硬盘有故障的征兆，建议检查硬盘健康情况，严重时请考虑更换硬盘。',
 ]);
 
