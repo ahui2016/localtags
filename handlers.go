@@ -127,7 +127,7 @@ func addFiles(c echo.Context) error {
 	}
 
 	// 如果一切正常，就清空全部临时文件。
-	return cleanTempFolders()
+	return deleteTempFiles(files)
 }
 
 func searchTags(c echo.Context) error {

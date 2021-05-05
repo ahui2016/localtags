@@ -48,12 +48,23 @@ func getWaitingFiles() ([]string, error) {
 	return filepath.Glob(pattern)
 }
 
+/*
 func cleanTempFolders() error {
 	err1 := os.RemoveAll(cfg.WaitingFolder)
 	err2 := os.RemoveAll(tempFolder)
 	util.MustMkdir(cfg.WaitingFolder)
 	util.MustMkdir(tempFolder)
 	return util.WrapErrors(err1, err2)
+}
+*/
+
+func deleteTempFiles(files []*File) error {
+	for _, file := range files {
+		if err := os.Remove(waitingFile(file.Name)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func copyFile(dstPath, srcPath string, copied *[]string) error {
