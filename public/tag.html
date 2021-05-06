@@ -33,26 +33,16 @@ const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
     m('div').addClass('container-fluid').append([
-      m('div').addClass('btn-group').append([
-        m('a').attr({title:'main menu',href:'/light/home',type:'button'}).addClass('btn btn-outline-dark').append(
-          m('i').addClass('bi bi-house-door'),
-        ),
-        m('a').attr({title:'Tags',href:'/light/tags',type:'button'})
-          .addClass('btn btn-outline-dark').append(
-            m('i').addClass('bi bi-tag')
-        ),
-      ]),
+      m('a').attr({title:'main menu',href:'/light/home',type:'button'}).addClass('btn btn-outline-dark').append(
+        m('i').addClass('bi bi-house-door'),
+      ),
       m('span').addClass('navbar-brand').append([
         'Tag', ' ', m(InfoBtn),
       ]),
-      m('div').addClass('btn-group').append([
-        m('a').attr({title:'Files',href:'/light/files',type:'button'})
-          .addClass('btn btn-outline-dark').append(
-            m('i').addClass('bi bi-card-list')),
-        m('a').attr({title:'Tag Groups',href:'/light/tag-groups',type:'button'})
-          .addClass('btn btn-outline-dark').append(
-            m('i').addClass('bi bi-tags')),
-      ]),
+      m('a').attr({title:'All Tags',href:'/light/tags',type:'button'})
+        .addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-tags')
+      ),
     ]),
   ]),
 };
@@ -179,9 +169,8 @@ function createTagGroup(group) {
         const item = m('span').text(tag).addClass('badge bg-light text-dark').css({cursor:'default'});
         tagsElem.append(item);
       } else {
-        const item = m('span').text(tag).addClass('badge bg-success').click(() => {
-          window.location = '/light/tag?name=' + encodeURIComponent(tag);
-        });
+        const item = m('a').text(tag).addClass('badge bg-success text-white text-decoration-none')
+          .attr({href:'/light/tag?name=' + encodeURIComponent(tag)});
         tagsElem.append(item);
       }
     });
@@ -190,10 +179,8 @@ function createTagGroup(group) {
     tagsElem.append(copyBtn);
 
     const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroupStr);
-    const groupItem = m('span').text('search').attr({title:'search tag group'})
-      .addClass('badge bg-primary').click(() => {
-        window.open(groupLink, 'localtags-search');
-      });
+    const groupItem = m('a').text('search').attr({title:'search tag group', href:groupLink})
+      .addClass('badge bg-primary text-white text-decoration-none');
     tagsElem.append(groupItem);
 
     const clipboard = new ClipboardJS(self.id+' .CopyBtn', {

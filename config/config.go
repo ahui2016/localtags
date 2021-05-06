@@ -45,7 +45,7 @@ func Default() Config {
 		Address:       "127.0.0.1:80",
 		DataFolder:    dataDir,
 		WaitingFolder: filepath.Join(dataDir, waitingFolderName),
-		TagGroupLimit: 100,
+		TagGroupLimit: 50,
 		FileListLimit: 100,
 		CheckInterval: timeUnit * 30, // 30天
 	}

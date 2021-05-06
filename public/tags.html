@@ -36,13 +36,9 @@ const Navbar = {
       m('span').addClass('navbar-brand').append([
         'Tags', ' ', m(InfoBtn),
       ]),
-      m('div').addClass('btn-group').append([
-        m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
-          m('i').addClass('bi bi-card-list')),
-        m('a').attr({title:'Tag Groups',href:'/light/tag-groups',type:'button'})
-          .addClass('btn btn-outline-dark').append(
-            m('i').addClass('bi bi-tags')),
-      ]),
+      m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
+        m('i').addClass('bi bi-card-list')
+      ),
     ]),
   ]),
 };

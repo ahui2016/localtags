@@ -24,7 +24,7 @@
 const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
-  m('li').text('点击标签可找出与该便签有关的标签组。点击 group 按钮可搜索与该标签组关联的文件。'),
+  m('li').text('这里列出最近使用过的标签组，也可以手动添加标签组，主要作用是：方便搜索文件。'),
   m('li').text('当标签组总数量超过上限 (该上限在 config.json 文件中设置) 时，会自动删除最旧的标签组，也可点击垃圾桶图标删除标签组。'),
   m('li').text('点击挂锁图标可保护标签组，受保护的标签组不会被自动删除 (仍可手动删除)。'),
   m('li').text('所谓删除标签组 (不管自动还是手动), 只是不在本页面显示该标签组而已，不会删除标签，也不会解除标签与文件的关联。'),
@@ -39,8 +39,9 @@ const Navbar = {
       m('span').addClass('navbar-brand').append([
         'Tag Groups', ' ', m(InfoBtn),
       ]),
-      m('a').attr({title:'Files',href:'/light/files',type:'button'}).addClass('btn btn-outline-dark').append(
-        m('i').addClass('bi bi-card-list')
+      m('a').attr({title:'All Tags',href:'/light/tags',type:'button'})
+        .addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-tags')
       ),
     ]),
   ]),
@@ -205,18 +206,14 @@ function createTagGroup(group) {
   self.init = () => {
     const tagsElem = $(self.id + ' .Tags');
     group.Tags.forEach(tag => {
-      const link = '/light/tag?name=' + encodeURIComponent(tag);
-      const item = m('span').text(tag).addClass('badge bg-light text-dark').click(() => {
-        window.open(link);
-      });
+      const item = m('a').text(tag).addClass('badge bg-light text-dark text-decoration-none')
+        .attr({href: '/light/tag?name=' + encodeURIComponent(tag)});
       tagsElem.append(item);
     });
 
     const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroupStr);
-    const groupItem = m('span').text('search').attr({title:'search tag group'}).addClass('badge bg-secondary')
-      .click(() => {
-        window.open(groupLink, 'localtags-search');
-      });
+    const groupItem = m('a').text('search').attr({title:'search tag group', href:groupLink})
+      .addClass('badge bg-secondary text-white text-decoration-none');
     tagsElem.append(groupItem);
 
     if (group.Protected) {
