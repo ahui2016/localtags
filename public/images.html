@@ -19,9 +19,6 @@
     .ImageButtons > * {
       color: lightgray;
     }
-    .bi-tag {
-      cursor: crosshair;
-    }
     .DeleteBtn {
       cursor: pointer;
     }
@@ -105,6 +102,9 @@ function CreateImageItem(file) {
     file.Thumb = getThumbByFiletype(file.Type);
   }
 
+  const tagGroup = addPrefix(file.Tags);
+  const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroup);
+
   let self = cc('div', file.ID);
 
   self.view = () => m('div').attr({id:self.raw_id}).addClass('card m-1')
@@ -115,7 +115,9 @@ function CreateImageItem(file) {
       m('div').addClass('ImageButtons card-body p-2 small d-flex justify-content-between').append([
         m('a').text(file.ID).addClass('text-decoration-none')
           .attr({title:'more...',href:'/light/search?fileid='+file.ID, target:'_blank'}),
-        m('i').addClass('bi bi-tag ml-1').attr({title:addPrefix(file.Tags, '#')}),
+        m('a').attr({title:addPrefix(file.Tags, '#'), href:groupLink}).append(
+          m('i').addClass('bi bi-tag ml-1'),
+        ),
         m('i').addClass('DeleteBtn bi bi-trash ml-1').attr({title:'delete'}),
         m('i').addClass('DeleteRecycle bi bi-trash-fill').hide(),
         m('a').attr({title:'download',download:file.Name, href:'/light/search?fileid='+file.ID}).append(

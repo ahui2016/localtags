@@ -29,8 +29,7 @@ const Navbar = {
 };
 
 $('#root').append([
-  m(Navbar),
-  m(Spacer),
+  m(Navbar).addClass('mt-2 mb-5'),
   m('div').append([
     create_item('Add Files', '/light/add', '添加文件'),
     create_item('Files', '/light/files', '最近文件'),
