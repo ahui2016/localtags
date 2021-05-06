@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/stmt"
@@ -217,13 +216,6 @@ func getFileIDs(tx TX, query string, args ...interface{}) (fileIDs []string, err
 	if err = rows.Err(); err != nil {
 		return
 	}
-	if len(fileIDs) == 0 {
-		if args == nil {
-			err = fmt.Errorf("no files related to %s", query)
-		} else {
-			err = fmt.Errorf("no files related to %v", args)
-		}
-	}
 	return
 }
 
@@ -316,15 +308,7 @@ func getSameNameFiles(tx TX, fileID string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return getFileIDsByName(tx, name)
-}
-
-func getFileIDsByName(tx TX, name string) ([]string, error) {
-	ids, err := getFileIDs(tx, stmt.GetFileIDsByName, name)
-	if util.ErrorContains(err, "no files") {
-		err = nil
-	}
-	return ids, err
+	return getFileIDs(tx, stmt.GetFileIDsByName, name)
 }
 
 func updateTagsNow(tx TX, fileID string, toAdd, toDelete []string) error {

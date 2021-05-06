@@ -93,7 +93,7 @@ func (db *DB) GetFileID(hash string) (id string, ok bool) {
 }
 
 func (db *DB) GetFileIDsByName(name string) ([]string, error) {
-	return getFileIDsByName(db.DB, name)
+	return getFileIDs(db.DB, stmt.GetFileIDsByName, name)
 }
 
 func (db *DB) GetTagsByFile(id string) ([]string, error) {
@@ -122,7 +122,7 @@ func (db *DB) InsertFiles(files []*File) error {
 	defer tx.Rollback()
 
 	for _, file := range files {
-		ids, err := getFileIDsByName(tx, file.Name)
+		ids, err := getFileIDs(tx, stmt.GetFileIDsByName, file.Name)
 		if err != nil {
 			return err
 		}
@@ -420,7 +420,7 @@ func (db *DB) RenameTag(oldName, newName string) error {
 
 	// 如果新标签名已存在，则添加新标签，删除旧标签。
 	fileIDs, err := getFileIDs(db.DB, stmt.AllFilesByTag, oldName)
-	if err != nil && !util.ErrorContains(err, "no files") {
+	if err != nil {
 		return err
 	}
 	tx := db.mustBegin()

@@ -213,7 +213,7 @@ function createTagGroup(group) {
     });
 
     const groupLink = '/light/search?tags=' + encodeURIComponent(tagGroupStr);
-    const groupItem = m('span').text('group').attr({title:'search tag group'}).addClass('badge bg-secondary')
+    const groupItem = m('span').text('search').attr({title:'search tag group'}).addClass('badge bg-secondary')
       .click(() => {
         window.open(groupLink, 'localtags-search');
       });

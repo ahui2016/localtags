@@ -153,14 +153,11 @@ function init() {
       (groups) => {
         $(NameArea.id).show();
         if (!groups || groups.length == 0) {
-          Alerts.insert('info', '空');
+          Alerts.insert('info', '找不到与该标签相关的文件');
           return;
         }
         groups.forEach(GroupList.prepend);
-      }, (that) => {
-        // onError
-        if (that.responseText.indexOf('no files') >= 0) $(NameArea.id).show();
-      }, () => {
+      }, null, () => {
         Loading.hide();
       });
 }
