@@ -3,7 +3,6 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/stmt"
@@ -96,9 +95,11 @@ func isTagExist(tx TX, tagID string) (bool, error) {
 }
 
 func addTagGroup(tx TX, group *TagGroup, limit int64) error {
-	if len(group.Tags) < 2 {
-		return errors.New("a tag group needs at least two tags")
-	}
+	/*
+		if len(group.Tags) < 2 {
+			return errors.New("a tag group needs at least two tags")
+		}
+	*/
 	tags := group.Blob()
 	groupID, err := getText1(tx, stmt.GetTagGroupID, tags)
 
