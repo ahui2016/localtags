@@ -9,7 +9,7 @@ import (
 const (
 	dataFolderName    = "localtags_data_folder"
 	waitingFolderName = "waiting"
-	timeUnit          = 1000 * 60 * 60 * 24 // 1天(24小时)
+	timeUnit          = 60 * 60 * 24 // 1天(24小时)
 )
 
 var Public = Default()

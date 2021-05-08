@@ -272,8 +272,8 @@ func checkBucketFolder(folder string) error {
 		return fmt.Errorf("[%s] 不是文件夹。", folder)
 	}
 
-	// 备份仓库的第一层目录内应该不超过 10 个项目。
-	files, err := f.Readdir(10) // Or f.Readdir(1)
+	// 备份仓库的第一层目录内应该只有少量文件（夹）。
+	files, err := f.Readdir(100) // Or f.Readdir(1)
 
 	// 如果是空文件夹，则没有问题。
 	if err == io.EOF {
@@ -296,18 +296,17 @@ func checkBucketFolder(folder string) error {
 // getBucketsInfo 返回主仓库与备份仓库的状态信息。
 func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 	// 检查备份仓库文件夹的有效性
-	if err := checkBucketFolder(bkFolder); err != nil {
+	err := checkBucketFolder(bkFolder)
+	if err != nil {
 		return nil, err
 	}
 
 	// 获取 main bucket 的状态信息
 	info := make(map[string]database.Info)
-	dbInfo, err := db.GetInfo()
+	info["main-bucket"], err = db.GetInfo()
 	if err != nil {
 		return nil, err
 	}
-	info["main-bucket"] = dbInfo
-	info["backup-bucket"] = database.Info{}
 
 	// 如果找不到备份数据库文件，则说明这是一个空文件夹，是一个全新的备份仓库。
 	// 此时，生成一个新的备份仓库数据库文件，为后续的备份做准备。
@@ -318,12 +317,13 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 			return nil, err
 		}
 		bk.Close()
+		info["backup-bucket"] = database.Info{BucketLocation: bkFolder}
 		return info, nil
 	}
 
 	// 如果能找到备份数据库文件，则打开备份数据库。
 	bk := new(database.DB)
-	if err := bk.OpenBackup(bkPath); err != nil {
+	if err := bk.OpenBackup(bkPath, db.Config); err != nil {
 		return nil, err
 	}
 	defer bk.Close()
@@ -369,7 +369,7 @@ func deleteDamagedFiles(bkFolder string) error {
 	util.MustMkdir(bakBucket)
 
 	bk := new(database.DB)
-	if err := bk.OpenBackup(bkPath); err != nil {
+	if err := bk.OpenBackup(bkPath, db.Config); err != nil {
 		return err
 	}
 	defer bk.Close()
@@ -398,7 +398,7 @@ func syncMainToBackup(bkFolder string) error {
 	util.MustMkdir(bakBucket)
 
 	bk := new(database.DB)
-	if err := bk.OpenBackup(bkPath); err != nil {
+	if err := bk.OpenBackup(bkPath, db.Config); err != nil {
 		return err
 	}
 	defer bk.Close()
@@ -468,7 +468,7 @@ func repairDamagedFiles(bkFolder string) error {
 	bkPath := filepath.Join(bkFolder, backupDBFileName)
 	bakBucket := filepath.Join(bkFolder, bakBucketName)
 	bk := new(database.DB)
-	if err := bk.OpenBackup(bkPath); err != nil {
+	if err := bk.OpenBackup(bkPath, db.Config); err != nil {
 		return err
 	}
 	defer bk.Close()
