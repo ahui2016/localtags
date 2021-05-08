@@ -25,7 +25,7 @@ function FileItem(file) {
       m('div').addClass('row g-0').append([
         m('div').addClass(thumbClass).append([
           m('img').addClass('NoLinkImg card-img').attr({src:file.Thumb,title:ctime}),
-          m('a').attr({href:getPhotoURL(file.ID),target:'_blank'}).hide().addClass('LinkImg').append(
+          m('a').addClass('LinkImg').attr({href:getPreviewURL(file.ID, file.Type),target:'_blank'}).hide().append(
             m('img').addClass('card-img').attr({src:file.Thumb,title:'点击预览'}),
           ),
         ]),

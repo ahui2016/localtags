@@ -13,7 +13,10 @@ function getThumbURL(id) {
   return thumbsFolder + id;
 }
 
-function getPhotoURL(id) {
+function getPreviewURL(id, type) {
+  if (type == 'text/md') {
+    return '/light/md-preview?id='+id;
+  }
   return mainBucket + id;
 }
 
@@ -63,7 +66,7 @@ function enable(id) {
   }
 }
 
-// options = { method, url, body, alerts, buttonID }
+// options = { method, url, body, alerts, buttonID, responseType }
 function ajax(options, onSuccess, onFail, onAlways) {
   if (options.buttonID) disable(options.buttonID);
   const xhr = new XMLHttpRequest();
@@ -74,6 +77,10 @@ function ajax(options, onSuccess, onFail, onAlways) {
   xhr.addEventListener('load', function() {
     if (this.status == 200) {
       if (onSuccess) {
+        if (options.responseType && options.responseType == 'text') {
+          onSuccess(this.responseText);
+          return;
+        }
         const resp = this.responseText ? JSON.parse(this.responseText) : null;
         onSuccess(resp);
       }

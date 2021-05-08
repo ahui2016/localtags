@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/water-light.css">
+  
+  <script src="/public/jquery.min.js"></script>
+  <script src="/public/dayjs.min.js"></script>
+  <script src="/public/marked.min.js"></script>
+  <script src="/public/purify.min.js"></script>
+  <script src="/public/util.js"></script>
+  
+  <title>Markdown Preview - localtags</title>
+
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+
+init();
+
+function init() {
+  const id = getUrlParam('id');
+
+  ajax({method:'GET', url:'/mainbucket/'+id, responseType:'text'},
+      (fileContents) => {
+        const dirty = marked(fileContents);
+        const clean = DOMPurify.sanitize(dirty);
+        $('#root').html(clean);
+      });
+}
+
+  </script>
+</body>
+</html>
