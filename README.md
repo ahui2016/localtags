@@ -3,6 +3,7 @@
 
 ## 重要更新
 
+- 2021-05-09 (add: 本地 markdown 图库) 详见 [details.md](./details.md)
 - 2021-05-08 (fix: 备份仓库文件校验) 详见 [changelog.md](./changelog.md)
 
 
