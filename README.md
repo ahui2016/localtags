@@ -6,12 +6,13 @@
 - 2021-05-08 (fix: 备份仓库文件校验) 详见 [changelog.md](./changelog.md)
 
 
-## 四大主要功能：
+## 主要功能：
 
 1. 文件备份
 2. 定期查错（确保文件完整性）
 3. 标签管理
 4. 文件历史版本
+5. 本地 markdown 图库
 
 
 ## 截图
@@ -33,7 +34,7 @@ $ go build
 $ ./localtags
 ```
 
-然后用浏览器访问 http://127.0.0.1 即可。本软件采用了网页来做 GUI 界面，但它本质上是一个本地软件，不是网站。
+然后用浏览器访问 `http://127.0.0.1:53549` 即可。本软件采用了网页来做 GUI 界面，但它本质上是一个本地软件，不是网站。
 
 
 ## 端口等的设置
@@ -71,6 +72,6 @@ mj.js 只是在 jquery 的基础上增加了两个函数，因此对于会用 jq
 
 ## 了解更多
 
-- 关于一些细节的说明 - [details.md](./details.md)
-- 关于标签系统 - [about_tags.md](./about_tags.md)
 - 本软件主要想解决的问题 - [concepts.md](./concepts.md)
+- 关于一些细节的说明 - [details.md](./details.md)
+- 关于标签系统 - [about_tags.md](.about_tags.md)
