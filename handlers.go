@@ -425,5 +425,8 @@ func deleteTag(c echo.Context) error {
 	if !ok {
 		return fmt.Errorf("系统中不存在该标签 #%s", tagName)
 	}
+	if err := db.CheckBeforeDeleteTag(tagName); err != nil {
+		return err
+	}
 	return db.Exec(stmt.DeleteTag, tagName)
 }

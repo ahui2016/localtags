@@ -21,10 +21,11 @@
 
 const Alerts = CreateAlerts();
 
-const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
-  '标签颜色是随机的，没有特殊含义。标签旁的数字表示与该标签关联的文件数。点击标签可找出与该便签有关的标签组。',
-  '按 F12 进入控制台输入 deletetag("标签名") 可删除标签。注意：一旦删除无法恢复。',
-]);
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
+  m('li').text('标签颜色是随机的，没有特殊含义。标签旁的数字表示与该标签关联的文件数。点击标签可找出与该便签有关的标签组。'),
+  m('li').text('按 F12 进入控制台输入 deletetag("标签名") 可删除标签。注意：一旦删除无法恢复。'),
+  m('li').text('如果删除标签可能导致一个文件完全没有标签，会提示删除失败，并返回文件 ID。'),
+]));
 
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([

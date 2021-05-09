@@ -42,7 +42,7 @@ type Config struct {
 func Default() Config {
 	dataDir := filepath.Join(util.UserHomeDir(), dataFolderName)
 	return Config{
-		Address:       "127.0.0.1:80",
+		Address:       "127.0.0.1:53549",
 		DataFolder:    dataDir,
 		WaitingFolder: filepath.Join(dataDir, waitingFolderName),
 		TagGroupLimit: 50,

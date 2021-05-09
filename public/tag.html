@@ -24,10 +24,11 @@ const tag_name = getUrlParam('name');
 
 const Alerts = CreateAlerts();
 
-const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
-  '点击 copy 按钮可复制标签组。点击标签名前的铅笔图标可显示/隐藏修改标签名的表单。',
-  '按 F12 进入控制台输入 deletetag("标签名") 可删除标签。注意：一旦删除无法恢复。',
-]);
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
+  m('li').text('点击 copy 按钮可复制标签组。点击标签名前的铅笔图标可显示/隐藏修改标签名的表单。'),
+  m('li').text('按 F12 进入控制台输入 deletetag("标签名") 可删除标签。注意：一旦删除无法恢复。'),
+  m('li').text('如果删除标签可能导致一个文件完全没有标签，会提示删除失败，并返回文件 ID。'),
+]));
 
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([

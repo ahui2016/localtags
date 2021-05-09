@@ -439,3 +439,20 @@ func (db *DB) RenameTag(oldName, newName string) error {
 
 	return tx.Commit()
 }
+
+func (db *DB) CheckBeforeDeleteTag(tagName string) error {
+	fileIDs, err := getFileIDs(db.DB, stmt.AllFilesByTag, tagName)
+	if err != nil {
+		return err
+	}
+	for _, id := range fileIDs {
+		tags, err := db.GetTagsByFile(id)
+		if err != nil {
+			return err
+		}
+		if len(tags) == 1 {
+			return fmt.Errorf("file [id:%s] has only one tag [%s]", id, tags[0])
+		}
+	}
+	return nil
+}
