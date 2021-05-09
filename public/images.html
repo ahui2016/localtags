@@ -109,7 +109,7 @@ function CreateImageItem(file) {
 
   self.view = () => m('div').attr({id:self.raw_id}).addClass('card m-1')
     .css('width','8rem').append([
-      m('a').addClass('LinkImage').attr({href:getPhotoURL(file.ID),target:'_blank'}).append(
+      m('a').addClass('LinkImage').attr({href:getPreviewURL(file.ID),target:'_blank'}).append(
           m('img').attr({title:file.Name,src: file.Thumb}).addClass('card-img-top'),
         ),
       m('div').addClass('ImageButtons card-body p-2 small d-flex justify-content-between').append([
