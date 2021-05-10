@@ -122,7 +122,7 @@ function init() {
     });
     const body = new FormData();
     body.append('hash-tags', JSON.stringify(hashTags));
-    ajax({method:'POST',url:'/api/add-files',alerts:SubmitAlerts,body:body},
+    ajax({method:'POST',url:'/api/add-files',alerts:SubmitAlerts,buttonID:SubmitBtn.id,body:body},
       () => {
         $(TagsArea.id).hide();
         $(SubmitBtnAera.id).hide();
