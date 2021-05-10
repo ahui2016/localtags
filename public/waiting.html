@@ -32,11 +32,12 @@ let waitingFolder;
 
 const Alerts = CreateAlerts();
 
-const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
-  '可随时在 waiting 文件夹中添加、删除文件或更改文件名。',
-  '注意：每当在 waiting 文件夹中添加、删除文件或更改文件名后，请刷新本页面以反映最新情况。',
-  '按 F12 进入控制台输入命令 where() 可查看 waiting 文件夹的完整路径。',
-]);
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
+  m('li').text('可随时在 waiting 文件夹中添加、删除文件或更改文件名。'),
+  m('li').text('注意：每当在 waiting 文件夹中添加、删除文件或更改文件名后，请刷新本页面以反映最新情况。'),
+  m('li').text('按 F12 进入控制台输入命令 where() 可查看 waiting 文件夹的完整路径。'),
+  m('li').text('单个文件上限默认 512MB (可在 config.json 中设置), 大文件请用压缩软件分卷后上传。'),
+]));
 
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([

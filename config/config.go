@@ -26,6 +26,10 @@ type Config struct {
 	// 待上传文件的文件夹
 	WaitingFolder string
 
+	// 上传时，单个文件的体积上限。由于在处理文件时需要把整个文件读入内存，
+	// 因此需要限制文件体积，避免爆内存。
+	FileSizeLimit int64
+
 	// TagGroupLimit 限制标签组数量上限。
 	// 当超过上限时，不受保护的标签组会被覆盖。可通过点击 "protect" 按钮保护标签。
 	TagGroupLimit int64
@@ -45,6 +49,7 @@ func Default() Config {
 		Address:       "127.0.0.1:53549",
 		DataFolder:    dataDir,
 		WaitingFolder: filepath.Join(dataDir, waitingFolderName),
+		FileSizeLimit: 1 << 29, // 512 MB
 		TagGroupLimit: 50,
 		FileListLimit: 100,
 		CheckInterval: timeUnit * 30, // 30天

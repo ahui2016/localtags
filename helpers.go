@@ -106,6 +106,9 @@ func infoToFile(name string, meta map[string]*File) (
 	// 填充文件体积、文件名、文件类型
 	file = &File{Size: info.Size()}
 	file.SetNameType(info.Name())
+	if file.Size > cfg.FileSizeLimit {
+		return nil, fmt.Errorf("file size over limit: [%s]", file.Name)
+	}
 
 	// 填充同名文件数
 	ids, err := db.GetFileIDsByName(file.Name)
@@ -158,7 +161,7 @@ func infoToFile(name string, meta map[string]*File) (
 	if hasFFmpeg && strings.HasPrefix(file.Type, "video") {
 		file.Thumb = true
 		// 注意下面这个 err 是个新变量，不同于函数返回值的那个 err.
-		if err := thumb.FrameNail(name, thumbPath, 10); err != nil {
+		if err := thumb.FrameNail(name, thumbPath, 5); err != nil {
 			// 如果截图失败，可能视频已损坏，或根本不是视频（后缀名错误）。
 			file.Thumb = false
 		}

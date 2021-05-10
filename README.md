@@ -3,6 +3,7 @@
 
 ## 重要更新
 
+- 2021-05-10 (add: 单个文件体积上限) 详见 [details.md](./details.md)
 - 2021-05-09 (add: 本地 markdown 图库) 详见 [details.md](./details.md)
 - 2021-05-08 (fix: 备份仓库文件校验) 详见 [changelog.md](./changelog.md)
 
@@ -24,7 +25,7 @@
 ## 安装运行
 
 - 要求先正确安装 git 和 [Go 语言](https://golang.google.cn/)、ffmpeg。
-- 其中，ffmpeg 不是必须的，其作用只是给视频文件生成缩略图，不安装 ffmpeg 并不妨碍软件正常运行。
+- 其中，ffmpeg 不是必须的，其作用只是给视频文件生成缩略图，不安装 ffmpeg 也不妨碍软件正常运行。
 - 由于采用了 go-sqlite3, 因此如果在 Windows 里编译, 需要先安装 [TDM-GCC Compiler](https://sourceforge.net/projects/tdm-gcc/)
 
 ```
