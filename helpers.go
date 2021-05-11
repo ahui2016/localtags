@@ -81,13 +81,15 @@ func copyTempFile(tempFile, newFile *File, copied *[]string) error {
 	return copyFile(dstPath, srcPath, copied)
 }
 
-func copyTempThumb(tempFile, newFile *File, copied *[]string) error {
-	if !tempFile.Thumb {
+func moveTempFile(srcFile, dstFile *File) error {
+	return os.Rename(waitingFile(srcFile.Name), mainBucketFile(dstFile.ID))
+}
+
+func moveTempThumb(srcFile, dstFile *File) error {
+	if !srcFile.Thumb {
 		return nil
 	}
-	srcPath := tempThumb(tempFile.ID)
-	dstPath := mainBucketThumb(newFile.ID)
-	return copyFile(dstPath, srcPath, copied)
+	return os.Rename(tempThumb(srcFile.ID), mainBucketThumb(dstFile.ID))
 }
 
 // infoToFile 把 waiting 文件夹里的文件转换为 model.File,

@@ -108,10 +108,14 @@ func addFiles(c echo.Context) error {
 	)
 	for _, file := range metadata {
 		f := db.NewFile()
-		if err := copyTempThumb(file, f, &copiedFiles); err != nil {
-			return err
+		// 先尝试移动文件，不行再复制文件。
+		if err := moveTempFile(file, f); err != nil {
+			if err = copyTempFile(file, f, &copiedFiles); err != nil {
+				return err
+			}
 		}
-		if err := copyTempFile(file, f, &copiedFiles); err != nil {
+		// thumb 文件总是在同一个硬盘分区，因此总能移动成功，不需要复制。
+		if err := moveTempThumb(file, f); err != nil {
 			return err
 		}
 		file.ID = f.ID
@@ -127,7 +131,10 @@ func addFiles(c echo.Context) error {
 	}
 
 	// 如果一切正常，就清空全部临时文件。
-	return deleteTempFiles(files)
+	if len(copiedFiles) > 0 {
+		err = deleteTempFiles(files)
+	}
+	return err
 }
 
 func searchTags(c echo.Context) error {

@@ -47,8 +47,10 @@ const Navbar = {
       m('span').addClass('navbar-brand').append([
         'Waiting', ' ', m(InfoBtn),
       ]),
-      m('a').attr({title:'refresh',href:'#',type:'button'}).addClass('btn btn-outline-dark')
-        .append(m('i').addClass('bi bi-arrow-clockwise')).click(() => {window.location.reload()}),
+      m('a').attr({title:'tag groups',href:'/light/tag-groups',target:'_blank',type:'button'})
+        .addClass('btn btn-outline-dark').append(
+          m('i').addClass('bi bi-tags')
+      ),
     ]),
   ]),
 };
@@ -65,9 +67,15 @@ const TagsArea = cc('div', null, [
 const FileList = cc('div');
 
 const SubmitAlerts = CreateAlerts();
+const SubmitLoading = cc('div');
 
 const SubmitBtn = cc('button');
 const SubmitBtnAera = cc('p', null, [
+  m(SubmitLoading).addClass('text-center').hide().append([
+    m('div').addClass('spinner-border text-primary').attr({role:'status'}).append(
+      m('span').addClass('visually-hidden').text('Loading...')
+    ),
+  ]),
   m(SubmitBtn).text('Submit').addClass('btn btn-primary').attr({type:'button'}),
 ])
 
@@ -122,6 +130,7 @@ function init() {
     });
     const body = new FormData();
     body.append('hash-tags', JSON.stringify(hashTags));
+    $(SubmitLoading.id).show();
     ajax({method:'POST',url:'/api/add-files',alerts:SubmitAlerts,buttonID:SubmitBtn.id,body:body},
       () => {
         $(TagsArea.id).hide();
@@ -129,6 +138,8 @@ function init() {
         $('.bi-tag').hide();
         $(Files.id).show();
         SubmitAlerts.insert('success', 'OK');
+      }, null, () => {
+        $(SubmitLoading.id).hide();
       });
   });
 

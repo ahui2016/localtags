@@ -152,28 +152,46 @@ BucketList.prepend = (bucket, index) => {
 const SubmitAlerts = CreateAlerts();
 const BackupBtn = cc('button');
 const RepairBtn = cc('button');
+const SubmitLoading = cc('div');
 
 SubmitBtnAera.view = () => m('p').attr({id:SubmitBtnAera.raw_id}).append([
+  m(SubmitLoading).addClass('text-center').hide().append([
+    m('div').addClass('spinner-border text-primary').attr({role:'status'}).append(
+      m('span').addClass('visually-hidden').text('Loading...')
+    ),
+  ]),
   m(BackupBtn).text('Backup').addClass('btn btn-primary').attr({type:'button'}).click(() => {
-    $(Alerts.id).hide();
+    Alerts.clear();
+    $(SubmitLoading.id).show();
     SubmitAlerts.insert('info', '正在备份，请耐心等待......');
+    const longTime = window.setTimeout(() => {
+      SubmitAlerts.insert('info', '如果文件较多、较大，或U盘/硬盘速度慢，可能需要等待数分钟。');
+    }, 5000);
     ajax({method:'POST',url:'/api/sync-backup',alerts:SubmitAlerts,buttonID:BackupBtn.id,body:BucketList.formBody},
         () => {
           // onSuccess
+          SubmitAlerts.clear();
           SubmitAlerts.insert('success', '备份完成');
           $(BucketsInfo.id).html('');
           $(SubmitBtnAera.id).hide();
+        }, null, () => {
+          $(SubmitLoading.id).hide();
+          window.clearTimeout(longTime);
         });
   }),
   m(RepairBtn).text('Repair').addClass('btn btn-primary').attr({type:'button'}).click(() => {
-    $(Alerts.id).hide();
+    Alerts.clear();
+    $(SubmitLoading.id).show();
     SubmitAlerts.insert('info', '正在修复受损文件......');
     ajax({method:'POST',url:'/api/repair-files',alerts:SubmitAlerts,buttonID:BackupBtn.id,body:BucketList.formBody},
         () => {
           // onSuccess
+          SubmitAlerts.clear();
           SubmitAlerts.insert('success', '修复完成');
           $(BucketsInfo.id).html('');
           $(SubmitBtnAera.id).hide();
+        }, null, () => {
+          $(SubmitLoading.id).hide();
         });
   }),
 ]);
