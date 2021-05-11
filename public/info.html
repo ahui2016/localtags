@@ -48,14 +48,18 @@ const TotalSize = cc('span');
 const AllFilesCount = cc('span');
 const DamagedFilesCount = cc('span');
 const ForceCheckBtn = cc('button');
+const ForceCheckLoading = cc('span');
 const SearchBtn = cc('a');
 
 const InfoArea = cc('div', null, [
   create_item('仓库地址', m(BucketLocation)),
   create_item('上次校验时间', [
     m(LastChecked), ' ',
-    m(ForceCheckBtn).text('force check').attr({type:'button'})
-        .addClass('btn btn-sm btn-outline-secondary'),
+    m(ForceCheckBtn).attr({type:'button'}).addClass('btn btn-sm btn-outline-secondary').append([
+      'force check ',
+      m(ForceCheckLoading).addClass('spinner-border spinner-border-sm')
+        .attr({role:'status', 'aria-hidden':'true'}).hide(),
+    ]),
   ]),
   create_item('上次备份时间', [
     m(LastBackup), ' ',
@@ -86,10 +90,20 @@ init()
 function init() {
   $(ForceCheckBtn.id).click(() => {
     Alerts.insert('info', '强制校验文件完整性......');
-    ajax({method:'GET',url:'/api/force-check-files',alerts:Alerts,buttonID:ForceCheckBtn.id},
+    const longTime = window.setTimeout(() => {
+      Alerts.insert('info', '如果文件较多或U盘/硬盘速度慢，可能需要等待数分钟。');
+    }, 3000);
+    $(ForceCheckLoading.id).show();
+    disable(ForceCheckBtn.id);
+    ajax({method:'GET',url:'/api/force-check-files',alerts:Alerts},
         () => {
           Alerts.insert('info', '校验完成时会自动刷新页面，请耐心等待。');
           window.setTimeout(() => {window.location.reload()}, 5000);
+        }, () => {
+          // onError
+          window.clearTimeout(longTime);
+          enable(ForceCheckBtn.id);
+          $(ForceCheckLoading.id).hide();
         });
   });
 

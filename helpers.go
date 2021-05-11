@@ -361,6 +361,9 @@ func checkDiskUsage(bkFolder string, bkDB *database.DB) error {
 	if err := util.WrapErrors(e1, e2); err != nil {
 		return err
 	}
+	if total < 0 {
+		return nil
+	}
 	var margin uint64 = 1024 * 512 // 500 MB 余量
 	if uint64(total)+margin > diskInfo.Available {
 		return fmt.Errorf("备份仓库空间不足")
