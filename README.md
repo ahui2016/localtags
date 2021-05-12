@@ -3,6 +3,7 @@
 
 ## 重要更新
 
+- 2021-05-12 (add: 通过网页修改配置) 详见后文 "端口等的设置"
 - 2021-05-10 (add: 单个文件体积上限) 详见 [details.md](./details.md)
 - 2021-05-09 (add: 本地 markdown 图库) 详见 [details.md](./details.md)
 - 2021-05-08 (fix: 备份仓库文件校验) 详见 [changelog.md](./changelog.md)
@@ -41,7 +42,8 @@ $ ./localtags
 
 ## 端口等的设置
 
-- 第一次运行程序后, 会自动生成 config.json 文件, 端口及其他设置可直接修改该文件, 保存后重启程序生效. 
+- 第一次运行程序后, 会自动生成 config.json 文件, 端口及其他设置可直接修改该文件, 保存后重启程序生效.
+- (2021-05-12更新) 可以在程序首页点击 "Config" 进入修改配置页面，在这里修改配置比直接编辑 config.json 文件更方便（但还是需要手动重启程序）。
 - 每个设置项目的具体含义详见 config.go 文件.
 - 启动程序时默认在当前目录寻找 config.json, 也可以手动指定 `$ ./localtags.exe -config /path/to/config.json`
 
