@@ -19,7 +19,7 @@
     .ImageButtons > * {
       color: lightgray;
     }
-    .DeleteBtn {
+    .DeleteRecycle {
       cursor: pointer;
     }
   </style>
@@ -32,8 +32,7 @@ const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
   m('li').text('本页默认列出最近图片（有数量限制，可在 config.json 文件中修改），使用搜索功能可列出更多图片。'),
-  m('li').text('删除方法1：点击删除按钮，等删除按钮变红后，再点击一次删除按钮彻底删除该图片，不可恢复。'),
-  m('li').text('删除方法2：按 F12 进入控制台输入命令 "delete_file(id)" 把文件扔进回收站，以后可去回收站找回文件。'),
+  m('li').text('在本页点击删除按钮会把文件扔进回收站，以后可去回收站找回文件。'),
   m('li').text('如需修改文件名或修改标签，请点击图片的 ID。'),
 ]));
 
@@ -118,8 +117,7 @@ function CreateImageItem(file) {
         m('a').attr({title:addPrefix(file.Tags, '#'), href:groupLink}).append(
           m('i').addClass('bi bi-tag ml-1'),
         ),
-        m('i').addClass('DeleteBtn bi bi-trash ml-1').attr({title:'delete'}),
-        m('i').addClass('DeleteRecycle bi bi-trash-fill').hide(),
+        m('i').addClass('DeleteRecycle bi bi-trash ml-1').attr({title:'delete'}),
         m('a').attr({title:'download',download:file.Name, href:'/light/search?fileid='+file.ID}).append(
           m('i').addClass('bi bi-download ml-1')
         ),
@@ -138,69 +136,23 @@ function CreateImageItem(file) {
     };
 
     self.init = () => {
-      const del_btn_id = self.id+' .DeleteBtn';
+      const del_btn_id = self.id+' .DeleteRecycle';
 
       const body = new FormData();
       body.append('id', file.ID);
-
-      $(del_btn_id).click(() => {
-        disable(del_btn_id);
-        window.setTimeout(() => {
-          enable(del_btn_id);
-          $(del_btn_id).addClass('text-danger').off().click(() => {
-            ajax({method:'POST',url:'/api/really-delete-file',alerts:Alerts,buttonID:del_btn_id,body:body},
-                () => {
-                  self.afterDeleted();
-                });
-          });
-        }, 1000);
-      });
       
-      $(self.id+' .DeleteRecycle').click(() => {
+      $(del_btn_id).click(() => {
         ajax({method:'POST',url:'/api/delete-file',alerts:Alerts,buttonID:del_btn_id,body:body},
             () => {
-              console.log(`文件 [id:${file.ID}] 已扔进回收站，可去回收站找回文件。`);
               self.afterDeleted();
+              Alerts.insert('success', `图片 [id:${self.raw_id}] 已进入回收站，可前往回收站找回。`);
             });
       });
     };
-/*
-  self.init = () => {
-    const tagsElem = $(self.id + ' .ImageTags');
-    const widthLimit = tagsElem.width() - 20;
 
-    file.Tags.forEach(tag => {
-      const item = m('span').text(tag).addClass('badge bg-light text-dark');
-      tagsElem.append(item);
-      if (item.width() > widthLimit) {
-        item.css('width','7rem').addClass('text-truncate');
-      }
-    });
-  };
-*/
   return self;
 }
 
-function delete_file(id) {
-  const del_recycle_id = '#' + id.toUpperCase() + ' .DeleteRecycle';
-  if ($(del_recycle_id).length < 1) {
-    console.log(`在本页中找不到 id: ${id}`);
-    return;
-  }
-  $(del_recycle_id).click();
-}
-
-/*
-function try_delete(id) {
-  const body = new FormData();
-  body.append('id', id);
-
-  ajax({method:'POST',url:'/api/delete-file',body:body},
-    () => {
-      console.log(`文件 [id:${id}] 已扔进回收站，可去回收站找回文件。`);
-    });
-}
-*/
     </script>
   </body>
 </html>
