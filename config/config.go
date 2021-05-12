@@ -17,13 +17,13 @@ var Public = Default()
 // Config 用来设置一些全局变量
 type Config struct {
 
-	// 本地 IP 和端口
+	// 本地 IP 和端口，建议选择一个不常用的端口。
 	Address string
 
 	// 数据文件夹的完整路径
 	DataFolder string
 
-	// 待上传文件的文件夹
+	// 待上传文件的文件夹, 下载文件也是这个文件夹。
 	WaitingFolder string
 
 	// 上传时，单个文件的体积上限。由于在处理文件时需要把整个文件读入内存，

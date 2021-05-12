@@ -282,6 +282,7 @@ function create_bucket_info(name, info) {
     m('div').addClass('card-body').append([
       m('p').text('上次备份时间: ' + lastBackup),
       m('p').text('上次校验时间: ' + lastChecked),
+      m('p').text('占用空间: ' + fileSizeToString(info.TotalSize)),
       m('p').text('全部文件（个）: ' + info.AllFilesCount),
       m('p').append([
         '其中损坏文件（个）: ',

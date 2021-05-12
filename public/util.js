@@ -189,6 +189,8 @@ function getThumbByFiletype(filetype) {
   let prefix = filetype.split('/').shift();
   let suffix = filetype.split('/').pop();
   switch (suffix) {
+    case 'md':
+      return '/public/icons/file-earmark-md.jpg';
     case 'doc':
     case 'docx':
       return '/public/icons/file-earmark-word.jpg';

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
+  <link rel="stylesheet" href="/public/bootstrap-icons-141.css">
+  <link rel="stylesheet" href="/public/style-light.css">
+  
+  <script src="/public/jquery.min.js"></script>
+  <script src="/public/dayjs.min.js"></script>
+  <script src="/public/bootstrap.bundle.min.js"></script>
+  <script src="/public/util.js"></script>
+  
+  <title>Config - localtags</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+  <script>
+
+const Alerts = CreateAlerts();
+
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
+  m('li').text('修改配置后，要重启程序才生效。'),
+  m('li').text('各项目的详细说明请看源文件 config.go, 如有疑问欢迎来 GitHub 提问。'),
+]));
+
+const Navbar = {
+  view: () => m('nav').addClass('navbar navbar-light bg-light').append([
+    m('div').addClass('container-fluid').append([
+      m('a').attr({title:'back to home',href:'/light/home',type:'button'})
+        .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-arrow-left')),
+      m('span').addClass('PageTitle navbar-brand').append([
+        '修改配置', ' ', m(InfoBtn),    
+      ]),
+    ]),
+  ]),
+};
+
+const AddressInput = cc('input');
+const DataFolderInput = cc('input');
+const WaitingFolderInput = cc('input');
+const FileSizeLimitInput = cc('input');
+const TagGroupLimitInput = cc('input');
+const FileListLimitInput = cc('input');
+const CheckIntervalInput = cc('input');
+
+const Form = {
+  view: () => m('div').append([
+    m('div').addClass('mb-3').append([
+      m('label').addClass('form-label').attr({for:AddressInput.id}).text('Address'),
+      m(AddressInput).addClass('form-control').attr({type:'text'}),
+      m('div').addClass('form-text').text('【网址】默认值 127.0.0.1:53549, 一般不建议修改。'),
+    ]),
+    m('div').addClass('mb-3').append([
+      m('label').addClass('form-label').attr({for:DataFolderInput.id}).text('DataFolder'),
+      m(DataFolderInput).addClass('form-control').attr({type:'text'}),
+      m('div').addClass('form-text').text('【数据文件夹】一般在第一次运行时修改，使用后（添加文件后）不建议修改。'),
+    ]),
+    m('div').addClass('mb-3').append([
+      m('label').addClass('form-label').attr({for:WaitingFolderInput.id}).text('WaitingFolder'),
+      m(WaitingFolderInput).addClass('form-control').attr({type:'text'}),
+      m('div').addClass('form-text').text('【待上传文件夹】建议与 DataFolder 设在同一个硬盘分区内 (因为上传成功时该文件夹内的文件会被移动到 DataFolder, 因此相同分区可以提高性能)。'),
+    ]),
+    m('div').addClass('mb-3').append([
+      m('label').addClass('form-label').attr({for:FileSizeLimitInput.id}).text('FileSizeLimit'),
+      m(FileSizeLimitInput).addClass('form-control').attr({type:'number',min:0,step:32}),
+      m('div').addClass('form-text').text('【单个文件体积上限】默认值 512, 单位 MB, 如果你的电脑拥有大内存可设置更大的值。'),
+    ]),
+    m('div').addClass('mb-3').append([
+      m('label').addClass('form-label').attr({for:TagGroupLimitInput.id}).text('TagGroupLimit'),
+      m(TagGroupLimitInput).addClass('form-control').attr({type:'number',min:1}),
+      m('div').addClass('form-text').text('【标签组上限】默认值 50, 可随意设置（该数值不影响标签数量，如果不理解建议采用默认值）。'),
+    ]),
+    m('div').addClass('mb-3').append([
+      m('label').addClass('form-label').attr({for:FileListLimitInput.id}).text('FileListLimit'),
+      m(FileListLimitInput).addClass('form-control').attr({type:'number',min:1}),
+      m('div').addClass('form-text').text('【文件列表上限】最近文件与最近图片的数量，默认值 100, 可随意设置。'),
+    ]),
+    m('div').addClass('mb-3').append([
+      m('label').addClass('form-label').attr({for:CheckIntervalInput.id}).text('CheckInterval'),
+      m(CheckIntervalInput).addClass('form-control').attr({type:'number',min:1}),
+      m('div').addClass('form-text').text('【文件校验周期】每个文件每隔一段时间会自动校验，默认值 30, 单位是“天”。如果校验过程很慢或仓库内文件很多，则建议设为 90 天。'),
+    ]),
+  ]),
+};
+
+$('#root').append([
+  m(Navbar).addClass('mt-2 mb-5'),
+  m(InfoMsg).hide(),
+  m(Loading).hide(),
+  m(Form),
+  m(Alerts),
+  m(BottomLine),
+]);
+
+</script>
+</body>
+</html>
