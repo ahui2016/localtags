@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ahui2016/localtags/config"
 	"github.com/ahui2016/localtags/database"
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/stmt"
@@ -242,6 +243,26 @@ func getTags(c echo.Context) ([]string, error) {
 	var tags []string
 	err = json.Unmarshal([]byte(tagsString), &tags)
 	return tags, err
+}
+
+func getConfig(c echo.Context) (config.Config, error) {
+	address, e1 := getFormValue(c, "Address")
+	dataFolder, e2 := getFormValue(c, "DataFolder")
+	waitingFolder, e3 := getFormValue(c, "WaitingFolder")
+	fileSizeLimit, e4 := getNumber(c, "FileSizeLimit")
+	tagGroupLimit, e5 := getNumber(c, "TagGroupLimit")
+	fileListLimit, e6 := getNumber(c, "FileListLimit")
+	checkInterval, e7 := getNumber(c, "CheckInterval")
+
+	return config.Config{
+		Address:       address,
+		DataFolder:    dataFolder,
+		WaitingFolder: waitingFolder,
+		FileSizeLimit: int64(fileSizeLimit) * 1024 * 1024,
+		TagGroupLimit: int64(tagGroupLimit),
+		FileListLimit: int64(fileListLimit),
+		CheckInterval: int64(checkInterval) * 60 * 60 * 24,
+	}, util.WrapErrors(e1, e2, e3, e4, e5, e6, e7)
 }
 
 // tryFileName 检查文件名是否符合操作系统的要求。

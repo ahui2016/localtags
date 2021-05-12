@@ -28,7 +28,7 @@ func errorHandler(err error, c echo.Context) {
 	c.JSON(500, Text{err.Error()})
 }
 
-func waitingFolder(c echo.Context) error {
+func getWaitingFolder(c echo.Context) error {
 	return c.JSON(OK, Text{cfg.WaitingFolder})
 }
 
@@ -83,7 +83,7 @@ func waitingFiles(c echo.Context) error {
 	// 在 filesToMeta 里还会检查有没有重复的文件。
 	// 注意这里要先把 newMeta 写入硬盘，之后再处理错误。
 	newMeta, err := filesToMeta(files)
-	util.MarshalWrite(newMeta, tempMetadata)
+	util.MustMarshalWrite(newMeta, tempMetadata)
 
 	allErr = util.WrapErrors(allErr, err)
 	if allErr != nil {
@@ -262,6 +262,18 @@ func databaseInfo(c echo.Context) error {
 		return err
 	}
 	return c.JSON(OK, info)
+}
+
+func getConfigHandler(c echo.Context) error {
+	return c.JSON(OK, cfg)
+}
+
+func updateConfig(c echo.Context) error {
+	cfg2, err := getConfig(c)
+	if err != nil {
+		return err
+	}
+	return util.MarshalWrite(cfg2, configFile)
 }
 
 func forceCheckFiles(c echo.Context) error {

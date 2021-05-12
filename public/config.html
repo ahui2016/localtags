@@ -46,54 +46,102 @@ const TagGroupLimitInput = cc('input');
 const FileListLimitInput = cc('input');
 const CheckIntervalInput = cc('input');
 
-const Form = {
-  view: () => m('div').append([
-    m('div').addClass('mb-3').append([
-      m('label').addClass('form-label').attr({for:AddressInput.id}).text('Address'),
-      m(AddressInput).addClass('form-control').attr({type:'text'}),
-      m('div').addClass('form-text').text('【网址】默认值 127.0.0.1:53549, 一般不建议修改。'),
-    ]),
-    m('div').addClass('mb-3').append([
-      m('label').addClass('form-label').attr({for:DataFolderInput.id}).text('DataFolder'),
-      m(DataFolderInput).addClass('form-control').attr({type:'text'}),
-      m('div').addClass('form-text').text('【数据文件夹】一般在第一次运行时修改，使用后（添加文件后）不建议修改。'),
-    ]),
-    m('div').addClass('mb-3').append([
-      m('label').addClass('form-label').attr({for:WaitingFolderInput.id}).text('WaitingFolder'),
-      m(WaitingFolderInput).addClass('form-control').attr({type:'text'}),
-      m('div').addClass('form-text').text('【待上传文件夹】建议与 DataFolder 设在同一个硬盘分区内 (因为上传成功时该文件夹内的文件会被移动到 DataFolder, 因此相同分区可以提高性能)。'),
-    ]),
-    m('div').addClass('mb-3').append([
-      m('label').addClass('form-label').attr({for:FileSizeLimitInput.id}).text('FileSizeLimit'),
-      m(FileSizeLimitInput).addClass('form-control').attr({type:'number',min:0,step:32}),
-      m('div').addClass('form-text').text('【单个文件体积上限】默认值 512, 单位 MB, 如果你的电脑拥有大内存可设置更大的值。'),
-    ]),
-    m('div').addClass('mb-3').append([
-      m('label').addClass('form-label').attr({for:TagGroupLimitInput.id}).text('TagGroupLimit'),
-      m(TagGroupLimitInput).addClass('form-control').attr({type:'number',min:1}),
-      m('div').addClass('form-text').text('【标签组上限】默认值 50, 可随意设置（该数值不影响标签数量，如果不理解建议采用默认值）。'),
-    ]),
-    m('div').addClass('mb-3').append([
-      m('label').addClass('form-label').attr({for:FileListLimitInput.id}).text('FileListLimit'),
-      m(FileListLimitInput).addClass('form-control').attr({type:'number',min:1}),
-      m('div').addClass('form-text').text('【文件列表上限】最近文件与最近图片的数量，默认值 100, 可随意设置。'),
-    ]),
-    m('div').addClass('mb-3').append([
-      m('label').addClass('form-label').attr({for:CheckIntervalInput.id}).text('CheckInterval'),
-      m(CheckIntervalInput).addClass('form-control').attr({type:'number',min:1}),
-      m('div').addClass('form-text').text('【文件校验周期】每个文件每隔一段时间会自动校验，默认值 30, 单位是“天”。如果校验过程很慢或仓库内文件很多，则建议设为 90 天。'),
-    ]),
+const Form = cc('div', null, [
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:AddressInput.id}).text('Address'),
+    m(AddressInput).addClass('form-control').attr({type:'text'}),
+    m('div').addClass('form-text').text('【网址】默认值 127.0.0.1:53549, 一般不建议修改。'),
   ]),
-};
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:DataFolderInput.id}).text('DataFolder'),
+    m(DataFolderInput).addClass('form-control').attr({type:'text'}),
+    m('div').addClass('form-text').text('【数据文件夹】一般在第一次运行时修改，使用后（添加文件后）不建议修改。'),
+  ]),
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:WaitingFolderInput.id}).text('WaitingFolder'),
+    m(WaitingFolderInput).addClass('form-control').attr({type:'text'}),
+    m('div').addClass('form-text').text('【待上传文件夹】建议与 DataFolder 设在同一个硬盘分区内 (因为上传成功时该文件夹内的文件会被移动到 DataFolder, 因此相同分区可以提高性能)。'),
+  ]),
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:FileSizeLimitInput.id}).text('FileSizeLimit'),
+    m(FileSizeLimitInput).addClass('form-control').attr({type:'number',min:0,step:32}),
+    m('div').addClass('form-text').text('【单个文件体积上限】默认值 512, 单位 MB, 如果你的电脑拥有大内存可设置更大的值。'),
+  ]),
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:TagGroupLimitInput.id}).text('TagGroupLimit'),
+    m(TagGroupLimitInput).addClass('form-control').attr({type:'number',min:1}),
+    m('div').addClass('form-text').text('【标签组上限】默认值 50, 可随意设置（该数值不影响标签数量，如果不理解建议采用默认值）。'),
+  ]),
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:FileListLimitInput.id}).text('FileListLimit'),
+    m(FileListLimitInput).addClass('form-control').attr({type:'number',min:1}),
+    m('div').addClass('form-text').text('【文件列表上限】最近文件与最近图片的数量，默认值 100, 可随意设置。'),
+  ]),
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:CheckIntervalInput.id}).text('CheckInterval'),
+    m(CheckIntervalInput).addClass('form-control').attr({type:'number',min:1}),
+    m('div').addClass('form-text').text('【文件校验周期】每个文件每隔一段时间会自动校验，默认值 30, 单位是“天”。如果校验过程很慢或仓库内文件很多，则建议设为 90 天。'),
+  ]),
+]);
+
+const UpdateBtn = cc('button');
+
+const SubmitBtnAera = cc('p', null, [
+  m(UpdateBtn).text('Update').addClass('btn btn-primary').attr({type:'button'}).click(() => {
+    const body = new FormData();
+    body.append('Address', $(AddressInput.id).val());
+    body.append('DataFolder', $(DataFolderInput.id).val());
+    body.append('WaitingFolder', $(WaitingFolderInput.id).val());
+    body.append('FileSizeLimit', $(FileSizeLimitInput.id).val());
+    body.append('TagGroupLimit', $(TagGroupLimitInput.id).val());
+    body.append('FileListLimit', $(FileListLimitInput.id).val());
+    body.append('CheckInterval', $(CheckIntervalInput.id).val());
+    ajax({method:'POST',url:'/api/update-config',alerts:Alerts,buttonID:UpdateBtn.id,body:body},
+        () => {
+          Alerts.insert('success', '已成功更新配置，但需要在后端重启程序才生效。');
+        });
+  }),
+]);
 
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
   m(InfoMsg).hide(),
-  m(Loading).hide(),
-  m(Form),
-  m(Alerts),
+  m(Loading),
+  m(Form).hide(),
+  m(Alerts).addClass('my-3'),
+  m(SubmitBtnAera).addClass('text-center'),
   m(BottomLine),
 ]);
+
+init();
+
+function init() {
+  ajax({method:'GET',url:'/api/get-config',alerts:Alerts},
+      (config) => {
+        $(Form.id).show();
+        $(AddressInput.id).val(config.Address);
+        $(DataFolderInput.id).val(config.DataFolder);
+        $(WaitingFolderInput.id).val(config.WaitingFolder);
+        $(FileSizeLimitInput.id).val(fileSizeToMB(config.FileSizeLimit));
+        $(TagGroupLimitInput.id).val(config.TagGroupLimit);
+        $(FileListLimitInput.id).val(config.FileListLimit);
+        $(CheckIntervalInput.id).val(secondsToDays(config.CheckInterval));
+      }, null, () => {
+        Loading.hide();
+      })
+}
+
+function fileSizeToMB(size) {
+  const fixed = 0
+  const sizeMB = size / 1024 / 1024;
+  if (sizeMB < 1) return 1;
+  return `${sizeMB.toFixed(0)}`;
+}
+
+function secondsToDays(seconds) {
+	timeUnit = 60 * 60 * 24 // 1天(24小时)
+  return seconds / timeUnit
+}
 
 </script>
 </body>

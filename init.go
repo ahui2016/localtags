@@ -65,7 +65,7 @@ func setConfig() {
 	configJSON, err := os.ReadFile(configFile)
 	// 找不到文件或内容为空
 	if err != nil || len(configJSON) == 0 {
-		util.MarshalWrite(config.Public, configFile)
+		util.MustMarshalWrite(config.Public, configFile)
 		return
 	}
 	// configFile 有内容

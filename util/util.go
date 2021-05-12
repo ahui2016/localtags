@@ -102,11 +102,18 @@ func MustMarshal(data interface{}) []byte {
 	return dataJSON
 }
 
+// MustMarshalWrite 把 data 转换为漂亮格式的 JSON 并写入文件 name 中。
+func MustMarshalWrite(data interface{}, name string) {
+	Panic(MarshalWrite(data, name))
+}
+
 // MarshalWrite 把 data 转换为漂亮格式的 JSON 并写入文件 name 中。
-func MarshalWrite(data interface{}, name string) {
+func MarshalWrite(data interface{}, name string) error {
 	dataJSON, err := json.MarshalIndent(data, "", "    ")
-	Panic(err)
-	Panic(os.WriteFile(name, dataJSON, 0600))
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(name, dataJSON, 0600)
 }
 
 // CreateFile 把 src 的数据写入 filePath, 权限是 0600, 自动关闭 file.
