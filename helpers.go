@@ -161,10 +161,24 @@ func infoToFile(name string, meta map[string]*File) (
 		}
 	}
 
+	// 根据视频体积来决定截取第几秒，可能不准确。
+	n := 3
+	const MB int64 = 1024 * 1024
+	switch {
+	case file.Size > 10*MB:
+		n = 5
+	case file.Size > 30*MB:
+		n = 10
+	case file.Size > 50*MB && file.Size < 100*MB:
+		n = 30
+	default:
+		n = 60
+	}
+
 	if hasFFmpeg && strings.HasPrefix(file.Type, "video") {
 		file.Thumb = true
 		// 注意下面这个 err 是个新变量，不同于函数返回值的那个 err.
-		if err := thumb.FrameNail(name, thumbPath, 5); err != nil {
+		if err := thumb.FrameNail(name, thumbPath, n); err != nil {
 			// 如果截图失败，可能视频已损坏，或根本不是视频（后缀名错误）。
 			file.Thumb = false
 		}

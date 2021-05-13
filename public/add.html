@@ -22,9 +22,10 @@
 
 const Alerts = CreateAlerts();
 
-const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', [
-  '由于浏览器无法直接打开文件夹，请手动打开 waiting 文件夹。',
-]);
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
+  m('li').text('由于浏览器无法直接打开文件夹，请手动打开 waiting 文件夹。'),
+  m('li').text('点击右上角 new note 图标可在 waiting 文件夹里快速创建 markdown 笔记。'),
+]));
 
 const Navbar = {
   view: () => m('nav').addClass('navbar navbar-light bg-light').append([
@@ -34,8 +35,8 @@ const Navbar = {
       m('span').addClass('PageTitle navbar-brand').append([
         'Add Files', ' ', m(InfoBtn),
       ]),
-      m('a').attr({title:'next',type:'button',href:'/light/waiting'})
-        .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-arrow-right')),
+      m('a').attr({title:'new note',type:'button',href:'/light/md-new'})
+        .addClass('btn btn-outline-dark').append(m('i').addClass('bi bi-file-earmark-plus')),
     ]),
   ]),
 };

@@ -92,6 +92,10 @@ func waitingFiles(c echo.Context) error {
 	return c.JSON(OK, files)
 }
 
+func newNote(c echo.Context) error {
+	return c.JSON(OK, Text{"good"})
+}
+
 func addFiles(c echo.Context) error {
 	value := c.FormValue("hash-tags")
 	var hashTags map[string][]string
@@ -132,9 +136,11 @@ func addFiles(c echo.Context) error {
 
 	// 如果一切正常，就清空全部临时文件。
 	if len(copiedFiles) > 0 {
-		err = deleteTempFiles(files)
+		if err := deleteTempFiles(files); err != nil {
+			return err
+		}
 	}
-	return err
+	return os.Remove(tempMetadata)
 }
 
 func searchTags(c echo.Context) error {

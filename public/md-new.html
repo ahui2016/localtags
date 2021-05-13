@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/water-light.css">
+  
+  <script src="/public/jquery.min.js"></script>
+  <script src="/public/dayjs.min.js"></script>
+  <script src="/public/marked.min.js"></script>
+  <script src="/public/purify.min.js"></script>
+  <script src="/public/util.js"></script>
+  
+  <title>New Note - localtags</title>
+
+  <style>
+
+.alerts {
+    font-size: smaller;
+}
+
+.alerts div:first-of-type {
+    font-size: larger;
+}
+
+.alerts div:nth-of-type(n+4) {
+    color: gray;
+}
+
+.alert span + span {
+    margin-left: 10px;
+}
+
+.alert-info {
+    color: steelblue;
+}
+
+.alert-success {
+    color: green;
+}
+
+.alert-danger {
+    color: red;
+}
+
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+
+let oldContents = '';
+const Alerts = createAlerts(9);
+const Textarea = createTextarea();
+
+function createTextarea() {
+  const self = cc('textarea');
+  self.view = () => m('textarea').attr({id:self.raw_id}).css('height', '250px');
+
+  self.init = () => {
+    const selfElem = $(self.id);
+    selfElem.on('input', () => {
+      selfElem.css('height', selfElem.prop('scrollHeight'));
+    });
+    window.setTimeout(() => {selfElem.focus()}, 500);
+  };
+  return self;
+}
+
+const SaveBtn = cc('button');
+const NextBtn = cc('button');
+const Buttons = {
+  view: () => m('p').append([
+    m(SaveBtn).text('Save').click(() => { Buttons.save(false) }),
+    m(NextBtn).text('Next').click(() => { Buttons.save(true) }),
+  ]),
+  save: (done) => {
+    const contents = $(Textarea.id).val();
+    if (contents == oldContents) {
+      if (done) window.location = '/light/waiting';
+      Alerts.insert('info', '笔记内容没有变化');
+      return;
+    }
+    const body = new FormData();
+    body.append('contents', contents);
+    disable(NextBtn.id);
+    ajax({method:'POST',url:'/api/new-note',alerts:Alerts,buttonID:SaveBtn.id,body:body},
+        (resp) => {
+          Alerts.insert('success', '已保存: ' + resp.message);
+          if (done) window.location = '/light/waiting';
+        }, null, () => {
+          enable(NextBtn.id)
+        });
+  },
+};
+
+$('#root').append([
+  m(Textarea),
+  m(Alerts),
+  m(Buttons),
+]);
+
+init();
+
+function init() {
+  Alerts.insert('info', '点击 Save 按钮后，可在硬盘里找到文件，用任何文本编辑器（例如 Typora, VS Code 等）打开文件进行编辑或预览。');
+  Alerts.insert('info', '在这里你可以创建笔记，采用 markdown 格式（没有预览功能）。');
+  Textarea.init();
+}
+
+function createAlerts(max) {
+  if (!max) max = 5;
+  const self = cc('div');
+  self.view = () => m('div').attr({id:self.raw_id}).addClass('alerts');
+
+  self.count = 0;
+
+  self.insertElem = (elem) => {
+    $(self.id).prepend(elem);
+    self.count++;
+    if (self.count > max) {
+      $(`${self.id} div:last-of-type`).remove();
+    }
+  },
+
+  self.insert = (msgType, msg) => {
+    const elem = m('div').addClass(`alert alert-${msgType}`).append([
+      m('span').text(dayjs().format('HH:mm:ss')),
+      m('span').text(msg),
+    ]);
+    self.insertElem(elem);
+  };
+
+  self.clear = () => {
+    $(self.id).html('');
+    self.count = 0;
+  };
+  return self;
+}
+
+</script>
+</body>
+</html>

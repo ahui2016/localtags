@@ -31,6 +31,7 @@ func main() {
 	light.File("/add", "public/add.html")
 	light.File("/images", "public/images.html")
 	light.File("/md-preview", "public/md-preview.html")
+	light.File("/md-new", "public/md-new.html")
 	light.File("/config", "public/config.html")
 
 	// api 只使用 GET, POST, 不采用 RESTful.
@@ -55,6 +56,7 @@ func main() {
 	api.GET("/deleted-files", deletedFiles)
 	api.GET("/download/:id", downloadFile)
 	api.POST("/add-files", addFiles, autoCheck)
+	api.POST("/new-note", newNote, sleep)
 	api.POST("/delete-file", deleteFile)
 	api.POST("/undelete-file", undeleteFile)
 	api.POST("/really-delete-file", reallyDeleteFile)
