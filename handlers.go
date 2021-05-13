@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/stmt"
@@ -93,7 +94,15 @@ func waitingFiles(c echo.Context) error {
 }
 
 func newNote(c echo.Context) error {
-	return c.JSON(OK, Text{"good"})
+	contents := c.FormValue("contents")
+	limit := 50 // title length limit
+	firstLine := util.FirstLineLimit(strings.TrimSpace(contents), limit)
+	title := util.GetMarkdownTitle(firstLine)
+	filename := waitingFile(title) + ".md"
+	if err := os.WriteFile(filename, []byte(contents), 0666); err != nil {
+		return err
+	}
+	return c.JSON(OK, Text{title})
 }
 
 func addFiles(c echo.Context) error {
@@ -196,7 +205,11 @@ func downloadFile(c echo.Context) error {
 		return err
 	}
 	filename := waitingFile(name)
-	if util.PathIsExist(filename) {
+	ok, err := util.PathIsExist(filename)
+	if err != nil {
+		return err
+	}
+	if ok {
 		return fmt.Errorf("文件已存在: %s", filename)
 	}
 	if err := util.CopyFile(filename, mainBucketFile(id)); err != nil {

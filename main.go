@@ -56,7 +56,7 @@ func main() {
 	api.GET("/deleted-files", deletedFiles)
 	api.GET("/download/:id", downloadFile)
 	api.POST("/add-files", addFiles, autoCheck)
-	api.POST("/new-note", newNote, sleep)
+	api.POST("/new-note", newNote)
 	api.POST("/delete-file", deleteFile)
 	api.POST("/undelete-file", undeleteFile)
 	api.POST("/really-delete-file", reallyDeleteFile)

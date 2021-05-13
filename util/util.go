@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"golang.org/x/crypto/blake2b"
 )
@@ -56,24 +58,26 @@ func UserHomeDir() string {
 }
 
 // PathIsNotExist .
-func PathIsNotExist(name string) bool {
+func PathIsNotExist(name string) (bool, error) {
 	_, err := os.Lstat(name)
 	if os.IsNotExist(err) {
-		return true
+		return true, nil
 	}
-	Panic(err)
-	return false
+	return false, err
 }
 
 // PathIsExist .
-func PathIsExist(name string) bool {
-	return !PathIsNotExist(name)
+func PathIsExist(name string) (bool, error) {
+	isNotExist, err := PathIsNotExist(name)
+	return !isNotExist, err
 }
 
 // MustMkdir 确保有一个名为 dirName 的文件夹，
 // 如果没有则自动创建，如果已存在则不进行任何操作。
 func MustMkdir(dirName string) {
-	if PathIsNotExist(dirName) {
+	ok, err := PathIsNotExist(dirName)
+	Panic(err)
+	if ok {
 		Panic(os.Mkdir(dirName, 0700))
 	}
 }
@@ -211,6 +215,55 @@ func StrSliceDiff(newArr, oldArr []string) (toAdd, toDelete []string) {
 		}
 	}
 	return
+}
+
+// FirstLineLimit 返回第一行，并限定长度，其中 s 必须事先 TrimSpace 并确保不是空字串。
+// 并且, s 也可以事先限制字数.
+// 该函数会尽量确保最后一个字符是有效的 utf8 字符，但当第一行中的全部字符都无效时，
+// 则按原样返回每一行。
+func FirstLineLimit(s string, limit int) string {
+	if len(s) > limit {
+		s = s[:limit]
+	}
+	s += "\n"
+	i := firstLineBreak(s)
+	firstLine := s[:i]
+	for len(firstLine) > 0 {
+		if utf8.ValidString(firstLine) {
+			break
+		}
+		firstLine = firstLine[:len(firstLine)-1]
+	}
+	if firstLine == "" {
+		firstLine = s[:i]
+	}
+	return firstLine
+}
+
+// firstLineBreak 获取第一个 \r\n 或第一个 \n 的位置
+func firstLineBreak(s string) int {
+	i := strings.Index(s, "\n")
+	i2 := strings.Index(s, "\r\n")
+	if i2 < 0 {
+		return i
+	}
+	if i > i2 {
+		i = i2
+	}
+	return i
+}
+
+// GetMarkdownTitle 截取 markdown 的开头内容获作为标题。
+// 其中 s 应该限制字数 (使用 FirstLineLimit), 没必要传入 markdown 文件的全文。
+// 注意 s 不可包含制表符、回车键等特殊字符。
+func GetMarkdownTitle(s string) string {
+	reTitle := regexp.MustCompile(`(^#{1,6}|>|1.|-|\*) (.+)`)
+	matches := reTitle.FindStringSubmatch(s)
+	// 这个 matches 要么为空，要么包含 3 个元素
+	if len(matches) >= 3 {
+		return matches[2]
+	}
+	return s
 }
 
 // GetMIME returns the content-type of a file extension.

@@ -87,6 +87,7 @@ const Buttons = {
     disable(NextBtn.id);
     ajax({method:'POST',url:'/api/new-note',alerts:Alerts,buttonID:SaveBtn.id,body:body},
         (resp) => {
+          oldContents = contents;
           Alerts.insert('success', '已保存: ' + resp.message);
           if (done) window.location = '/light/waiting';
         }, null, () => {
@@ -104,7 +105,7 @@ $('#root').append([
 init();
 
 function init() {
-  Alerts.insert('info', '点击 Save 按钮后，可在硬盘里找到文件，用任何文本编辑器（例如 Typora, VS Code 等）打开文件进行编辑或预览。');
+  Alerts.insert('info', '注意，使用该功能有很多注意事项，请阅读本软件源码仓库里的 details.md 文件。');
   Alerts.insert('info', '在这里你可以创建笔记，采用 markdown 格式（没有预览功能）。');
   Textarea.init();
 }

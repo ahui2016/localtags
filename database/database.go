@@ -67,7 +67,11 @@ func (db *DB) Open(dbPath string, cfg config.Config) (err error) {
 
 // OpenBackup opens a backup database.
 func (db *DB) OpenBackup(dbPath string, cfg config.Config) (err error) {
-	if util.PathIsNotExist(dbPath) {
+	ok, err := util.PathIsNotExist(dbPath)
+	if err != nil {
+		return err
+	}
+	if ok {
 		return fmt.Errorf("not found: %s", dbPath)
 	}
 	db.Folder = filepath.Dir(dbPath)

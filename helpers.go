@@ -165,14 +165,16 @@ func infoToFile(name string, meta map[string]*File) (
 	n := 3
 	const MB int64 = 1024 * 1024
 	switch {
-	case file.Size > 10*MB:
-		n = 5
+	case file.Size > 100*MB:
+		n = 60
+	case file.Size > 50*MB:
+		n = 30
 	case file.Size > 30*MB:
 		n = 10
-	case file.Size > 50*MB && file.Size < 100*MB:
-		n = 30
+	case file.Size > 10*MB:
+		n = 5
 	default:
-		n = 60
+		n = 3
 	}
 
 	if hasFFmpeg && strings.HasPrefix(file.Type, "video") {
@@ -351,7 +353,11 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 	// 如果找不到备份数据库文件，则说明这是一个空文件夹，是一个全新的备份仓库。
 	// 此时，生成一个新的备份仓库数据库文件，为后续的备份做准备。
 	bkPath := filepath.Join(bkFolder, backupDBFileName)
-	if util.PathIsNotExist(bkPath) {
+	ok, err := util.PathIsNotExist(bkPath)
+	if err != nil {
+		return nil, err
+	}
+	if ok {
 		bk := new(database.DB)
 		if err := bk.Open(bkPath, cfg); err != nil {
 			return nil, err
