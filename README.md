@@ -3,10 +3,11 @@
 
 ## 重要更新
 
+- 2021-05-14 (add: 快速创建 markdown 笔记) [changelog.md](./changelog.md)
 - 2021-05-12 (add: 通过网页修改配置) 详见后文 "端口等的设置"
-- 2021-05-10 (add: 单个文件体积上限) 详见 [details.md](./details.md)
-- 2021-05-09 (add: 本地 markdown 图库) 详见 [details.md](./details.md)
-- 2021-05-08 (fix: 备份仓库文件校验) 详见 [changelog.md](./changelog.md)
+- 2021-05-10 (add: 单个文件体积上限) [details.md](./details.md)
+- 2021-05-09 (add: 本地 markdown 图库) [details.md](./details.md)
+- 2021-05-08 (fix: 备份仓库文件校验) [changelog.md](./changelog.md)
 
 
 ## 主要功能：
