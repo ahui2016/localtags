@@ -93,16 +93,43 @@ func waitingFiles(c echo.Context) error {
 	return c.JSON(OK, files)
 }
 
-func newNote(c echo.Context) error {
-	contents := c.FormValue("contents")
-	limit := 50 // title length limit
-	firstLine := util.FirstLineLimit(strings.TrimSpace(contents), limit)
-	title := util.GetMarkdownTitle(firstLine)
-	filename := waitingFile(title) + ".md"
-	if err := os.WriteFile(filename, []byte(contents), 0666); err != nil {
+func setWaitingTags(c echo.Context) error {
+	tags, err := getTags(c)
+	if err != nil {
 		return err
 	}
-	return c.JSON(OK, Text{title})
+	metadata, err := getMetadata()
+	if err != nil {
+		return err
+	}
+	if len(metadata) == 0 {
+		return fmt.Errorf("there is no file waiting to upload")
+	}
+	for i := range metadata {
+		metadata[i].Tags = tags
+	}
+	return util.MarshalWrite(metadata, tempMetadata)
+}
+
+func setWaitingTag(c echo.Context) error {
+	tags, e1 := getTags(c)
+	hash, e2 := getFormValue(c, "hash")
+	if err := util.WrapErrors(e1, e2); err != nil {
+		return err
+	}
+	metadata, err := getMetadata()
+	if err != nil {
+		return err
+	}
+	if len(metadata) == 0 {
+		return fmt.Errorf("there is no file waiting to upload")
+	}
+	_, ok := metadata[hash]
+	if !ok {
+		return fmt.Errorf("not found: " + hash)
+	}
+	metadata[hash].Tags = tags
+	return util.MarshalWrite(metadata, tempMetadata)
 }
 
 func addFiles(c echo.Context) error {
@@ -150,6 +177,18 @@ func addFiles(c echo.Context) error {
 		}
 	}
 	return os.Remove(tempMetadata)
+}
+
+func newNote(c echo.Context) error {
+	contents := c.FormValue("contents")
+	limit := 50 // title length limit
+	firstLine := util.FirstLineLimit(strings.TrimSpace(contents), limit)
+	title := util.GetMarkdownTitle(firstLine)
+	filename := waitingFile(title) + ".md"
+	if err := os.WriteFile(filename, []byte(contents), 0666); err != nil {
+		return err
+	}
+	return c.JSON(OK, Text{title})
 }
 
 func searchTags(c echo.Context) error {

@@ -121,7 +121,7 @@ func infoToFile(name string, meta map[string]*File) (
 	file.Count = len(ids)
 
 	// 填充文件标签
-	if file.Count > 0 {
+	if file.Count > 0 && len(file.Tags) == 0 {
 		tags, err := db.GetTagsByFile(ids[0])
 		if err != nil {
 			return nil, err
@@ -140,10 +140,11 @@ func infoToFile(name string, meta map[string]*File) (
 		return nil, fmt.Errorf("文件 [%s] 已存在于数据库中: id[%s]", file.Name, id)
 	}
 
-	// 如果文件已经在 metadata 里，则不进行处理，立即返回。
+	// 如果文件已经在 metadata 里，则填充原信息后立即返回。
 	if metaFile, ok := meta[file.Hash]; ok {
 		file.ID = metaFile.ID
 		file.Thumb = metaFile.Thumb
+		file.Tags = metaFile.Tags
 		return
 	}
 

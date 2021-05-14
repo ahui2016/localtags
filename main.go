@@ -51,6 +51,8 @@ func main() {
 
 	api.GET("/waitingFolder", getWaitingFolder)
 	api.GET("/waiting-files", waitingFiles)
+	api.POST("/set-waiting-tags", setWaitingTags)
+	api.POST("/set-waiting-tag", setWaitingTag)
 	api.GET("/all-files", allFiles) // file.Deleted == false
 	api.GET("/all-images", allImages)
 	api.GET("/deleted-files", deletedFiles)

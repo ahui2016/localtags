@@ -34,7 +34,7 @@ const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
   m('li').text('可随时在 waiting 文件夹中添加、删除文件或更改文件名。'),
-  m('li').text('注意：每当在 waiting 文件夹中添加、删除文件或更改文件名后，请刷新本页面以反映最新情况。'),
+  m('li').text('但每当在 waiting 文件夹中添加、删除文件或更改文件名后，请刷新本页面以反映最新情况。'),
   m('li').text('按 F12 进入控制台输入命令 where() 可查看 waiting 文件夹的完整路径。'),
   m('li').text('单个文件上限默认 512MB (可在 config.json 中设置), 大文件请用压缩软件分卷后上传。'),
 ]));
@@ -110,12 +110,14 @@ function init() {
   $(SetTagsBtn.id).click(() => {
     $('.TagsArea').show();
     $('.col .input-group').hide();
-    const tagsInput = $(Tags.id);
-    let tags = tagsInput.val();
-    const tagsSet = tagsStringToSet(tags);
-    tags = addPrefix(tagsSet, '#');
-    $('.Tags').text(tags);
-    tagsInput.val(tags).focus();
+    const tags = $(Tags.id).val();
+    const tagsArr = tagsStringToArray(tags);
+    const body = new FormData();
+    body.append('tags', JSON.stringify(tagsArr));
+    ajax({method:'POST',url:'/api/set-waiting-tags',alerts:Alerts,buttonID:SetTagsBtn.id,body:body},
+        () => {
+          $('.Tags').text(addPrefix(tagsArr, '#'));
+        });
   });
 
   $(SubmitBtn.id).click(() => {
@@ -158,7 +160,7 @@ function init() {
         const item = FileItem(file);
         $(FileList.id).prepend(m(item));
         item.init();
-        if (file.Tags && file.Tags.length > 0) hasSameName = true;
+        if (file.Count > 0) hasSameName = true;
       });
       if (hasSameName) {
         Alerts.insert('primary', '发现重名文件，已为重名文件自动设置标签，如果更改标签，数据库中的同名文件也会随之同时更改标签。');
@@ -192,11 +194,11 @@ function FileItem(file) {
     file.Thumb = getThumbByFiletype(file.Type);
   }
 
-  let cardSubtitle;
-  if (file.ID.length > 10) {
-    cardSubtitle = `(size: ${fileSizeToString(file.Size)})`;
-  } else {
-    cardSubtitle = `id:${file.ID} (size: ${fileSizeToString(file.Size)})`;
+  const cardSubtitle = `(size: ${fileSizeToString(file.Size)})`;
+
+  let displaySameName = 'none';
+  if (file.Count > 0) {
+    displaySameName = 'inline';
   }
 
   const self = cc('div', file.ID);
@@ -208,7 +210,10 @@ function FileItem(file) {
       ]),
       m('div').addClass('col').append([
         m('div').addClass('card-body d-flex flex-column h-100').append([
-          m('p').addClass('small card-subtitle text-muted').text(cardSubtitle),
+          m('p').addClass('small text-muted mb-0').append([
+            m('span').text(cardSubtitle), ' ',
+            m('span').text('重名').addClass('SameName text-warning bg-light px-1').css('display', displaySameName),
+          ]),
           m('p').addClass('card-text text-break mb-2').text(file.Name),
           m('div').addClass('TagsArea mt-auto').append([
             m('i').addClass('bi bi-tag').attr({title:'edit tags'}),
@@ -230,18 +235,31 @@ function FileItem(file) {
     const tagsInput = $(self.id + ' .TagsInput');
     const inputGroup = $(self.id + ' .input-group');
 
-    $(self.id + ' .OK').click(() => {
+    const okBtnID = self.id + ' .OK';
+    $(okBtnID).click(() => {
       const tags = tagsInput.val();
-      const tagsSet = tagsStringToSet(tags);
-      tagsArea.show();
-      tagsText.text(addPrefix(tagsSet, '#'));
-      inputGroup.hide();
+      const tagsArr = tagsStringToArray(tags);
+      const body = new FormData();
+      body.append('hash', idHash[self.raw_id]);
+      body.append('tags', JSON.stringify(tagsArr));
+      ajax({method:'POST',url:'/api/set-waiting-tag',buttonID:okBtnID,body:body},
+          () => {
+            inputGroup.hide();
+            tagsArea.show();
+            tagsText.text(addPrefix(tagsArr, '#'));
+          }, (that) => {
+            if (that.responseText.indexOf('not found')) {
+              Alerts.insert('danger', 'not found: ' + $(self.id + ' .card-text').text());
+            } else {
+              Alerts.insert('danger', that.responseText);
+            }
+          });
     });
     
     $(self.id + ' .bi-tag').click(() => {
+      tagsArea.hide();
       inputGroup.show();
       tagsInput.val(tagsText.text()).focus();
-      tagsArea.hide();
     });  
   }
 
