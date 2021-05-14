@@ -130,16 +130,8 @@ function init() {
     if (!checkTags()) {
       return;
     }
-    const hashTags = {}; // hash-tags 对应表。
-    $('.FileItem').each((i, item) => {
-      const tags = $(item).find('.Tags').text();
-      const id = $(item).attr('id');
-      hashTags[idHash[id]] = tagsStringToArray(tags);
-    });
-    const body = new FormData();
-    body.append('hash-tags', JSON.stringify(hashTags));
     $(SubmitLoading.id).show();
-    ajax({method:'POST',url:'/api/add-files',alerts:SubmitAlerts,buttonID:SubmitBtn.id,body:body},
+    ajax({method:'POST',url:'/api/add-files',alerts:SubmitAlerts,buttonID:SubmitBtn.id},
       () => {
         $(TagsArea.id).hide();
         $(SubmitBtnAera.id).hide();

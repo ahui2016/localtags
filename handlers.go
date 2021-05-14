@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -133,14 +132,14 @@ func setWaitingTag(c echo.Context) error {
 }
 
 func addFiles(c echo.Context) error {
-	value := c.FormValue("hash-tags")
-	var hashTags map[string][]string
-	if err := json.Unmarshal([]byte(value), &hashTags); err != nil {
-		return err
-	}
 	metadata, err := getMetadata()
 	if err != nil {
 		return err
+	}
+	for _, file := range metadata {
+		if len(file.Tags) < 2 {
+			return fmt.Errorf("every file needs at least two tags [%s]", file.Name)
+		}
 	}
 	var (
 		copiedFiles []string
@@ -161,7 +160,6 @@ func addFiles(c echo.Context) error {
 		file.ID = f.ID
 		file.CTime = f.CTime
 		file.UTime = f.UTime
-		file.SetTags(hashTags[file.Hash])
 		files = append(files, file)
 	}
 
