@@ -29,6 +29,7 @@
 const idHash = {}; // id-hash 对应表。
 
 let waitingFolder;
+let oldTags;
 
 const Alerts = CreateAlerts();
 
@@ -108,15 +109,20 @@ function init() {
     (resp) => { waitingFolder = resp.message });
 
   $(SetTagsBtn.id).click(() => {
-    $('.TagsArea').show();
-    $('.col .input-group').hide();
-    const tags = $(Tags.id).val();
-    const tagsArr = tagsStringToArray(tags);
+    const tagsArr = tagsStringToArray($(Tags.id).val());
+    const tagsText = addPrefix(tagsArr, '#');
+    if (tagsText == oldTags) {
+      Alerts.insert('info', '标签无变化');
+      return;
+    }
     const body = new FormData();
     body.append('tags', JSON.stringify(tagsArr));
     ajax({method:'POST',url:'/api/set-waiting-tags',alerts:Alerts,buttonID:SetTagsBtn.id,body:body},
         () => {
-          $('.Tags').text(addPrefix(tagsArr, '#'));
+          $('.Tags').text(tagsText);
+          oldTags = tagsText;
+          $('.TagsArea').show();
+          $('.col .input-group').hide();
         });
   });
 
@@ -232,13 +238,19 @@ function FileItem(file) {
   self.init = () => {
     const tagsArea = $(self.id + ' .TagsArea');
     const tagsText = $(self.id + ' .Tags');
+    self.oldTags = tagsText.text();
     const tagsInput = $(self.id + ' .TagsInput');
     const inputGroup = $(self.id + ' .input-group');
 
     const okBtnID = self.id + ' .OK';
     $(okBtnID).click(() => {
-      const tags = tagsInput.val();
-      const tagsArr = tagsStringToArray(tags);
+      const tagsArr = tagsStringToArray(tagsInput.val());
+      const tagsArrText = addPrefix(tagsArr, '#');
+      if (tagsArrText == self.oldTags) {
+        inputGroup.hide();
+        tagsArea.show();
+        return;
+      }
       const body = new FormData();
       body.append('hash', idHash[self.raw_id]);
       body.append('tags', JSON.stringify(tagsArr));
@@ -246,7 +258,9 @@ function FileItem(file) {
           () => {
             inputGroup.hide();
             tagsArea.show();
-            tagsText.text(addPrefix(tagsArr, '#'));
+            tagsText.text(tagsArrText);
+            self.oldTags = tagsArrText;
+            oldTags = '';
           }, (that) => {
             if (that.responseText.indexOf('not found')) {
               Alerts.insert('danger', 'not found: ' + $(self.id + ' .card-text').text());
