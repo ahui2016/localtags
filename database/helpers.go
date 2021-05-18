@@ -222,14 +222,14 @@ func getFileIDs(tx TX, query string, args ...interface{}) (fileIDs []string, err
 
 func fillTags(tx TX, files []*File) error {
 	for _, file := range files {
-		if err := fillTag(tx, file); err != nil {
+		if err := fillFileTags(tx, file); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func fillTag(tx TX, file *File) error {
+func fillFileTags(tx TX, file *File) error {
 	tags, err := getTagsByFile(tx, file.ID)
 	if err != nil {
 		return err
@@ -291,7 +291,7 @@ func getFileByID(tx TX, id string) (file File, err error) {
 	if file, err = scanFile(row); err != nil {
 		return
 	}
-	err = fillTag(tx, &file)
+	err = fillFileTags(tx, &file)
 	return
 }
 

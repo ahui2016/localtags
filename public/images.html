@@ -118,7 +118,7 @@ function CreateImageItem(file) {
           m('i').addClass('bi bi-tag ml-1'),
         ),
         m('i').addClass('DeleteRecycle bi bi-trash ml-1').attr({title:'delete'}),
-        m('a').attr({title:'download',download:file.Name, href:'/light/search?fileid='+file.ID}).append(
+        m('a').attr({title:'download',download:file.Name, href:getPhotoURL(file.ID)}).append(
           m('i').addClass('bi bi-download ml-1')
         ),
         m('span').text('DELETED').addClass('DELETED badge bg-secondary text-white').hide(),

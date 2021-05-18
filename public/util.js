@@ -20,6 +20,10 @@ function getPreviewURL(id, type) {
   return mainBucket + id;
 }
 
+function getPhotoURL(id) {
+  return mainBucket + id;
+}
+
 // make a new vnode by name, or return its view.
 function m(name) {
   if (jQuery.type(name) == 'string') {
@@ -266,11 +270,15 @@ function CreateAlerts() {
 
   alerts.insert = (msgType, msg) => {
     const time = dayjs().format('HH:mm:ss');
+    const time_and_msg = `${time} ${msg}`;
+    if (msgType == 'danger') {
+      console.log(time_and_msg);
+    }
     const elem = m('div')
       .addClass(`alert alert-${msgType} alert-dismissible fade show mt-1 mb-0`)
       .attr({role:'alert'})
       .append([
-        m('span').text(`${time} ${msg}`),
+        m('span').text(time_and_msg),
         m('button').attr({type: 'button', class: "btn-close", 'data-bs-dismiss': "alert", 'aria-label':"Close"}),
       ]);
     alerts.insertElem(elem);

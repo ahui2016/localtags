@@ -131,6 +131,60 @@ func setWaitingTag(c echo.Context) error {
 	return util.MarshalWrite(metadata, tempMetadata)
 }
 
+// replaceFile 替换同名文件，如果有多个同名文件，则替换最新那个（而不是最旧那个）。
+func replaceFile(c echo.Context) error {
+	id, e1 := getID(c)
+	hash, e2 := getFormValue(c, "hash")
+	if err := util.WrapErrors(e1, e2); err != nil {
+		return err
+	}
+	metadata, err := getMetadata()
+	if err != nil {
+		return err
+	}
+	srcFile, ok := metadata[hash]
+	if !ok {
+		return fmt.Errorf("not found: %s", hash)
+	}
+
+	// 如果系统中没有同名文件，则无法替换。
+	if !db.IsFileExist(id) {
+		return fmt.Errorf("can not replace, it's a new file name: %s", srcFile.Name)
+	}
+
+	var copiedFiles []string
+	dstFile := &File{ID: id}
+
+	// 先尝试移动文件，不行再复制文件。
+	if err := moveTempFile(srcFile, dstFile); err != nil {
+		if err = copyTempFile(srcFile, dstFile, &copiedFiles); err != nil {
+			return err
+		}
+	}
+	// thumb 文件总是在同一个硬盘分区，因此总能移动成功，不需要复制。
+	if err := moveTempThumb(srcFile, dstFile); err != nil {
+		return err
+	}
+
+	// 需要用到 ID, Size, Hash, UTime.
+	// 其中 Size, Hash 已经在 srcFile 里了, ID 由前端提供, UTime 需要更新。
+	srcFile.ID = id
+	srcFile.UTime = model.TimeNow()
+	if err := db.ReplaceFile(srcFile); err != nil {
+		return util.WrapErrors(err, util.DeleteFiles(copiedFiles))
+	}
+
+	// 如果一切正常，就删除临时文件。
+	if len(copiedFiles) > 0 {
+		if err := os.Remove(waitingFile(srcFile.Name)); err != nil {
+			return err
+		}
+	}
+
+	// 这里不更新 metadata, 但要注意必须通过刷新前端页面来更新 metadata.
+	return nil
+}
+
 func addFiles(c echo.Context) error {
 	metadata, err := getMetadata()
 	if err != nil {
@@ -179,7 +233,7 @@ func addFiles(c echo.Context) error {
 
 func newNote(c echo.Context) error {
 	contents := c.FormValue("contents")
-	limit := 50 // title length limit
+	limit := 100 // title length limit
 	firstLine := util.FirstLineLimit(strings.TrimSpace(contents), limit)
 	title := util.GetMarkdownTitle(firstLine)
 	filename := waitingFile(title) + ".md"

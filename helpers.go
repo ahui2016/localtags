@@ -122,7 +122,8 @@ func infoToFile(name string, meta map[string]*File) (
 
 	// 填充文件标签
 	if file.Count > 0 && len(file.Tags) == 0 {
-		tags, err := db.GetTagsByFile(ids[0])
+		file.ID = ids[0] // 注意：使用替换文件的功能时，该 ID 的文件会被替换。
+		tags, err := db.GetTagsByFile(file.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -142,14 +143,18 @@ func infoToFile(name string, meta map[string]*File) (
 
 	// 如果文件已经在 metadata 里，则填充原信息后立即返回。
 	if metaFile, ok := meta[file.Hash]; ok {
-		file.ID = metaFile.ID
+		if file.ID == "" {
+			file.ID = metaFile.ID
+		}
 		file.Thumb = metaFile.Thumb
 		file.Tags = metaFile.Tags
 		return
 	}
 
 	// 填充文件 ID
-	file.ID = "f" + model.RandomID()
+	if file.ID == "" {
+		file.ID = "f" + model.RandomID()
+	}
 	thumbPath := tempThumb(file.ID)
 
 	// 填充文件缩略图

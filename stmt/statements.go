@@ -85,6 +85,7 @@ const SetFileChecked = `UPDATE file SET checked=?, damaged=? WHERE id=?;`
 const InsertFile = `INSERT INTO file (
   id, name, count, size, type, thumb, hash, like, ctime, utime, checked, damaged, deleted)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+const ReplaceFile = `UPDATE file SET size=?, hash=?, utime=?, damaged=0 WHERE id=?;`
 const SetFileDeletedNow = `UPDATE file SET deleted=?, utime=? WHERE id=?;`
 const RenameFilesNow = `UPDATE file SET name=?, type=?, utime=? WHERE name=?;`
 const UpdateNow = `UPDATE file SET utime=? WHERE id=?;`

@@ -20,6 +20,9 @@
       cursor: pointer;
       margin-right: 0.5rem;
     }
+    .SameName {
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -137,6 +140,7 @@ function init() {
         $(SubmitBtnAera.id).hide();
         $('.bi-tag').hide();
         $(Files.id).show();
+        disable('.SameName');
         SubmitAlerts.insert('success', 'OK');
       }, null, () => {
         $(SubmitLoading.id).hide();
@@ -210,7 +214,11 @@ function FileItem(file) {
         m('div').addClass('card-body d-flex flex-column h-100').append([
           m('p').addClass('small text-muted mb-0').append([
             m('span').text(cardSubtitle), ' ',
-            m('span').text('重名').addClass('SameName text-warning bg-light px-1').css('display', displaySameName),
+            m('span').text('重名').addClass('SameName text-warning bg-light px-1')
+              .css('display', displaySameName).attr({title:'点击该按钮，按功能键 F12 打开控制台查看说明'})
+              .click(() => {
+                console.log(`输入命令 replace_file('${file.ID}') 可替换文件[${file.Name}]`);
+              }),
           ]),
           m('p').addClass('card-text text-break mb-2').text(file.Name),
           m('div').addClass('TagsArea mt-auto').append([
@@ -246,7 +254,7 @@ function FileItem(file) {
       const body = new FormData();
       body.append('hash', idHash[self.raw_id]);
       body.append('tags', JSON.stringify(tagsArr));
-      ajax({method:'POST',url:'/api/set-waiting-tag',buttonID:okBtnID,body:body},
+      ajax({method:'POST',url:'/api/set-waiting-tag',alerts:Alerts,buttonID:okBtnID,body:body},
           () => {
             inputGroup.hide();
             tagsArea.show();
@@ -270,6 +278,28 @@ function FileItem(file) {
   }
 
   return self;
+}
+
+function replace_file(id) {
+  const hash = idHash[id];
+  if (!hash) {
+    SubmitAlerts.insert('danger', `找不到文件 [id:${id}]`);
+    return;
+  }
+  const body = new FormData();
+  body.append('id', id);
+  body.append('hash', hash);
+
+  disable(SubmitBtn.id)
+  ajax({method:'POST',url:'/api/replace-file',alerts:SubmitAlerts,body:body},
+      () => {
+        const filename = $('#'+id+' .card-text').text();
+        console.log('文件替换成功: ' + filename);
+        console.log('本页会自动刷新......');
+        window.setTimeout(() => {window.location.reload()}, 3000);
+      }, () => {
+        enable(SubmitBtn.id);
+      });
 }
 
 </script>

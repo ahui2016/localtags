@@ -122,6 +122,10 @@ func (db *DB) DeleteFile(id string) error {
 	return tx.Commit()
 }
 
+func (db *DB) ReplaceFile(file *File) error {
+	return db.Exec(stmt.ReplaceFile, file.Size, file.Hash, file.UTime, file.ID)
+}
+
 func (db *DB) InsertFiles(files []*File) error {
 	tx := db.mustBegin()
 	defer tx.Rollback()
@@ -266,7 +270,7 @@ func (db *DB) SearchFileName(pattern string, fileType string) (files []*File, er
 		if err != nil {
 			return nil, err
 		}
-		if err := fillTag(db.DB, &file); err != nil {
+		if err := fillFileTags(db.DB, &file); err != nil {
 			return nil, err
 		}
 		files = append(files, &file)
