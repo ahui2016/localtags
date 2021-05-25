@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link rel="stylesheet" href="/public/bootstrap.min.css">
+  <link rel="stylesheet" href="/public/bootstrap-icons-141.css">
+  <link rel="stylesheet" href="/public/style-light.css">
+  
+  <script src="/public/jquery.min.js"></script>
+  <script src="/public/dayjs.min.js"></script>
+  <script src="/public/bootstrap.bundle.min.js"></script>
+  <script src="/public/util.js"></script>
+  <script src="/public/filelist.js"></script>
+  <script src="/public/imagelist.js"></script>
+  
+  <title>Tag Preview - localtags</title>
+  <style>
+    .ImageButtons > * {
+      color: lightgray;
+    }
+    .DeleteRecycle {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+  <script>
+    
+const Alerts = CreateAlerts();
+
+$('#root').append([
+  m(Loading).addClass('my-5'),
+  m(Alerts),
+  m(ImageList).addClass('ImageList mt-3 d-flex justify-content-around flex-wrap'),
+  m(FileList).addClass('mt-3'),
+  m(Spacer),
+  m(BottomLine),
+]);
+
+init()
+
+function init() {
+  console.log('高级功能：使用命令 "delete_file(id)" 把文件扔进回收站，以后可去回收站找回文件。');
+
+  const tagsStr = getUrlParam('tags');
+  const tagsArr = tagsStringToArray(tagsStr);
+  if (tagsArr.length != 2) {
+    Loading.hide();
+    Alerts.insert('danger', `请求查询的标签数量不符合要求(不等于2) [${tagsStr}]`);
+    return;
+  }
+
+  const body = new FormData()
+  body.set('tags', JSON.stringify(tagsArr));
+  body.set('file-type', 'hasthumb');
+  ajax({method:'POST',url:'/api/search-tags',alerts:Alerts,body:body},
+      (files) => {
+        ImageList.append(files);
+      }, null, () => {
+        Loading.hide();
+      });
+  
+  body.set('file-type', 'nothumb');
+  ajax({method:'POST',url:'/api/search-tags',alerts:Alerts,body:body},
+      (files) => {
+        FileList.append(files);
+      });
+}
+
+  </script>
+</body>
+</html>

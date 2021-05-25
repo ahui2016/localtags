@@ -146,6 +146,7 @@ function addPrefix(setOrArr, prefix) {
 }
 
 function tag_replace(tags) {
+  if (!tags) return '';
   return tags.replace(/[#;,，'"/\+\n]/g, ' ').trim();
 }
 

@@ -33,6 +33,7 @@ func main() {
 	light.File("/md-preview", "public/md-preview.html")
 	light.File("/md-new", "public/md-new.html")
 	light.File("/config", "public/config.html")
+	light.File("/tag-preview", "public/tag-preview.html")
 
 	// api 只使用 GET, POST, 不采用 RESTful.
 	api := e.Group("/api")

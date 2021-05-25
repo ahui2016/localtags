@@ -143,6 +143,10 @@ function init() {
           });
         }
       });
+
+  $(TagCard.id).on('hidden.bs.offcanvas', () => {
+    TagCardAlerts.clear();
+  });
 }
 
 function createTagItem(tag, i) {
@@ -166,8 +170,7 @@ function createTagItem(tag, i) {
       ajax({method:'POST',url:'/api/get-groups-by-tag',alerts:TagCardAlerts,body:body},
         (groups) => {
           if (!groups || groups.length == 0) {
-            TagCardAlerts.insert('info', '没有相关标签');
-            return;
+            groups = [[tag.ID]];
           }
           const tag_set = new Set();
           groups.forEach(group => {
@@ -175,7 +178,7 @@ function createTagItem(tag, i) {
           });
           tag_set.forEach(name => {
             const tagItem = cc('a');
-            const tagLink = '/light/tag?name=' + encodeURIComponent(name);
+            const tagLink = '/light/tag-preview?tags=' + encodeURIComponent([tag.ID, name]);
             $(TagCardTags.id).append(
               m(tagItem).text('#'+name).attr({href:tagLink, target:'_blank'}).addClass('Tag')
             );

@@ -133,7 +133,17 @@ const GetFilesByTag = `SELECT file.id FROM tag
 const GetImagesByTag = `SELECT file.id FROM tag
     INNER JOIN file_tag ON tag.id = file_tag.tag_id
     INNER JOIN file ON file_tag.file_id = file.id
-    WHERE file.deleted=0 and type like "image/%" and tag.id=?;`
+    WHERE file.deleted=0 and file.type like "image/%" and tag.id=?;`
+
+const GetFilesHasThumbByTag = `SELECT file.id FROM tag
+    INNER JOIN file_tag ON tag.id = file_tag.tag_id
+    INNER JOIN file ON file_tag.file_id = file.id
+    WHERE file.deleted=0 and file.thumb=1 and tag.id=?;`
+
+const GetFilesNoThumbByTag = `SELECT file.id FROM tag
+    INNER JOIN file_tag ON tag.id = file_tag.tag_id
+    INNER JOIN file ON file_tag.file_id = file.id
+    WHERE file.deleted=0 and file.thumb=0 and tag.id=?;`
 
 const AllFilesByTag = `SELECT file_id FROM file_tag WHERE tag_id=?;`
 

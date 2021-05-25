@@ -260,9 +260,16 @@ func scanTags(rows *sql.Rows) (tags []string, err error) {
 }
 
 func (db *DB) getFileIDsByTags(tags []string, fileType string) ([]string, error) {
-	query := stmt.GetFilesByTag
-	if fileType == "image" {
+	var query string
+	switch fileType {
+	case "image":
 		query = stmt.GetImagesByTag
+	case "hasthumb":
+		query = stmt.GetFilesHasThumbByTag
+	case "nothumb":
+		query = stmt.GetFilesNoThumbByTag
+	default:
+		query = stmt.GetFilesByTag
 	}
 	var idSets []*Set
 	for _, tag := range tags {
