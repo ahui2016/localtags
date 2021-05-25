@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   
-  <link rel="stylesheet" href="/public/bootstrap-5beta2.min.css">
+  <link rel="stylesheet" href="/public/bootstrap.min.css">
   <link rel="stylesheet" href="/public/bootstrap-icons-141.css">
   <link rel="stylesheet" href="/public/style-light.css">
   
@@ -78,6 +78,30 @@ const SortBy = cc('div', null, [
   ]),
 ]);
 
+const TagCard = cc('div');
+const TagCardName = cc('h3');
+const TagCardBody = cc('div');
+const TagCardAlerts = CreateAlerts();
+const TagCardLoading = cc('div', null, [
+  m('div').addClass('spinner-border').attr({role:'status'}).append(
+    m('span').addClass('visually-hidden').text('Loading...')
+  ),
+]);
+const TagCardTags = cc('div');
+
+TagCard.view = () => m('div').attr({id:TagCard.raw_id,tagindex:'-1'})
+  .addClass('offcanvas offcanvas-end text-break').append([
+    m('div').addClass('offcanvas-header').append([
+      m(TagCardName).addClass('offcanvas-title').text('ha ha ha'),
+      m('button').attr({type:'button','data-bs-dismiss':'offcanvas'}).addClass('btn-close text-reset'),
+    ]),
+    m(TagCardBody).addClass('offcanvas-body').append([
+      m(TagCardAlerts),
+      m(TagCardLoading).addClass('text-center'),
+      m(TagCardTags).addClass('Tags'),
+    ]),
+]);
+
 $('#root').append([
   m(Navbar).addClass('mt-2 mb-5'),
   m(InfoMsg).hide(),
@@ -86,6 +110,7 @@ $('#root').append([
   m(SortBy).hide(),
   m(SortByDate).addClass('TagList d-flex flex-wrap mt-3'),
   m(SortByName).addClass('TagList d-flex flex-wrap mt-3'),
+  m(TagCard),
   m(Spacer),
   m(BottomLine),
 ]);
@@ -123,13 +148,46 @@ function init() {
 function createTagItem(tag, i) {
   const btnColor = buttonColors(i);
   const badgeColor = badgeColors(i);
+  const tagLink = '/light/tag?name='+encodeURIComponent(tag.ID);
   const self = cc('a', 't'+tag.ID);
 
-  self.view = () => m('a').addClass(`btn btn-${btnColor} mx-1 my-1`)
-      .attr({role:'button',href:'/light/tag?name='+encodeURIComponent(tag.ID)}).append([
-        tag.ID, ' ',
-        m('span').text(tag.Count).addClass(`badge bg-light text-dark`),
-      ]);
+  self.view = () => m('button').addClass(`btn btn-${btnColor} mx-1 my-1`)
+    .attr({
+      type:'button', 'data-bs-toggle':'offcanvas', 'data-bs-target':TagCard.id,
+    }).append([
+      tag.ID, ' ',
+      m('span').text(tag.Count).addClass(`badge bg-light text-dark`),
+    ]).click(() => {
+      $(TagCardName.id).text(tag.ID);
+      $(TagCardTags.id).html('');
+
+      const body = new FormData();
+      body.append('name', tag.ID);  
+      ajax({method:'POST',url:'/api/get-groups-by-tag',alerts:TagCardAlerts,body:body},
+        (groups) => {
+          if (!groups || groups.length == 0) {
+            TagCardAlerts.insert('info', '没有相关标签');
+            return;
+          }
+          const tag_set = new Set();
+          groups.forEach(group => {
+            group.forEach(tag => { tag_set.add(tag) });
+          });
+          tag_set.forEach(name => {
+            const tagItem = cc('a');
+            const tagLink = '/light/tag?name=' + encodeURIComponent(name);
+            $(TagCardTags.id).append(
+              m(tagItem).text('#'+name).attr({href:tagLink, target:'_blank'}).addClass('Tag')
+            );
+            if (name == tag.ID) {
+              const tagLink = '/light/tag?name=' + encodeURIComponent(name);
+              $(tagItem.id).addClass('link-success').attr({href:tagLink});
+            }
+          });
+        }, null, () => {
+          $(TagCardLoading.id).hide();
+        });
+    });
   
   return self;
 }
