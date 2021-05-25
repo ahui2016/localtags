@@ -31,13 +31,24 @@
     
 const Alerts = CreateAlerts();
 
+const Title = cc('p');
+
+const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
+  m('li').text('这里是 "标签预览" 页面，显示本页顶部所示两个标签的最近文件（不是全部）。'),
+]));
+
 $('#root').append([
+  m(Title).addClass('display-3 text-break'),
   m(Loading).addClass('my-5'),
   m(Alerts),
   m(ImageList).addClass('ImageList mt-3 d-flex justify-content-around flex-wrap'),
   m(FileList).addClass('mt-3'),
-  m(Spacer),
   m(BottomLine),
+  m(InfoMsg).hide(),
+  m('p').addClass('text-center').append(
+    m(InfoBtn).click(() => { window.scrollBy(0, window.innerHeight)})
+  ),
+  m(Spacer),
 ]);
 
 init()
@@ -52,6 +63,8 @@ function init() {
     Alerts.insert('danger', `请求查询的标签数量不符合要求(不等于2) [${tagsStr}]`);
     return;
   }
+
+  $(Title.id).text(`#${tagsArr[0]} + #${tagsArr[1]} =`);
 
   const body = new FormData()
   body.set('tags', JSON.stringify(tagsArr));
