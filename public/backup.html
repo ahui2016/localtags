@@ -237,16 +237,20 @@ function init() {
     const body = new FormData();
     body.append('bucket', bucket);
 
-    ajax({method:'POST',url:'/api/add-bk-bucket',
-        alerts:Alerts,buttonID:AddBtn.id,body:body}, () => {
-          // onSuccess
-          Alerts.insert('info', '添加成功后会自动刷新页面');
-          window.setTimeout(() => { window.location.reload(); }, 3000);
-        },
-        () => {
-          // onFail
-          bucketInput.focus();
-        });
+    disable(AddBtn.id);
+    ajax({method:'POST',url:'/api/add-bk-bucket',alerts:Alerts,body:body},
+      () => {
+        // onSuccess
+        Alerts.insert('info', '添加成功后会自动刷新页面');
+        window.setTimeout(() => { window.location.reload(); }, 3000);
+      }, () => {
+        // onError
+        enable(AddBtn.id);
+      },
+      () => {
+        // onFail
+        bucketInput.focus();
+      });
   });
 
   ajax({method:'GET',url:'/api/get-bk-buckets',alerts:Alerts},
