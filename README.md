@@ -4,12 +4,12 @@
 ## 重要更新
 
 - 2021-05-25 (add: 标签预览) 详见 [Wiki: Tag Preview](https://github.com/ahui2016/localtags/wiki/Tag-Preview-(update:-2021-05-25))
-- 2021-05-18 (add: 替换文件) [tips.md](./tips.md)
-- 2021-05-14 (add: 快速创建 markdown 笔记) [changelog.md](./changelog.md)
+- 2021-05-18 (add: 替换文件) [Wiki: 同名文件(例子三)](https://github.com/ahui2016/localtags/wiki/Same-Name-Files)
+- 2021-05-14 (add: 快速创建 markdown 笔记) [changelog.md](./docs/changelog.md)
 - 2021-05-12 (add: 通过网页修改配置) 详见本页后文 "端口等的设置"
-- 2021-05-10 (add: 单个文件体积上限) [details.md](./details.md)
-- 2021-05-09 (add: 本地 markdown 图库) [details.md](./details.md)
-- 2021-05-08 (fix: 备份仓库文件校验) [changelog.md](./changelog.md)
+- 2021-05-10 (add: 单个文件体积上限) [details.md](./docs/details.md)
+- 2021-05-09 (add: 本地 markdown 图库) [details.md](./docs/details.md)
+- 2021-05-08 (fix: 备份仓库文件校验) [changelog.md](./docs/changelog.md)
 
 
 ## 主要功能
@@ -79,6 +79,7 @@ mj.js 只是在 jquery 的基础上增加了两个函数，因此对于会用 jq
 
 ## 了解更多
 
-- 本软件主要想解决的问题 - [concepts.md](./concepts.md)
-- 关于一些细节的说明 - [details.md](./details.md)
-- 关于标签系统 - [about_tags.md](.about_tags.md)
+- 本软件主要想解决的问题 - [Wiki: Concepts](https://github.com/ahui2016/localtags/wiki/Concept)
+- 关于一些细节的说明 - [details.md](./docs/details.md)
+- 关于标签系统 - [Wiki: About Tags](https://github.com/ahui2016/localtags/wiki/About-Tags)
+
