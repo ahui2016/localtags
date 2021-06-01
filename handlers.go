@@ -240,7 +240,7 @@ func newNote(c echo.Context) error {
 	if err := os.WriteFile(filename, []byte(contents), 0666); err != nil {
 		return err
 	}
-	return c.JSON(OK, Text{title})
+	return c.JSON(OK, Text{filename})
 }
 
 func searchTags(c echo.Context) error {

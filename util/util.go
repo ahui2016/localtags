@@ -254,16 +254,18 @@ func firstLineBreak(s string) int {
 }
 
 // GetMarkdownTitle 截取 markdown 的开头内容获作为标题。
-// 其中 s 应该限制字数 (使用 FirstLineLimit), 没必要传入 markdown 文件的全文。
-// 注意 s 不可包含制表符、回车键等特殊字符。
-func GetMarkdownTitle(s string) string {
+// 其中 title 应该限制字数 (使用 FirstLineLimit), 没必要传入 markdown 文件的全文。
+// 注意 title 不可包含制表符、回车键等特殊字符。
+func GetMarkdownTitle(title string) string {
 	reTitle := regexp.MustCompile(`(^#{1,6}|>|1.|-|\*) (.+)`)
-	matches := reTitle.FindStringSubmatch(s)
+	matches := reTitle.FindStringSubmatch(title)
 	// 这个 matches 要么为空，要么包含 3 个元素
 	if len(matches) >= 3 {
-		return matches[2]
+		title = matches[2]
 	}
-	return s
+	// 把 Windows 禁止用来做文件名的字符替换为空格
+	forbidden := regexp.MustCompile(`[:/\|"?<>*]`)
+	return forbidden.ReplaceAllString(title, " ")
 }
 
 // GetMIME returns the content-type of a file extension.
