@@ -1,5 +1,12 @@
 # localtags 更新记录
 
+## 2021-05-25 (add: 标签预览)
+
+详见 [Wiki: Tag Preview](https://github.com/ahui2016/localtags/wiki/Tag-Preview-(update:-2021-05-25))
+
+## 2021-05-18 (add: 替换文件)
+
+详见 [Wiki: 同名文件(例子三)](https://github.com/ahui2016/localtags/wiki/Same-Name-Files)
 
 ## 2021-05-14 (add: 快速创建 markdown 笔记)
 
@@ -19,6 +26,17 @@
 - 没有自动保存功能，需要手动点击 Save 按钮才能保存文件。
 - 在 new note 页面点击 Save 按钮即可新建一个 markdown 文件，如果想用其它文本编辑器来编辑它，请先关闭 new note 页面（注意先按 Save 按钮保存内容），避免两边同时编辑同一个文件而产生互相覆盖的情况。
 
+## 2021-05-12 (add: 通过网页修改配置)
+
+详见 [README.md](../README.md) "端口等的设置"
+
+## 2021-05-10 (add: 单个文件体积上限)
+
+详见 [details.md](./docs/details.md)
+
+## 2021-05-09 (add: 本地 markdown 图库) 
+
+详见 [details.md](./docs/details.md)
 
 ## 2021-05-08 (fix: 备份仓库文件校验)
 

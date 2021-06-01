@@ -15,5 +15,5 @@ SingleFile 是一个非常优秀的网页剪藏插件，Chrome(及使用相同�
 ![singlefile-03.jpg](../screenshots/singlefile-03.jpg)
 
 - 可见，localtags 与 singlefile 搭配起来使用，可以永久保存网页，离线查看，并且由于 localtags 具用强大的标签功能，可以井井有条地整理所收集的网页，随时可以轻松、快速地找出来。
-- 并且，利用 localtags 的备份功能，收集到的网页可永久保存，永不丢失，不依赖网络，可以装在移动硬盘或U盘里随身携带随时查看。
+- 并且，利用 localtags 的备份功能，收集到的网页可永久保存，永不丢失，不依赖网络。
 
