@@ -64,7 +64,7 @@ func ResizeLimit(img []byte, limit float64, quality int) (*bytes.Buffer, error) 
 	return jpegEncode(small, quality)
 }
 
-// Nail creates a thumbnail of an imgFile.
+// Nail creates a thumbnail of the img.
 // Use default size(128) if size is set to zero.
 // Use default quality(85) if quality is set to zero.
 func Nail(img []byte, size, quality int) (*bytes.Buffer, error) {
