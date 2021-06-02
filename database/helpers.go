@@ -260,14 +260,17 @@ func scanTags(rows *sql.Rows) (tags []string, err error) {
 }
 
 func (db *DB) getFileIDsByTags(tags []string, fileType string) ([]string, error) {
+	limit := 0
 	var query string
 	switch fileType {
 	case "image":
 		query = stmt.GetImagesByTag
 	case "hasthumb":
 		query = stmt.GetFilesHasThumbByTag
+		limit = 25
 	case "nothumb":
 		query = stmt.GetFilesNoThumbByTag
+		limit = 25
 	default:
 		query = stmt.GetFilesByTag
 	}
@@ -279,7 +282,12 @@ func (db *DB) getFileIDsByTags(tags []string, fileType string) ([]string, error)
 		}
 		idSets = append(idSets, stringset.From(fileIDs))
 	}
-	return stringset.Intersect(idSets).Slice(), nil
+	// 注意：必须先取交集，然后才能限制数量。
+	ids := stringset.Intersect(idSets).Slice()
+	if limit > 0 && len(ids) > limit {
+		ids = ids[:limit]
+	}
+	return ids, nil
 }
 
 func (db *DB) getFilesByIDs(fileIDs []string) (files []*File, err error) {

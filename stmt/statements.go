@@ -139,13 +139,13 @@ const GetFilesHasThumbByTag = `SELECT file.id FROM tag
     INNER JOIN file_tag ON tag.id = file_tag.tag_id
     INNER JOIN file ON file_tag.file_id = file.id
     WHERE file.deleted=0 and file.thumb=1 and tag.id=?
-    ORDER BY file.ctime DESC LIMIT 25;`
+    ORDER BY file.ctime DESC;`
 
 const GetFilesNoThumbByTag = `SELECT file.id FROM tag
     INNER JOIN file_tag ON tag.id = file_tag.tag_id
     INNER JOIN file ON file_tag.file_id = file.id
     WHERE file.deleted=0 and file.thumb=0 and tag.id=?
-    ORDER BY file.ctime DESC LIMIT 25;`
+    ORDER BY file.ctime DESC;`
 
 const AllFilesByTag = `SELECT file_id FROM file_tag WHERE tag_id=?;`
 
