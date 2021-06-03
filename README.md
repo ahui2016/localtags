@@ -28,6 +28,16 @@
 
 ## 安装运行
 
+### 直接下载可执行文件
+
+由于 Windows 编译有点麻烦 (涉及 cgo, 需要 gcc), 因此我做了 Windows 的可执行文件方便大家试用。Mac 和 Linux 编译应该很方便，就不提供二进制文件了。
+
+> Windows可执行文件 => https://github.com/ahui2016/localtags/releases
+>
+> (注意: 需要另外安装 ffmpeg 才能给视频文件生成缩略图)
+
+### 手动编译
+
 - 要求先正确安装 git 和 [Go 语言](https://golang.google.cn/)、ffmpeg。
 - 其中，ffmpeg 不是必须的，其作用只是给视频文件生成缩略图，不安装 ffmpeg 也不妨碍软件正常运行。
 - 由于采用了 go-sqlite3, 因此如果在 Windows 里编译, 需要先安装 [TDM-GCC Compiler](https://sourceforge.net/projects/tdm-gcc/)
