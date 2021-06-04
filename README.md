@@ -32,7 +32,7 @@
 
 由于 Windows 编译有点麻烦 (涉及 cgo, 需要 gcc), 因此我做了 Windows 的可执行文件方便大家试用。Mac 和 Linux 编译应该很方便，就不提供二进制文件了。
 
-> Windows可执行文件 => https://github.com/ahui2016/localtags/releases
+> 下载地址 => https://github.com/ahui2016/localtags/releases
 >
 > (注意: 需要另外安装 ffmpeg 才能给视频文件生成缩略图)
 
