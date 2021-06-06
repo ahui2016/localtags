@@ -235,8 +235,8 @@ func (db *DB) IsFileExist(id string) bool {
 	return err == nil
 }
 
-func (db *DB) FileCTime(id string) (int64, error) {
-	return getInt1(db.DB, stmt.GetFileCTime, id)
+func (db *DB) FileHash(id string) (string, error) {
+	return getText1(db.DB, stmt.GetFileHash, id)
 }
 
 func (db *DB) SearchTags(tags []string, fileType string) ([]*File, error) {

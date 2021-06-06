@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -494,10 +495,14 @@ func syncMainToBackup(bkFolder string) error {
 	}
 
 	// 如果一个文件存在于主仓库中，但不存在于备份仓库中，则直接拷贝。
-	// 如果一个文件存在于两个仓库中，则进一步对比其日期，按需拷贝覆盖。
+	// 如果一个文件存在于两个仓库中，则进一步对比其 hash，按需拷贝覆盖。
 	for _, file := range dbFiles {
-		bkCTime, err := bk.FileCTime(file.ID)
-		if err != nil || file.CTime > bkCTime {
+		bkHash, err := bk.FileHash(file.ID)
+		if err != nil && !util.ErrorContains(err, "no rows") {
+			return err
+		}
+		if file.Hash != bkHash {
+			log.Print(file.ID, file.Hash, bkHash)
 			bkFile := filepath.Join(bakBucket, file.ID)
 			if err := util.CopyFile(bkFile, mainBucketFile(file.ID)); err != nil {
 				return err

@@ -134,6 +134,9 @@ function init() {
       return;
     }
     $(SubmitLoading.id).show();
+    const longTime = window.setTimeout(() => {
+      SubmitAlerts.insert('info', '正在执行定期校验，请耐心等待......');
+    }, 5000);
     ajax({method:'POST',url:'/api/add-files',alerts:SubmitAlerts,buttonID:SubmitBtn.id},
       () => {
         $(TagsArea.id).hide();
@@ -144,6 +147,7 @@ function init() {
         SubmitAlerts.insert('success', 'OK');
       }, null, () => {
         $(SubmitLoading.id).hide();
+        window.clearTimeout(longTime);
       });
   });
 
