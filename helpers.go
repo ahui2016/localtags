@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -502,7 +501,6 @@ func syncMainToBackup(bkFolder string) error {
 			return err
 		}
 		if file.Hash != bkHash {
-			log.Print(file.ID, file.Hash, bkHash)
 			bkFile := filepath.Join(bakBucket, file.ID)
 			if err := util.CopyFile(bkFile, mainBucketFile(file.ID)); err != nil {
 				return err
