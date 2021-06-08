@@ -136,7 +136,7 @@ function init() {
     $(SubmitLoading.id).show();
     const longTime = window.setTimeout(() => {
       SubmitAlerts.insert('info', '正在执行定期校验，请耐心等待......');
-    }, 5000);
+    }, 3000);
     ajax({method:'POST',url:'/api/add-files',alerts:SubmitAlerts,buttonID:SubmitBtn.id},
       () => {
         $(TagsArea.id).hide();
@@ -285,7 +285,7 @@ function FileItem(file) {
 }
 
 function replace_file(id) {
-  const hash = idHash[id];
+  const hash = idHash[id.toUpperCase()];
   if (!hash) {
     SubmitAlerts.insert('danger', `找不到文件 [id:${id}]`);
     return;

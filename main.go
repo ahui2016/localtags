@@ -84,6 +84,7 @@ func main() {
 	api.POST("/search-title", searchTitle)
 	api.POST("/search-by-id", searchByID)
 	api.GET("/search-damaged", searchDamaged)
+	api.POST("/search-bk-damaged", searchBackupDamaged)
 
 	log.Print("localtags database path: ", dbPath)
 	e.Logger.Fatal(e.Start(cfg.Address))

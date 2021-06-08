@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/ahui2016/localtags/database"
 	"github.com/ahui2016/localtags/model"
 	"github.com/ahui2016/localtags/stmt"
 	"github.com/ahui2016/localtags/util"
@@ -283,6 +285,26 @@ func searchByID(c echo.Context) error {
 
 func searchDamaged(c echo.Context) error {
 	files, err := db.SearchDamagedFiles()
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, files)
+}
+
+func searchBackupDamaged(c echo.Context) error {
+	bkFolder, err := getFormValue(c, "bucket")
+	if err != nil {
+		return err
+	}
+
+	bkPath := filepath.Join(bkFolder, backupDBFileName)
+	bk := new(database.DB)
+	if err := bk.OpenBackup(bkPath, db.Config); err != nil {
+		return err
+	}
+	defer bk.Close()
+
+	files, err := bk.SearchDamagedFiles()
 	if err != nil {
 		return err
 	}

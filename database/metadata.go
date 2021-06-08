@@ -78,14 +78,16 @@ func needToCheck(tx TX, interval int64) (need bool, err error) {
 }
 
 // CheckFilesHash 只校验长时间未校验的文件，忽略短期内曾校验过的文件。
+// 每次只校验有限的文件，避免校验耗时太长。
 func (db *DB) CheckFilesHash(bucket string) error {
-	need, err := needToCheck(db.DB, db.Config.CheckInterval)
-	if err != nil {
-		return err
+	const GB int64 = 1 << 30
+	var limit = 3 * GB
+	if limit < db.Config.FileSizeLimit {
+		// 防止无法校验大文件
+		limit = db.Config.FileSizeLimit + 1
 	}
-	if !need {
-		return nil
-	}
+	var checkedSize int64 = 0
+
 	tx := db.mustBegin()
 	defer tx.Rollback()
 
@@ -96,6 +98,10 @@ func (db *DB) CheckFilesHash(bucket string) error {
 		return err
 	}
 	for _, file := range files {
+		checkedSize += file.Size
+		if checkedSize > limit {
+			return nil
+		}
 		if err := checkFile(tx, bucket, file); err != nil {
 			return err
 		}

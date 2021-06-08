@@ -119,6 +119,10 @@ BucketList.prepend = (bucket, index) => {
     Loading.show();
     $(BucketsInfo.id).html('');
 
+    const longTime = window.setTimeout(() => {
+      SubmitAlerts.insert('info', '正在校验备份仓库的文件完整性，请耐心等待......');
+    }, 3000);
+
     const body = new FormData();
     body.append('bucket', bucket);
     ajax({method:'POST',url:'/api/get-buckets-info',alerts:Alerts,body:body},
@@ -145,6 +149,7 @@ BucketList.prepend = (bucket, index) => {
         }, null, () => {
           // onAlways
           Loading.hide();
+          window.clearTimeout(longTime);
         });
   });
 };
@@ -275,6 +280,7 @@ function create_bucket_info(name, info) {
 
   const Damaged = cc('span');
   const BucketInfo = cc('div');
+  const SearchBackupDamagedBtn = cc ('button');
   const DeleteDamagedBtn = cc('button');
 
   BucketInfo.view = () => m('div').attr({id:BucketInfo.raw_id}).addClass('card').append([
@@ -294,6 +300,14 @@ function create_bucket_info(name, info) {
         m('a').text('search').addClass('btn btn-sm btn-outline-secondary')
           .attr({type:'button',href:'/light/search?filter=damaged',target:'_blank'})
           .css('display', name == Main_Bucket && info.DamagedFilesCount > 0 ? 'inline' : 'none'),
+        m(SearchBackupDamagedBtn).text('search').attr({type:'button'}).addClass('btn btn-sm btn-outline-secondary')
+          .css('display', name == Backup_Bucket && info.DamagedFilesCount > 0 ? 'inline' : 'none')
+          .click(() => {
+            const bucketFolder = info.BucketLocation.replaceAll('\\', '/');
+            SubmitAlerts.insert('primary',
+              `按 F12 进入控制台输入命令 search_bk_damaged("${bucketFolder}") 可查找具体有哪些文件损坏。`);
+          }),
+        ' ',
         m(DeleteDamagedBtn).text('delete').attr({type:'button'}).addClass('btn btn-sm btn-outline-secondary')
           .css('display', name == Backup_Bucket && info.DamagedFilesCount > 0 ? 'inline' : 'none')
           .click(() => {
@@ -325,6 +339,22 @@ function DANGER_delete_backup_damaged(bucketFolder) {
       () => {
         console.log('删除成功后会自动刷新页面。');
         window.setTimeout(() => { window.location.reload(); }, 3000);
+      });
+}
+
+function search_bk_damaged(bucketFolder) {
+  console.log(bucketFolder);
+  console.log('查找备份仓库中的损坏文件......');
+  const body = new FormData();
+  body.append('bucket', bucketFolder);
+  ajax({method:'POST',url:'/api/search-bk-damaged',body:body},
+      (files) => {
+        if (files == null) {
+          console.log('未找到损坏文件');
+          return;
+        }
+        let fileIDs = files.map(file => file.ID);
+        console.log(fileIDs);
       });
 }
 
