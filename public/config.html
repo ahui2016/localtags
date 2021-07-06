@@ -86,7 +86,7 @@ const Form = cc('div', null, [
 
 const UpdateBtn = cc('button');
 
-const SubmitBtnAera = cc('p', null, [
+const SubmitBtnArea = cc('p', null, [
   m(UpdateBtn).text('Update').addClass('btn btn-primary').attr({type:'button'}).click(() => {
     const body = new FormData();
     body.append('Address', $(AddressInput.id).val());
@@ -109,7 +109,7 @@ $('#root').append([
   m(Loading),
   m(Form).hide(),
   m(Alerts).addClass('my-3'),
-  m(SubmitBtnAera).addClass('text-center'),
+  m(SubmitBtnArea).addClass('text-center'),
   m(BottomLine),
 ]);
 

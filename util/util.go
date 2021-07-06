@@ -220,7 +220,7 @@ func StrSliceDiff(newArr, oldArr []string) (toAdd, toDelete []string) {
 // FirstLineLimit 返回第一行，并限定长度，其中 s 必须事先 TrimSpace 并确保不是空字串。
 // 并且, s 也可以事先限制字数.
 // 该函数会尽量确保最后一个字符是有效的 utf8 字符，但当第一行中的全部字符都无效时，
-// 则按原样返回每一行。
+// 则不保证有效字符。
 func FirstLineLimit(s string, limit int) string {
 	if len(s) > limit {
 		s = s[:limit]

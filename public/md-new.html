@@ -89,6 +89,7 @@ const Buttons = {
         (resp) => {
           oldContents = contents;
           Alerts.insert('success', '已保存: ' + resp.message);
+          $(Textarea.id).focus();
           if (done) window.location = '/light/waiting';
         }, null, () => {
           enable(NextBtn.id)

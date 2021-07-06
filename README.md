@@ -89,7 +89,4 @@ mj.js 只是在 jquery 的基础上增加了两个函数，因此对于会用 jq
 
 ## 了解更多
 
-- 本软件主要想解决的问题 - [Wiki: Concepts](https://github.com/ahui2016/localtags/wiki/Concept)
-- 关于一些细节的说明 - [details.md](./docs/details.md)
-- 关于标签系统 - [Wiki: About Tags](https://github.com/ahui2016/localtags/wiki/About-Tags)
-
+更多细节及带截图的说明请看 Wiki https://github.com/ahui2016/localtags/wiki

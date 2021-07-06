@@ -144,7 +144,7 @@ func getText1(tx TX, query string, args ...interface{}) (text string, err error)
 	return
 }
 
-// getInt1 gets one text value from the database.
+// getInt1 gets one number value from the database.
 func getInt1(tx TX, query string, arg ...interface{}) (n int64, err error) {
 	row := tx.QueryRow(query, arg...)
 	err = row.Scan(&n)
