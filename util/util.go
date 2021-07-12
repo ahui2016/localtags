@@ -257,7 +257,7 @@ func firstLineBreak(s string) int {
 // 其中 title 应该限制字数 (使用 FirstLineLimit), 没必要传入 markdown 文件的全文。
 // 注意 title 不可包含制表符、回车键等特殊字符。
 func GetMarkdownTitle(title string) string {
-	reTitle := regexp.MustCompile(`(^#{1,6}|>|1.|-|\*) (.+)`)
+	reTitle := regexp.MustCompile(`^(#{1,6}|>|1.|-|\*) (.+)`)
 	matches := reTitle.FindStringSubmatch(title)
 	// 这个 matches 要么为空，要么包含 3 个元素
 	if len(matches) >= 3 {
