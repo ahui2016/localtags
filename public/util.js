@@ -287,6 +287,7 @@ function CreateAlerts() {
 
   alerts.clear = () => {
     $(alerts.id).html('');
+    return alerts;
   };
 
   return alerts;

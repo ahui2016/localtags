@@ -120,7 +120,7 @@ BucketList.prepend = (bucket, index) => {
     $(BucketsInfo.id).html('');
 
     const longTime = window.setTimeout(() => {
-      SubmitAlerts.insert('info', '正在校验备份仓库的文件完整性，请耐心等待......');
+      Alerts.insert('info', '正在校验备份仓库的文件完整性，请耐心等待......');
     }, 3000);
 
     const body = new FormData();
@@ -128,7 +128,8 @@ BucketList.prepend = (bucket, index) => {
     ajax({method:'POST',url:'/api/get-buckets-info',alerts:Alerts,body:body},
         (info) => {
           // onSuccess
-          Alerts.insert('success', '成功获取备份仓库的状态信息');
+          Alerts.clear();
+          SubmitAlerts.insert('success', '成功获取备份仓库的状态信息');
 
           const backup = create_bucket_info(Backup_Bucket, info['backup-bucket']);
           $(BucketsInfo.id).prepend(m(backup));
