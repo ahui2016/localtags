@@ -50,7 +50,7 @@ const Form = cc('div', null, [
   m('div').addClass('mb-3').append([
     m('label').addClass('form-label fw-bold').attr({for:AddressInput.id}).text('Address'),
     m(AddressInput).addClass('form-control').attr({type:'text'}),
-    m('div').addClass('form-text').text('【网址】默认值 127.0.0.1:53549, 一般不建议修改。'),
+    m('div').addClass('form-text').text('【网址】默认值 127.0.0.1:53549, 一般只在遇到端口冲突时才修改。'),
   ]),
   m('div').addClass('mb-3').append([
     m('label').addClass('form-label fw-bold').attr({for:DataFolderInput.id}).text('DataFolder'),
@@ -80,7 +80,7 @@ const Form = cc('div', null, [
   m('div').addClass('mb-3').append([
     m('label').addClass('form-label fw-bold').attr({for:CheckIntervalInput.id}).text('CheckInterval'),
     m(CheckIntervalInput).addClass('form-control').attr({type:'number',min:1}),
-    m('div').addClass('form-text').text('【文件校验周期】每个文件每隔一段时间会自动校验，默认值 30, 单位是“天”。如果校验过程很慢或仓库内文件很多，则建议设为 90 天。'),
+    m('div').addClass('form-text').text('【文件校验周期】每个文件每隔一段时间会自动校验，默认值 90, 单位是“天”。建议随着仓库内文件的增多而调大该数值。'),
   ]),
 ]);
 
@@ -99,6 +99,7 @@ const SubmitBtnArea = cc('p', null, [
     ajax({method:'POST',url:'/api/update-config',alerts:Alerts,buttonID:UpdateBtn.id,body:body},
         () => {
           Alerts.insert('success', '已成功更新配置，但需要在后端重启程序才生效。');
+          Alerts.insert('danger', '注意必须在后端重启程序才生效。');
         });
   }),
 ]);

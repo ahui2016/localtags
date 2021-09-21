@@ -283,7 +283,7 @@ func getConfig(c echo.Context) (config.Config, error) {
 		FileSizeLimit: int64(fileSizeLimit) * 1024 * 1024,
 		TagGroupLimit: int64(tagGroupLimit),
 		FileListLimit: int64(fileListLimit),
-		CheckInterval: int64(checkInterval) * 60 * 60 * 24,
+		CheckInterval: int64(checkInterval) * config.TimeUnit,
 	}, util.WrapErrors(e1, e2, e3, e4, e5, e6, e7)
 }
 

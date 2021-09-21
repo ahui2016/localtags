@@ -167,10 +167,9 @@ func (db *DB) getNextID(key string) (nextID string, err error) {
 
 func (db *DB) initMetadata() error {
 	e1 := initFirstID(file_id_key, file_id_prefix, db.DB)
-	e2 := initIntValue(last_check_key, 0, db.DB)
-	e3 := initIntValue(last_backup_key, 0, db.DB)
-	e4 := initTextValue(backup_buckets_key, "", db.DB)
-	return util.WrapErrors(e1, e2, e3, e4)
+	e2 := initIntValue(last_backup_key, 0, db.DB)
+	e3 := initTextValue(backup_buckets_key, "", db.DB)
+	return util.WrapErrors(e1, e2, e3)
 }
 
 func (db *DB) Exec(query string, args ...interface{}) (err error) {

@@ -412,6 +412,10 @@ func forceCheckFiles(c echo.Context) error {
 	return db.ForceCheckFilesHash(mainBucket)
 }
 
+func checkNow(c echo.Context) error {
+	return db.CheckFilesHash(mainBucket)
+}
+
 func getBackupBuckets(c echo.Context) error {
 	buckets, err := db.GetBackupBuckets()
 	if err != nil {

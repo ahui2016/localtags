@@ -9,7 +9,7 @@ import (
 const (
 	dataFolderName    = "localtags_data_folder"
 	waitingFolderName = "waiting"
-	timeUnit          = 60 * 60 * 24 // 1天(24小时)
+	TimeUnit          = 60 * 60 * 24 // 1天(24小时)
 )
 
 var Public = Default()
@@ -52,6 +52,6 @@ func Default() Config {
 		FileSizeLimit: 1 << 29, // 512 MB
 		TagGroupLimit: 50,
 		FileListLimit: 100,
-		CheckInterval: timeUnit * 30, // 30天
+		CheckInterval: TimeUnit * 90, // 90天
 	}
 }

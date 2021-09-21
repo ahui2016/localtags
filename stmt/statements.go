@@ -81,6 +81,7 @@ const GetImages = `
 const GetDeletedFiles = `SELECT * FROM file WHERE deleted>0 ORDER BY utime;`
 const GetAllFiles = `SELECT * FROM file;`
 const GetFilesNeedCheck = `SELECT * FROM file WHERE checked<?;`
+const CountFilesNeedCheck = `SELECT count(*) FROM file WHERE checked<?;`
 const SetFileChecked = `UPDATE file SET checked=?, damaged=? WHERE id=?;`
 const InsertFile = `INSERT INTO file (
   id, name, count, size, type, thumb, hash, like, ctime, utime, checked, damaged, deleted)

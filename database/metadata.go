@@ -13,7 +13,6 @@ import (
 const (
 	file_id_key        = "file-id-key"
 	file_id_prefix     = "F"
-	last_check_key     = "last-check-key"
 	last_backup_key    = "last-backup-key"
 	backup_buckets_key = "backup-buckets-key"
 )
@@ -66,22 +65,11 @@ func initTextValue(key string, value string, tx TX) error {
 	return err
 }
 
-func needToCheck(tx TX, interval int64) (need bool, err error) {
-	lastCheckTime, err := getIntValue(last_check_key, tx)
-	if err != nil {
-		return
-	}
-	if model.TimeNow()-lastCheckTime > interval {
-		need = true
-	}
-	return
-}
-
 // CheckFilesHash 只校验长时间未校验的文件，忽略短期内曾校验过的文件。
 // 每次只校验有限的文件，避免校验耗时太长。
 func (db *DB) CheckFilesHash(bucket string) error {
 	const GB int64 = 1 << 30
-	var limit = 3 * GB
+	var limit = 2 * GB
 	if limit < db.Config.FileSizeLimit {
 		// 防止无法校验大文件
 		limit = db.Config.FileSizeLimit + 1
@@ -107,10 +95,6 @@ func (db *DB) CheckFilesHash(bucket string) error {
 		}
 	}
 
-	// 最后记录本次校验时间
-	if err := exec(tx, stmt.UpdateIntValue, model.TimeNow(), last_check_key); err != nil {
-		return err
-	}
 	return tx.Commit()
 }
 
@@ -127,9 +111,6 @@ func (db *DB) ForceCheckFilesHash(bucket string) error {
 		if err := checkFile(tx, bucket, file); err != nil {
 			return err
 		}
-	}
-	if err := exec(tx, stmt.UpdateIntValue, model.TimeNow(), last_check_key); err != nil {
-		return err
 	}
 
 	return tx.Commit()

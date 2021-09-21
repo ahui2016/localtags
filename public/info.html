@@ -22,9 +22,8 @@
 const Alerts = CreateAlerts();
 
 const [InfoBtn, InfoMsg] = CreateInfoPair('使用说明', m('ul').append([
-  m('li').text('每隔一段时间（默认 30 天，可自由设置）会自动校验一次，因此一般不需要点击 force check 按钮。'),
-  m('li').text('但只有上传文件时才会触发自动校验，如果长期（比如半年）没有上传新文件，则需要点击 force check 按钮强行校验。'),
-  m('li').text('要注意，当文件较多时，强制校验需要等待很长时间，建议尽量不要执行强制校验。'),
+  m('li').text('每隔一段时间（默认 90 天，可自由设置）会自动校验一次，因此一般不需要点击 check now 按钮。'),
+  m('li').text('每次上传文件时会触发自动校验，也可在本页面点击 check now 触发自动校验。'),
   m('li').text('如果出现损坏文件，是硬盘有故障的征兆，建议检查硬盘健康情况，严重时请考虑更换硬盘。'),
 ]));
 
@@ -43,25 +42,17 @@ const Navbar = {
 };
 
 const BucketLocation = cc('span');
-const LastChecked = cc('span');
+const FilesWaitingCheck = cc('span');
 const LastBackup = cc('span');
 const TotalSize = cc('span');
 const AllFilesCount = cc('span');
 const DamagedFilesCount = cc('span');
-const ForceCheckBtn = cc('button');
-const ForceCheckLoading = cc('span');
+const CheckNowBtn = cc('button');
+const CheckNowLoading = cc('span');
 const SearchBtn = cc('a');
 
 const InfoArea = cc('div', null, [
   create_item('仓库地址', m(BucketLocation)),
-  create_item('上次校验时间', [
-    m(LastChecked), ' ',
-    m(ForceCheckBtn).attr({type:'button'}).addClass('btn btn-sm btn-outline-secondary').append([
-      'force check ',
-      m(ForceCheckLoading).addClass('spinner-border spinner-border-sm')
-        .attr({role:'status', 'aria-hidden':'true'}).hide(),
-    ]),
-  ]),
   create_item('上次备份时间', [
     m(LastBackup), ' ',
     m('a').text('backup now').attr({type:'button',href:'/light/backup'})
@@ -69,6 +60,15 @@ const InfoArea = cc('div', null, [
   ]),
   create_item('占用空间', m(TotalSize)),
   create_item('全部文件', [m(AllFilesCount), ' (个)']),
+  create_item('其中待校验文件', [
+    m(FilesWaitingCheck),
+    ' (个) ',
+    m(CheckNowBtn).attr({type:'button'}).addClass('btn btn-sm btn-outline-secondary').append([
+      'check now',
+      m(CheckNowLoading).addClass('spinner-border spinner-border-sm')
+        .attr({role:'status', 'aria-hidden':'true'}).hide(),
+    ]),
+  ]),
   create_item('其中损坏文件', [
     m(DamagedFilesCount),
     ' (个) ',
@@ -89,22 +89,22 @@ $('#root').append([
 init()
 
 function init() {
-  $(ForceCheckBtn.id).click(() => {
-    Alerts.insert('info', '强制校验文件完整性......');
+  $(CheckNowBtn.id).click(() => {
+    Alerts.insert('info', '开始校验文件完整性......');
     const longTime = window.setTimeout(() => {
       Alerts.insert('info', '如果文件较多或U盘/硬盘速度慢，可能需要等待数分钟。');
     }, 3000);
-    $(ForceCheckLoading.id).show();
-    disable(ForceCheckBtn.id);
-    ajax({method:'GET',url:'/api/force-check-files',alerts:Alerts},
+    $(CheckNowLoading.id).show();
+    disable(CheckNowBtn.id);
+    ajax({method:'GET',url:'/api/check-now',alerts:Alerts},
         () => {
           Alerts.insert('info', '校验完成时会自动刷新页面，请耐心等待。');
           window.setTimeout(() => {window.location.reload()}, 5000);
         }, () => {
           // onError
           window.clearTimeout(longTime);
-          enable(ForceCheckBtn.id);
-          $(ForceCheckLoading.id).hide();
+          enable(CheckNowBtn.id);
+          $(CheckNowLoading.id).hide();
         });
   });
 
@@ -112,11 +112,12 @@ function init() {
       (info) => {
         $(InfoArea.id).show();
         $(BucketLocation.id).text(info.BucketLocation);
-        const lastChecked = info.LastChecked ? 
-            dayjs.unix(info.LastChecked).format('MMMM D, YYYY') : 'not yet';
         const lastBackup = info.LastBackup ? 
             dayjs.unix(info.LastBackup).format('MMMM D, YYYY') : 'not yet';
-        $(LastChecked.id).text(lastChecked);
+        $(FilesWaitingCheck.id).text(info.FilesWaitingCheck);
+        if (info.FilesWaitingCheck <= 0) {
+          $(CheckNowBtn.id).hide();
+        }
         $(LastBackup.id).text(lastBackup);
         $(TotalSize.id).text(fileSizeToString(info.TotalSize));
         $(AllFilesCount.id).text(info.AllFilesCount);

@@ -32,6 +32,7 @@ type Info struct {
 	LastBackup        int64
 	AllFilesCount     int64
 	DamagedFilesCount int64
+	FilesWaitingCheck int64
 	TotalSize         int64
 }
 
@@ -335,7 +336,9 @@ func (db *DB) RenameFiles(id, name string) error {
 }
 
 func (db *DB) GetInfo() (Info, error) {
-	lastChecked, e1 := getIntValue(last_check_key, db.DB)
+	// 如果一个文件的上次校验日期小于(早于) needCheckDate, 那么这个文件就需要再次校验。
+	needCheckDate := model.TimeNow() - db.Config.CheckInterval
+	filesNeedCheck, e1 := getInt1(db.DB, stmt.CountFilesNeedCheck, needCheckDate)
 	lastBackup, e2 := getIntValue(last_backup_key, db.DB)
 	allFiles, e3 := getInt1(db.DB, stmt.CountAllFiles)
 	damagedFiles, e4 := getInt1(db.DB, stmt.CountDamagedFiles)
@@ -343,10 +346,10 @@ func (db *DB) GetInfo() (Info, error) {
 	err := util.WrapErrors(e1, e2, e3, e4, e5)
 	info := Info{
 		BucketLocation:    db.Folder,
-		LastChecked:       lastChecked,
 		LastBackup:        lastBackup,
 		AllFilesCount:     allFiles,
 		DamagedFilesCount: damagedFiles,
+		FilesWaitingCheck: filesNeedCheck,
 		TotalSize:         totalSize,
 	}
 	return info, err
