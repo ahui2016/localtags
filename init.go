@@ -32,7 +32,6 @@ var (
 )
 
 var (
-	cfg          config.Config
 	dbPath       string // 数据库文件完整路径
 	mainBucket   string // 主仓库
 	thumbsFolder string // 主仓库缩略图文件夹的完整路径
@@ -51,28 +50,28 @@ func init() {
 	if *cfgFlag != "" {
 		configFile = *cfgFlag
 	}
-	setConfig()
-	setPaths()
+	cfg := getCfg()
+	setPaths(cfg)
 	hasFFmpeg = thumb.CheckFFmpeg()
 
 	// open the db here, close the db in main().
 	util.Panic(db.Open(dbPath, cfg))
 }
 
-func setConfig() {
-	defer func() { cfg = config.Public }()
-
+func getCfg() config.Config {
 	configJSON, err := os.ReadFile(configFile)
 	// 找不到文件或内容为空
 	if err != nil || len(configJSON) == 0 {
 		util.MustMarshalWrite(config.Public, configFile)
-		return
+		return config.Public
 	}
 	// configFile 有内容
-	util.Panic(json.Unmarshal(configJSON, &config.Public))
+	var cfg config.Config
+	util.Panic(json.Unmarshal(configJSON, &cfg))
+	return cfg
 }
 
-func setPaths() {
+func setPaths(cfg config.Config) {
 	dbPath = filepath.Join(cfg.DataFolder, dbFileName)
 	mainBucket = filepath.Join(cfg.DataFolder, mainBucketName)
 	tempFolder = filepath.Join(cfg.DataFolder, tempFolderName)

@@ -17,7 +17,7 @@ var mutex = sync.Mutex{}
 // 1.短 2.由数字和字母组成,不分大小写,且确保以字母开头 3.趋势自增，但又不明显自增 4.可利用前缀分类
 // 该 ID 由前缀、年份与自增数三部分组成，年份与自增数分别转 36 进制字符。
 // 前缀只能是单个字母，因为 ID 还是短一些的好。
-// 注意：前缀不分大小写，因为最终输出字符串形式的 ID 是不分大小写的。
+// 注意：前缀不分大小写, ShortID 本身也不分大小写。
 type ShortID struct {
 	Prefix string
 	Year   int64
@@ -27,11 +27,11 @@ type ShortID struct {
 // FirstID 生成对应前缀的初始 id, 后续使用 Next 函数来获取下一个 id.
 // prefix 只能是单个英文字母。
 func FirstID(prefix string) (id ShortID, err error) {
-	prefix = strings.ToUpper(prefix)
 	if len(prefix) > 1 {
 		err = fmt.Errorf("the prefix [%s] is too long", prefix)
 		return
 	}
+	prefix = strings.ToUpper(prefix)
 	if prefix < "A" || prefix > "Z" {
 		err = fmt.Errorf("the prefix [%s] is not an English character", prefix)
 		return
@@ -45,7 +45,7 @@ func FirstID(prefix string) (id ShortID, err error) {
 // (有“万年虫”问题，大概公元五万年时本算法会出错，当然，这个问题可以忽略。)
 func ParseID(strID string) (id ShortID, err error) {
 	prefix := strID[:1]
-	strYear := strID[1:4] // 可以认为年份总是占三个字符
+	strYear := strID[1:4] // 可以姑且认为年份总是占三个字符
 	strCount := strID[4:]
 	year, err := strconv.ParseInt(strYear, 36, 0)
 	if err != nil {

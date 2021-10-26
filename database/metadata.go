@@ -69,33 +69,32 @@ func initTextValue(key string, value string, tx TX) error {
 // 每次只校验有限的文件，避免校验耗时太长。
 func (db *DB) CheckFilesHash(bucket string) error {
 	const GB int64 = 1 << 30
-	var limit = 2 * GB
+	limit := 1 * GB // 2021-10-26 把每次检查量进一步缩小（原本是 3GB, 2GB）
 	if limit < db.Config.FileSizeLimit {
 		// 防止无法校验大文件
 		limit = db.Config.FileSizeLimit + 1
 	}
 	var checkedSize int64 = 0
 
-	tx := db.mustBegin()
-	defer tx.Rollback()
-
 	// 如果一个文件的上次校验日期小于(早于) needCheckDate, 那么这个文件就需要再次校验。
 	needCheckDate := model.TimeNow() - db.Config.CheckInterval
-	files, err := getFiles(tx, stmt.GetFilesNeedCheck, needCheckDate)
+
+	files, err := getFiles(db.DB, stmt.GetFilesNeedCheck, needCheckDate)
 	if err != nil {
 		return err
 	}
+
+	// TODO: 这里用事务 (tx) 会无法更新 checked 时间，不知道为什么。
 	for _, file := range files {
 		checkedSize += file.Size
 		if checkedSize > limit {
 			return nil
 		}
-		if err := checkFile(tx, bucket, file); err != nil {
+		if err := checkFile(db.DB, bucket, file); err != nil {
 			return err
 		}
 	}
-
-	return tx.Commit()
+	return nil
 }
 
 // ForceCheckFilesHash 不检查上次校验日期，强制校验全部文件。
@@ -113,7 +112,8 @@ func (db *DB) ForceCheckFilesHash(bucket string) error {
 		}
 	}
 
-	return tx.Commit()
+	err = tx.Commit()
+	return err
 }
 
 func checkFile(tx TX, folder string, file *File) error {

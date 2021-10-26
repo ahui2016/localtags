@@ -36,7 +36,7 @@ func tempThumb(tempID string) string {
 	return filepath.Join(tempFolder, tempID+thumbSuffix)
 }
 func waitingFile(name string) string {
-	return filepath.Join(cfg.WaitingFolder, name)
+	return filepath.Join(db.Config.WaitingFolder, name)
 }
 func mainBucketFile(id string) string {
 	return filepath.Join(mainBucket, id)
@@ -45,7 +45,7 @@ func mainBucketThumb(id string) string {
 	return filepath.Join(thumbsFolder, id)
 }
 func getWaitingFiles() ([]string, error) {
-	pattern := filepath.Join(cfg.WaitingFolder, "*")
+	pattern := filepath.Join(db.Config.WaitingFolder, "*")
 	return filepath.Glob(pattern)
 }
 
@@ -109,7 +109,7 @@ func infoToFile(name string, meta map[string]*File) (
 	// 填充文件体积、文件名、文件类型
 	file = &File{Size: info.Size()}
 	file.SetNameType(info.Name())
-	if file.Size > cfg.FileSizeLimit {
+	if file.Size > db.Config.FileSizeLimit {
 		return nil, fmt.Errorf("file size over limit: [%s]", file.Name)
 	}
 
@@ -365,7 +365,7 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 	}
 	if ok {
 		bk := new(database.DB)
-		if err := bk.Open(bkPath, cfg); err != nil {
+		if err := bk.Open(bkPath, config.Config{}); err != nil {
 			return nil, err
 		}
 		bk.Close()

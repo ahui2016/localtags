@@ -63,7 +63,7 @@ const InfoArea = cc('div', null, [
   create_item('其中待校验文件', [
     m(FilesWaitingCheck),
     ' (个) ',
-    m(CheckNowBtn).attr({type:'button'}).addClass('btn btn-sm btn-outline-secondary').append([
+    m(CheckNowBtn).attr({type:'button',title:'执行一次限量检查'}).addClass('btn btn-sm btn-outline-secondary').append([
       'check now',
       m(CheckNowLoading).addClass('spinner-border spinner-border-sm')
         .attr({role:'status', 'aria-hidden':'true'}).hide(),

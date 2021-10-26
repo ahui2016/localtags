@@ -41,7 +41,7 @@ func main() {
 	api.GET("/get-db-info", databaseInfo)
 	api.GET("/get-config", getConfigHandler)
 	api.POST("/update-config", updateConfig)
-	api.GET("/force-check", forceCheckFiles)
+	api.GET("/force-check", forceCheckFiles) // 一般不使用该 api, 因为运行时间太长, 效率太低。
 	api.GET("/check-now", checkNow)
 	api.GET("/get-bk-buckets", getBackupBuckets)
 	api.POST("/add-bk-bucket", addBackupBucket)
@@ -88,5 +88,5 @@ func main() {
 	api.POST("/search-bk-damaged", searchBackupDamaged)
 
 	log.Print("localtags database path: ", dbPath)
-	e.Logger.Fatal(e.Start(cfg.Address))
+	e.Logger.Fatal(e.Start(db.Config.Address))
 }

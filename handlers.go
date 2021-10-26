@@ -31,7 +31,7 @@ func errorHandler(err error, c echo.Context) {
 }
 
 func getWaitingFolder(c echo.Context) error {
-	return c.JSON(OK, Text{cfg.WaitingFolder})
+	return c.JSON(OK, Text{db.Config.WaitingFolder})
 }
 
 func allFiles(c echo.Context) error {
@@ -397,7 +397,7 @@ func databaseInfo(c echo.Context) error {
 }
 
 func getConfigHandler(c echo.Context) error {
-	return c.JSON(OK, cfg)
+	return c.JSON(OK, db.Config)
 }
 
 func updateConfig(c echo.Context) error {
