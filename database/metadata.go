@@ -199,6 +199,11 @@ func (db *DB) DeleteBackupBucket(i int) error {
 	return saveBackupBuckets(db.DB, buckets)
 }
 
+func (db *DB) GetBackupFolder(i int) (string, error) {
+	buckets, err := getBackupBuckets(db.DB)
+	return buckets[i], err
+}
+
 // TotalSize 返回数据库的总体积，单位是 KB.
 func (db *DB) TotalSize() (int64, error) {
 	total, err := getInt1(db.DB, stmt.TotalSize)

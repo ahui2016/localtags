@@ -297,7 +297,7 @@ func searchBackupDamaged(c echo.Context) error {
 		return err
 	}
 
-	bkPath := filepath.Join(bkFolder, backupDBFileName)
+	bkPath := filepath.Join(bkFolder, bakDBFileName)
 	bk := new(database.DB)
 	if err := bk.OpenBackup(bkPath, db.Config); err != nil {
 		return err
@@ -436,11 +436,27 @@ func addBackupBucket(c echo.Context) error {
 }
 
 func deleteBackupBucket(c echo.Context) error {
-	index, err := getNumber(c, "index")
+	i, err := getNumber(c, "index")
 	if err != nil {
 		return err
 	}
-	return db.DeleteBackupBucket(index)
+	return db.DeleteBackupBucket(i)
+}
+
+func checkBackupNow(c echo.Context) error {
+	i, err := getNumber(c, "index")
+	if err != nil {
+		return err
+	}
+	bkFolder, err := db.GetBackupFolder(i)
+	if err != nil {
+		return err
+	}
+	info, err := checkBackupGetInfo(bkFolder, true)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, info)
 }
 
 func bucketsInfo(c echo.Context) error {

@@ -131,7 +131,7 @@ BucketList.prepend = (bucket, index) => {
           Alerts.clear();
           SubmitAlerts.insert('success', '成功获取备份仓库的状态信息');
 
-          const backup = create_bucket_info(Backup_Bucket, info['backup-bucket']);
+          const backup = create_bucket_info(Backup_Bucket, info, 'backup-bucket', index);
           $(BucketsInfo.id).prepend(m(backup));
           backup.init();
 
@@ -139,7 +139,7 @@ BucketList.prepend = (bucket, index) => {
             m('i').addClass('bi bi-arrow-down').css('font-size', '2rem')
           ));
 
-          const main = create_bucket_info(Main_Bucket, info['main-bucket']);
+          const main = create_bucket_info(Main_Bucket, info, 'main-bucket');
           $(BucketsInfo.id).prepend(m(main));
           main.init();
 
@@ -273,16 +273,18 @@ function init() {
       });
 }
 
-function create_bucket_info(name, info) {
+function create_bucket_info(name, infos, infoName, index) {
+  const info = infos[infoName];
   const lastBackup = info.LastBackup ? 
       dayjs.unix(info.LastBackup).format('MMMM D, YYYY') : 'not yet';
-  const lastChecked = info.LastChecked ? 
-      dayjs.unix(info.LastChecked).format('MMMM D, YYYY') : 'not yet';
 
   const Damaged = cc('span');
   const BucketInfo = cc('div');
   const SearchBackupDamagedBtn = cc ('button');
   const DeleteDamagedBtn = cc('button');
+  const FilesWaitingCheck = cc('span');
+  const CheckMoreBtn = cc('button');
+  const CheckMoreLoading = cc('span');
 
   BucketInfo.view = () => m('div').attr({id:BucketInfo.raw_id}).addClass('card').append([
     m('div').addClass('card-header').append([
@@ -292,9 +294,36 @@ function create_bucket_info(name, info) {
     ]),
     m('div').addClass('card-body').append([
       m('p').text('上次备份时间: ' + lastBackup),
-      m('p').text('上次校验时间: ' + lastChecked),
       m('p').text('占用空间: ' + fileSizeToString(info.TotalSize)),
       m('p').text('全部文件（个）: ' + info.AllFilesCount),
+      m('p').append([
+        '其中待校验文件（个）: ',
+        m(FilesWaitingCheck).text(info.FilesWaitingCheck),
+        ' ',
+        m(CheckMoreBtn).attr({type:'button',title:'执行一次限量检查'}).addClass('btn btn-sm btn-outline-secondary').append([
+          'check more',
+          m(CheckMoreLoading).addClass('spinner-border spinner-border-sm')
+            .attr({role:'status', 'aria-hidden':'true'}).hide(),
+        ]).click(() => {
+          SubmitAlerts.insert('info', '开始校验文件完整性......');
+          const longTime = window.setTimeout(() => {
+            SubmitAlerts.insert('info', '如果文件较多或U盘/硬盘速度慢，可能需要等待数分钟。');
+          }, 3000);
+          $(CheckMoreLoading.id).show();
+          disable(CheckMoreBtn.id);
+          const body = new FormData();
+          body.append('index', index);
+          ajax({method:'POST',url:'/api/check-bk-now',alerts:SubmitAlerts,body:body},
+              (resp) => {
+                $(FilesWaitingCheck.id).text(resp.FilesWaitingCheck);
+              }, null, () => {
+                // onAlways
+                window.clearTimeout(longTime);
+                enable(CheckMoreBtn.id);
+                $(CheckMoreLoading.id).hide();
+              });
+        }).hide(),
+      ]),
       m('p').append([
         '其中损坏文件（个）: ',
         m(Damaged).text(info.DamagedFilesCount), ' ',
@@ -325,6 +354,9 @@ function create_bucket_info(name, info) {
     BucketInfo.damaged = info.DamagedFilesCount;
     if (BucketInfo.damaged > 0) {
       $(Damaged.id).addClass('text-danger fw-bold');
+    }
+    if (infoName == 'backup-bucket' && info.FilesWaitingCheck > 0) {
+      $(CheckMoreBtn.id).show();
     }
   }
 

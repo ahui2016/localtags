@@ -46,6 +46,7 @@ func main() {
 	api.GET("/get-bk-buckets", getBackupBuckets)
 	api.POST("/add-bk-bucket", addBackupBucket)
 	api.POST("/delete-bk-bucket", deleteBackupBucket)
+	api.POST("/check-bk-now", checkBackupNow)
 	api.POST("/get-buckets-info", bucketsInfo)
 	api.POST("/sync-backup", syncBackup)
 	api.POST("/repair-files", repairFiles)

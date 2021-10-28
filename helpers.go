@@ -333,7 +333,7 @@ func checkBucketFolder(folder string) error {
 	}
 	// 如果文件夹内有文件，则检查有没有 backupDatabase
 	for _, file := range files {
-		if file.Name() == backupDBFileName {
+		if file.Name() == bakDBFileName {
 			return nil
 		}
 	}
@@ -358,7 +358,7 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 
 	// 如果找不到备份数据库文件，则说明这是一个空文件夹，是一个全新的备份仓库。
 	// 此时，生成一个新的备份仓库数据库文件，为后续的备份做准备。
-	bkPath := filepath.Join(bkFolder, backupDBFileName)
+	bkPath := filepath.Join(bkFolder, bakDBFileName)
 	ok, err := util.PathIsNotExist(bkPath)
 	if err != nil {
 		return nil, err
@@ -374,18 +374,8 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 	}
 
 	// 如果能找到备份数据库文件，则打开备份数据库。
-	bk := new(database.DB)
-	if err := bk.OpenBackup(bkPath, db.Config); err != nil {
-		return nil, err
-	}
-	defer bk.Close()
-
 	// 检查备份文件的完整性后获取备份仓库的状态信息。
-	bakBucket := filepath.Join(bkFolder, bakBucketName)
-	if err := bk.CheckFilesHash(bakBucket); err != nil {
-		return nil, err
-	}
-	info["backup-bucket"], err = bk.GetInfo()
+	info["backup-bucket"], err = checkBackupGetInfo(bkFolder, false)
 	if err != nil {
 		return nil, err
 	}
@@ -398,6 +388,23 @@ func getBucketsInfo(bkFolder string) (map[string]database.Info, error) {
 
 	// 最后返回主仓库与备份仓库的状态信息
 	return info, nil
+}
+
+func checkBackupGetInfo(bkFolder string, toCheck bool) (info database.Info, err error) {
+	bkPath := filepath.Join(bkFolder, bakDBFileName)
+	bk := new(database.DB)
+	if err = bk.OpenBackup(bkPath, db.Config); err != nil {
+		return
+	}
+	defer bk.Close()
+
+	if toCheck {
+		bakBucket := filepath.Join(bkFolder, bakBucketName)
+		if err = bk.CheckFilesHash(bakBucket); err != nil {
+			return
+		}
+	}
+	return bk.GetInfo()
 }
 
 func checkDiskUsage(bkFolder string, bkDB *database.DB) error {
@@ -419,7 +426,7 @@ func checkDiskUsage(bkFolder string, bkDB *database.DB) error {
 }
 
 func deleteDamagedFiles(bkFolder string) error {
-	bkPath := filepath.Join(bkFolder, backupDBFileName)
+	bkPath := filepath.Join(bkFolder, bakDBFileName)
 	bakBucket := filepath.Join(bkFolder, bakBucketName)
 	util.MustMkdir(bakBucket)
 
@@ -448,7 +455,7 @@ func deleteDamagedFiles(bkFolder string) error {
 // syncMainToBackup 同步主仓库与备份仓库，以主仓库为准单向同步，
 // 最终效果相当于清空备份仓库后把主仓库的全部文件复制到备份仓库。
 func syncMainToBackup(bkFolder string) error {
-	bkPath := filepath.Join(bkFolder, backupDBFileName)
+	bkPath := filepath.Join(bkFolder, bakDBFileName)
 	bakBucket := filepath.Join(bkFolder, bakBucketName)
 	util.MustMkdir(bakBucket)
 
@@ -523,7 +530,7 @@ func damagedIn2Buckets(db1, db2 *database.DB) (int64, error) {
 // 对于备份仓库中的损坏文件则尝试从主仓库中获取未损坏版本，如果一个文件在主仓库及备份仓库中都损坏了，
 // 则无法修复该文件，后续提醒用户手动修复。
 func repairDamagedFiles(bkFolder string) error {
-	bkPath := filepath.Join(bkFolder, backupDBFileName)
+	bkPath := filepath.Join(bkFolder, bakDBFileName)
 	bakBucket := filepath.Join(bkFolder, bakBucketName)
 	bk := new(database.DB)
 	if err := bk.OpenBackup(bkPath, db.Config); err != nil {

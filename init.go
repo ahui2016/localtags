@@ -18,7 +18,7 @@ const (
 )
 const (
 	dbFileName       = "localtags.db"
-	backupDBFileName = "localtags.bak.db"
+	bakDBFileName    = "localtags.bak.db"
 	mainBucketName   = "mainbucket"    // 主仓库文件夹名
 	bakBucketName    = "backup_bucket" // 备份仓库文件夹名
 	tempFolderName   = "temp"          // 临时文件夹
