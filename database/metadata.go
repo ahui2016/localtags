@@ -69,11 +69,8 @@ func initTextValue(key string, value string, tx TX) error {
 // 每次只校验有限的文件，避免校验耗时太长。
 func (db *DB) CheckFilesHash(bucket string) error {
 	const GB int64 = 1 << 30
-	limit := 1 * GB // 2021-10-26 把每次检查量进一步缩小（原本是 3GB, 2GB）
-	if limit < db.Config.FileSizeLimit {
-		// 防止无法校验大文件
-		limit = db.Config.FileSizeLimit + 1
-	}
+	// 防止无法校验大文件，随着文件体积上限自动调整每次校验量的上限。
+	limit := db.Config.FileSizeLimit + 1
 	var checkedSize int64 = 0
 
 	// 如果一个文件的上次校验日期小于(早于) needCheckDate, 那么这个文件就需要再次校验。
