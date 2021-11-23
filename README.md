@@ -3,7 +3,8 @@
 
 ## 重要更新
 
-- 2021-10-28 (impove: 改进了文件校验及修复了相关bug) [changelog.md](./docs/changelog.md)
+- 2021-11-23 (improve: 为了方便与其他本地程序互动，改成了允许跨域访问)
+- 2021-10-28 (improve: 改进了文件校验及修复了相关bug) [changelog.md](./docs/changelog.md)
 - 2021-05-25 (add: 标签预览) [Wiki: Tag Preview](https://github.com/ahui2016/localtags/wiki/Tag-Preview-(update:-2021-05-25))
 - 2021-05-18 (add: 替换文件) [Wiki: 同名文件(例子三)](https://github.com/ahui2016/localtags/wiki/Same-Name-Files)
 - 2021-05-14 (add: 快速创建 markdown 笔记) [changelog.md](./docs/changelog.md)
