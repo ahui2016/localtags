@@ -44,7 +44,7 @@ func (set *Set) Intersect(other *Set) *Set {
 	return result
 }
 
-// Slice convert the set to a string slice.
+// Slice converts the set to a string slice.
 func (set *Set) Slice() (arr []string) {
 	for key := range set.Map {
 		if set.Has(key) {

@@ -13,6 +13,7 @@ func main() {
 	e := echo.New()
 	e.HTTPErrorHandler = errorHandler
 	e.Use(middleware.CORS())
+	e.Use(jsFile)
 
 	e.Static("/public", "public")
 	e.Static("/temp", tempFolder)
